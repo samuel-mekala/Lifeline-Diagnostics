@@ -4,4 +4,4 @@ from django.http import HttpResponse
 # Create your views here.
 
 def home(request):
-    return HttpResponse("Welcome to Lifeline Diagnostics!")
+    return render(request, "accounts/home.html")
