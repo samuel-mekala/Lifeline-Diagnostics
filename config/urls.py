@@ -17,8 +17,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from common.views import HealthAPIView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("health/", HealthAPIView.as_view(), name="health"),
     path("", include("accounts.urls")),
     path("api/patients/", include("patients.urls")),
     path("api/visits/", include("visits.urls")),

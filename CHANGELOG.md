@@ -53,3 +53,35 @@
 ### Commit
 
 `b9169d4` — Sprint 11: Complete laboratory workflow and report validation
+
+## Sprint 12
+
+### Features
+
+- Implemented complete billing workflow.
+- Added invoice creation with duplicate invoice prevention.
+- Added laboratory test and package billing.
+- Added automatic subtotal, discount, total amount, and balance calculations.
+- Added invoice finalization workflow.
+- Added payment recording with partial and full payment support.
+- Added refund workflow with automatic invoice recalculation.
+- Added financial integrity validations.
+
+### Validation
+
+- Prevented duplicate invoice creation.
+- Prevented modification of finalized invoices.
+- Prevented payments on draft invoices.
+- Prevented overpayment.
+- Prevented discounts exceeding subtotal.
+- Enforced positive payment amounts.
+
+### Verification
+
+- `python manage.py check` ✅
+- `python manage.py test` ✅ (33 tests)
+- Manual API testing completed (15/15 scenarios).
+
+### Commit
+
+`4b3df56` — Sprint 12: Billing integrity workflow

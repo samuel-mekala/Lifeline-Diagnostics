@@ -10,22 +10,39 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
+
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+LOG_DIR = BASE_DIR / "logs"
+LOG_DIR.mkdir(exist_ok=True)
+
+
+def env_bool(name, default=False):
+    return os.getenv(name, str(default)).lower() in {"1", "true", "yes", "on"}
+
+
+def env_list(name, default=""):
+    return [value.strip() for value in os.getenv(name, default).split(",") if value.strip()]
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-f+q552pg049o%#5(l-=j$8w!j7$@+(@sx#iop!pecx=#c9ay!2'
+DEVELOPMENT_SECRET_KEY = "django-insecure-development-only-change-me"
+SECRET_KEY = os.getenv("SECRET_KEY", DEVELOPMENT_SECRET_KEY)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env_bool("DEBUG", True)
 
-ALLOWED_HOSTS = []
+if not DEBUG and SECRET_KEY == DEVELOPMENT_SECRET_KEY:
+    raise ImproperlyConfigured("SECRET_KEY must be set when DEBUG is False.")
+
+ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "localhost,127.0.0.1,testserver")
 
 
 # Application definition
@@ -90,12 +107,26 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+DB_ENGINE = os.getenv("DB_ENGINE", "django.db.backends.sqlite3")
+
+if DB_ENGINE == "django.db.backends.sqlite3":
+    DATABASES = {
+        "default": {
+            "ENGINE": DB_ENGINE,
+            "NAME": os.getenv("DB_NAME", str(BASE_DIR / "db.sqlite3")),
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": DB_ENGINE,
+            "NAME": os.getenv("DB_NAME", "lifeline_diagnostics"),
+            "USER": os.getenv("DB_USER", ""),
+            "PASSWORD": os.getenv("DB_PASSWORD", ""),
+            "HOST": os.getenv("DB_HOST", "localhost"),
+            "PORT": os.getenv("DB_PORT", "3306"),
+        }
+    }
 
 
 # Password validation
@@ -133,10 +164,29 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", False)
+SECURE_PROXY_SSL_HEADER = (
+    ("HTTP_X_FORWARDED_PROTO", "https")
+    if env_bool("SECURE_PROXY_SSL_HEADER", False)
+    else None
+)
+SESSION_COOKIE_SECURE = env_bool("SESSION_COOKIE_SECURE", not DEBUG)
+CSRF_COOKIE_SECURE = env_bool("CSRF_COOKIE_SECURE", not DEBUG)
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = os.getenv("X_FRAME_OPTIONS", "DENY")
+SECURE_REFERRER_POLICY = os.getenv("SECURE_REFERRER_POLICY", "same-origin")
+SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "0"))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool("SECURE_HSTS_INCLUDE_SUBDOMAINS", False)
+SECURE_HSTS_PRELOAD = env_bool("SECURE_HSTS_PRELOAD", False)
 
 AUTH_USER_MODEL = "accounts.User"
 
@@ -147,4 +197,51 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
     ),
+    "EXCEPTION_HANDLER": "common.exceptions.custom_exception_handler",
+}
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{asctime} {levelname} {name} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+        "file": {
+            "class": "logging.FileHandler",
+            "filename": LOG_DIR / "application.log",
+            "formatter": "verbose",
+        },
+        "error_file": {
+            "class": "logging.FileHandler",
+            "filename": LOG_DIR / "error.log",
+            "level": "ERROR",
+            "formatter": "verbose",
+        },
+        "warning_file": {
+            "class": "logging.FileHandler",
+            "filename": LOG_DIR / "warning.log",
+            "level": "WARNING",
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console", "file", "error_file", "warning_file"],
+            "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
+            "propagate": False,
+        },
+        "lifeline": {
+            "handlers": ["console", "file", "error_file", "warning_file"],
+            "level": os.getenv("LIFELINE_LOG_LEVEL", "INFO"),
+            "propagate": False,
+        },
+    },
 }

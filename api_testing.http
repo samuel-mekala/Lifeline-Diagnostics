@@ -1,5 +1,5 @@
 @baseUrl = http://127.0.0.1:8000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzg1MTQ0MTYyLCJpYXQiOjE3ODUxNDM4NjIsImp0aSI6IjE1MzU1NzEwY2U3OTQyZDRiODc5ZTFlNDA4OGMwYWQyIiwidXNlcl9pZCI6IjEiLCJlbWFpbCI6InNhbXVlbG1la2FsYTNAZ21haWwuY29tIiwiZnVsbF9uYW1lIjoiU2FtdWVsIE1la2FsYSIsInJvbGUiOiJPV05FUiJ9.IimshDvQEE05LMkkdiX1Z5UTh_tsXGea_mZK1qt_rR0
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzg1MTQ2NzM0LCJpYXQiOjE3ODUxNDY0MzQsImp0aSI6ImUxNGJiMGZhODYyNzQwNzg4NGRjMTQ4MWY0YTNlYTZjIiwidXNlcl9pZCI6IjEiLCJlbWFpbCI6InNhbXVlbG1la2FsYTNAZ21haWwuY29tIiwiZnVsbF9uYW1lIjoiU2FtdWVsIE1la2FsYSIsInJvbGUiOiJPV05FUiJ9.GIm21VNzlDD5ZV8v9uRknmUTLb3sxwju4zAArYSRLZ8
 
 # Login
 POST {{baseUrl}}/api/auth/token/
@@ -357,3 +357,51 @@ Content-Type: application/json
 
 POST {{baseUrl}}/api/billing/refund-payment/PAY000003/
 Authorization: Bearer {{token}}
+
+
+############################################################
+# Sprint 13 - Production Readiness
+############################################################
+
+###
+# 1. Health Check (PASS)
+# Expected:
+# 200 OK
+# {
+#   "status": "healthy",
+#   "database": "ok",
+#   "version": "1.0.0"
+# }
+
+GET {{baseUrl}}/health/
+
+###
+
+# 2. Unauthorized Request (PASS)
+# Expected:
+# 401 Unauthorized
+# Standardized error response
+
+GET {{baseUrl}}/api/patients/list/
+
+###
+
+# 3. Invalid Endpoint (PASS)
+# Expected:
+# 404 Not Found
+# Standardized error response
+
+GET {{baseUrl}}/api/this-endpoint-does-not-exist/
+
+###
+
+# 4. Validation Error (PASS)
+# Expected:
+# 400 Bad Request
+# Standardized error response
+
+POST {{baseUrl}}/api/patients/create/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{}

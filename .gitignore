@@ -25,3 +25,4 @@ staticfiles/
 
 # Python Cache
 *.log
+logs/*.log
