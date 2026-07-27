@@ -33,10 +33,16 @@ class CreateInvoiceAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        invoice = InvoiceService.create_invoice(
-            visit=visit,
-            **serializer.validated_data,
-        )
+        try:
+            invoice = InvoiceService.create_invoice(
+                visit=visit,
+                **serializer.validated_data,
+            )
+        except ValueError as exc:
+            return Response(
+                {"error": str(exc)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         return Response(
             InvoiceSerializer(invoice).data,
@@ -165,6 +171,26 @@ class ApplyDiscountAPIView(APIView):
             invoice=invoice,
             discount=serializer.validated_data["discount"],
         )
+
+        return Response(
+            InvoiceSerializer(invoice).data,
+            status=status.HTTP_200_OK,
+        )
+
+
+class FinalizeInvoiceAPIView(APIView):
+    permission_classes = [BillingPermission]
+
+    def post(self, request, invoice_id):
+        try:
+            invoice = Invoice.objects.get(invoice_id=invoice_id)
+        except Invoice.DoesNotExist:
+            return Response(
+                {"error": "Invoice not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        invoice = InvoiceService.finalize_invoice(invoice=invoice)
 
         return Response(
             InvoiceSerializer(invoice).data,

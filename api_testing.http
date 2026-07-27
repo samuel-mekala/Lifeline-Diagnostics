@@ -1,5 +1,5 @@
 @baseUrl = http://127.0.0.1:8000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzg1MTM3NzUyLCJpYXQiOjE3ODUxMzc0NTIsImp0aSI6IjI2NzY3Y2Q3MTIwMTRhM2ViNjQ5OWRmODE4NGRjMzcwIiwidXNlcl9pZCI6IjEiLCJlbWFpbCI6InNhbXVlbG1la2FsYTNAZ21haWwuY29tIiwiZnVsbF9uYW1lIjoiU2FtdWVsIE1la2FsYSIsInJvbGUiOiJPV05FUiJ9.PoyraO7HrORFDoLt57-5wPjNEAO4hC97kfZFGCEnSC0
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzg1MTQ0MTYyLCJpYXQiOjE3ODUxNDM4NjIsImp0aSI6IjE1MzU1NzEwY2U3OTQyZDRiODc5ZTFlNDA4OGMwYWQyIiwidXNlcl9pZCI6IjEiLCJlbWFpbCI6InNhbXVlbG1la2FsYTNAZ21haWwuY29tIiwiZnVsbF9uYW1lIjoiU2FtdWVsIE1la2FsYSIsInJvbGUiOiJPV05FUiJ9.IimshDvQEE05LMkkdiX1Z5UTh_tsXGea_mZK1qt_rR0
 
 # Login
 POST {{baseUrl}}/api/auth/token/
@@ -144,3 +144,216 @@ Content-Type: application/json
 {
   "remarks": "Approved by pathologist"
 }
+
+###
+# Download Report
+
+GET {{baseUrl}}/reports/VIS000001/download/
+Authorization: Bearer {{token}}
+
+
+
+############################################################
+# Sprint 12 - Billing Integrity (Updated)
+############################################################
+
+###
+# 1. Create Invoice (PASS)
+# Expected: 201 Created, status = DRAFT
+
+POST {{baseUrl}}/api/billing/create/VIS000003/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+###
+
+# 2. Add Test (PASS)
+# Expected: 200 OK, subtotal = 300.00
+
+POST {{baseUrl}}/api/billing/add-test/INV000003/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "test_id": "TES0001"
+}
+
+###
+
+# 3. Attempt Payment While Invoice is DRAFT (Should Fail)
+# Expected: 400 Bad Request
+
+POST {{baseUrl}}/api/billing/record-payment/INV000002/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "amount": "100.00",
+    "payment_method": "CASH"
+}
+
+###
+
+# 4. Finalize Invoice (PASS)
+# Expected: 200 OK
+# Status should become UNPAID
+
+POST {{baseUrl}}/api/billing/finalize/INV000002/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+###
+
+# 5. Partial Payment (PASS)
+# Expected:
+# amount_paid = 150.00
+# balance_due = 150.00
+# status remains UNPAID
+
+POST {{baseUrl}}/api/billing/record-payment/INV000002/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "amount": "100.00",
+    "payment_method": "CASH"
+}
+
+###
+
+# 6. Final Payment (PASS)
+# Expected:
+# amount_paid = 300.00
+# balance_due = 0.00
+# status = PAID
+
+POST {{baseUrl}}/api/billing/record-payment/INV000002/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "amount": "200.00",
+    "payment_method": "CASH"
+}
+
+###
+
+# 7. Extra Payment After Invoice is PAID (Should Fail)
+# Expected: 400 Bad Request
+
+POST {{baseUrl}}/api/billing/record-payment/INV000002/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "amount": "50.00",
+    "payment_method": "CASH"
+}
+
+###
+
+# 8. Zero Payment (Should Fail)
+# Expected: 400 Bad Request
+
+POST {{baseUrl}}/api/billing/record-payment/INV000002/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "amount": "0.00",
+    "payment_method": "CASH"
+}
+
+###
+
+# 9. Negative Payment (Should Fail)
+# Expected: 400 Bad Request
+
+POST {{baseUrl}}/api/billing/record-payment/INV000002/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "amount": "-100.00",
+    "payment_method": "CASH"
+}
+
+###
+
+# 10. Invalid Invoice (Should Fail)
+# Expected: 404 or 400
+
+POST {{baseUrl}}/api/billing/record-payment/INV999999/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "amount": "100.00",
+    "payment_method": "CASH"
+}
+
+###
+
+# 11. Apply Valid Discount (PASS)
+# Expected:
+# discount = 25.00
+# total_amount updated
+#
+# NOTE:
+# Run this on a NEW invoice (INV000002), because
+# INV000001 is already finalized/paid.
+
+PATCH {{baseUrl}}/api/billing/apply-discount/INV000003/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "discount": "50.00"
+}
+
+###
+
+# 12. Excessive Discount (Should Fail)
+# Expected: 400 Bad Request
+#
+# Run on NEW invoice (INV000002)
+
+PATCH {{baseUrl}}/api/billing/apply-discount/INV000003/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "discount": "500.00"
+}
+
+###
+
+# 13. Add Test to PAID Invoice (Should Fail)
+# Expected: 400 Bad Request
+
+POST {{baseUrl}}/api/billing/add-test/INV000002/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "test_id": "TES0001"
+}
+
+###
+
+# 14. Apply Discount to PAID Invoice (Should Fail)
+# Expected: 400 Bad Request
+
+POST {{baseUrl}}/api/billing/refund-payment/PAY000003/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+###
+
+# 15. Refund Payment (PASS)
+#
+# Replace PAYMENT_ID with the payment ID returned
+# from record-payment.
+
+POST {{baseUrl}}/api/billing/refund-payment/PAY000003/
+Authorization: Bearer {{token}}

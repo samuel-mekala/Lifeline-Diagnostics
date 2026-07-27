@@ -5,6 +5,7 @@ from billing.views import (
     AddTestAPIView,
     ApplyDiscountAPIView,
     CreateInvoiceAPIView,
+    FinalizeInvoiceAPIView,
     RecordPaymentAPIView,
     RefundPaymentAPIView,
     RemoveInvoiceItemAPIView,
@@ -35,6 +36,11 @@ urlpatterns = [
         "apply-discount/<str:invoice_id>/",
         ApplyDiscountAPIView.as_view(),
         name="apply-discount",
+    ),
+    path(
+        "finalize/<str:invoice_id>/",
+        FinalizeInvoiceAPIView.as_view(),
+        name="finalize-invoice",
     ),
     path(
         "record-payment/<str:invoice_id>/",

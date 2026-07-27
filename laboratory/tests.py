@@ -255,6 +255,13 @@ class LaboratoryBusinessWorkflowTests(TestCase):
         self.assertEqual(discount_response.status_code, 200)
         self.assertEqual(Decimal(discount_response.data["total_amount"]), Decimal("140.00"))
 
+        finalize_response = self.client.post(
+            f"/api/billing/finalize/{invoice_id}/",
+            format="json",
+        )
+        self.assertEqual(finalize_response.status_code, 200)
+        self.assertEqual(finalize_response.data["status"], Invoice.Status.UNPAID)
+
         payment_response = self.client.post(
             f"/api/billing/record-payment/{invoice_id}/",
             {"amount": "100.00", "payment_method": "UPI"},

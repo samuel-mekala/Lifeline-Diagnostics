@@ -1,13 +1,67 @@
 from decimal import Decimal
 from billing.models import Payment
 from django.db import transaction
+from rest_framework.exceptions import ValidationError
 
-from billing.models import Invoice
+from billing.models import Invoice, InvoiceItem
 from common.services.id_generator import generate_business_id
 from laboratory.models import PackagePrice, TestPrice
 
 
 class InvoiceService:
+
+    @staticmethod
+    def _ensure_editable(invoice):
+        print("DEBUG invoice:", invoice.invoice_id)
+        print("DEBUG status:", invoice.status)
+        if invoice.status != Invoice.Status.DRAFT:
+            raise ValidationError(
+                "Only draft invoices can have items or totals modified."
+            )
+
+    @staticmethod
+    def _validate_invoice_item_values(*, quantity, unit_price, discount):
+        if quantity <= 0:
+            raise ValidationError("Invoice item quantity must be greater than zero.")
+        if unit_price < Decimal("0.00"):
+            raise ValidationError("Invoice item unit price cannot be negative.")
+        if discount < Decimal("0.00"):
+            raise ValidationError("Invoice item discount cannot be negative.")
+
+        line_total = (unit_price * quantity) - discount
+        if line_total < Decimal("0.00"):
+            raise ValidationError("Invoice item total cannot be negative.")
+
+        return line_total
+
+    @staticmethod
+    def _create_invoice_item(
+        *,
+        invoice,
+        item_type,
+        item_id,
+        item_name,
+        quantity,
+        unit_price,
+        discount=Decimal("0.00"),
+    ):
+        InvoiceService._ensure_editable(invoice)
+        line_total = InvoiceService._validate_invoice_item_values(
+            quantity=quantity,
+            unit_price=unit_price,
+            discount=discount,
+        )
+
+        return InvoiceItem.objects.create(
+            invoice=invoice,
+            item_type=item_type,
+            item_id=item_id,
+            item_name=item_name,
+            quantity=quantity,
+            unit_price=unit_price,
+            discount=discount,
+            line_total=line_total,
+        )
 
     @staticmethod
     def _price_for_entry_mode(pricing, entry_mode):
@@ -33,6 +87,9 @@ class InvoiceService:
         payment_preference=Invoice.PaymentPreference.PAY_NOW,
         notes="",
     ):
+        if Invoice.objects.filter(visit=visit).exists():
+            raise ValueError("An invoice already exists for this visit.")
+
         return Invoice.objects.create(
             invoice_id=generate_business_id(
                 model=Invoice,
@@ -55,6 +112,7 @@ class InvoiceService:
         *,
         invoice,
         laboratory_test,
+        quantity=1,
     ):
         visit = invoice.visit
 
@@ -70,15 +128,13 @@ class InvoiceService:
             visit.entry_mode,
         )
 
-        InvoiceItem.objects.create(
+        InvoiceService._create_invoice_item(
             invoice=invoice,
             item_type=InvoiceItem.ItemType.TEST,
             item_id=laboratory_test.test_id,
             item_name=laboratory_test.name,
-            quantity=1,
+            quantity=quantity,
             unit_price=unit_price,
-            discount=Decimal("0.00"),
-            line_total=unit_price,
         )
 
         InvoiceService.calculate_totals(invoice)
@@ -91,6 +147,7 @@ class InvoiceService:
         *,
         invoice,
         package,
+        quantity=1,
     ):
         visit = invoice.visit
 
@@ -106,15 +163,13 @@ class InvoiceService:
             visit.entry_mode,
         )
 
-        InvoiceItem.objects.create(
+        InvoiceService._create_invoice_item(
             invoice=invoice,
             item_type=InvoiceItem.ItemType.PACKAGE,
             item_id=package.package_id,
             item_name=package.name,
-            quantity=1,
+            quantity=quantity,
             unit_price=unit_price,
-            discount=Decimal("0.00"),
-            line_total=unit_price,
         )
 
         InvoiceService.calculate_totals(invoice)
@@ -128,6 +183,7 @@ class InvoiceService:
         invoice_item,
     ):
         invoice = invoice_item.invoice
+        InvoiceService._ensure_editable(invoice)
 
         invoice_item.delete()
 
@@ -138,6 +194,8 @@ class InvoiceService:
     @staticmethod
     @transaction.atomic
     def calculate_totals(invoice):
+        InvoiceService._ensure_editable(invoice)
+
         subtotal = sum(
             (
                 item.line_total
@@ -146,10 +204,14 @@ class InvoiceService:
             Decimal("0.00"),
         )
 
-        total_amount = subtotal - invoice.discount
+        if subtotal < Decimal("0.00"):
+            raise ValidationError("Invoice subtotal cannot be negative.")
+        if invoice.discount < Decimal("0.00"):
+            raise ValidationError("Invoice discount cannot be negative.")
 
+        total_amount = subtotal - invoice.discount
         if total_amount < Decimal("0.00"):
-            total_amount = Decimal("0.00")
+            raise ValidationError("Invoice total cannot be negative.")
 
         balance_due = total_amount - invoice.amount_paid
 
@@ -177,6 +239,18 @@ class InvoiceService:
         invoice,
         discount,
     ):
+        InvoiceService._ensure_editable(invoice)
+
+        if discount < Decimal("0.00"):
+            raise ValidationError("Invoice discount cannot be negative.")
+
+        subtotal = sum(
+            (item.line_total for item in invoice.items.all()),
+            Decimal("0.00"),
+        )
+        if discount > subtotal:
+            raise ValidationError("Invoice discount cannot exceed the subtotal.")
+
         invoice.discount = discount
 
         InvoiceService.calculate_totals(invoice)
@@ -185,7 +259,23 @@ class InvoiceService:
 
     @staticmethod
     @transaction.atomic
+    def finalize_invoice(*, invoice):
+        if invoice.status != Invoice.Status.DRAFT:
+            raise ValidationError("Only draft invoices can be finalized.")
+        if not invoice.items.exists():
+            raise ValidationError("An invoice must have at least one item before finalization.")
+        if invoice.total_amount <= Decimal("0.00"):
+            raise ValidationError("An invoice total must be greater than zero before finalization.")
+
+        invoice.status = Invoice.Status.UNPAID
+        invoice.balance_due = invoice.total_amount
+        invoice.save(update_fields=["status", "balance_due", "updated_at"])
+        return invoice
+
+    @staticmethod
+    @transaction.atomic
     def cancel_invoice(invoice):
+        InvoiceService._ensure_editable(invoice)
         invoice.status = Invoice.Status.CANCELLED
 
         invoice.save(
@@ -208,6 +298,27 @@ class PaymentService:
         transaction_reference="",
         remarks="",
     ):
+        if not invoice or not invoice.pk:
+            raise ValidationError("A valid invoice is required to record a payment.")
+
+        invoice = Invoice.objects.select_for_update().get(pk=invoice.pk)
+
+        if amount <= Decimal("0.00"):
+            raise ValidationError("Payment amount must be greater than zero.")
+        if invoice.status == Invoice.Status.DRAFT:
+            raise ValidationError("Draft invoices cannot receive payments.")
+        if invoice.status == Invoice.Status.PAID:
+            raise ValidationError("Paid invoices cannot receive additional payments.")
+        if invoice.status not in {
+            Invoice.Status.UNPAID,
+            Invoice.Status.PARTIALLY_PAID,
+        }:
+            raise ValidationError("Payments can only be recorded for finalized invoices.")
+        if invoice.total_amount <= Decimal("0.00"):
+            raise ValidationError("Payments require an invoice with a positive total.")
+        if invoice.amount_paid + amount > invoice.total_amount:
+            raise ValidationError("Payment amount exceeds the outstanding balance.")
+
         payment = Payment.objects.create(
             payment_id=generate_business_id(
                 model=Payment,
