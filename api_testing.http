@@ -1,0 +1,146 @@
+@baseUrl = http://127.0.0.1:8000
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzg1MTM3NzUyLCJpYXQiOjE3ODUxMzc0NTIsImp0aSI6IjI2NzY3Y2Q3MTIwMTRhM2ViNjQ5OWRmODE4NGRjMzcwIiwidXNlcl9pZCI6IjEiLCJlbWFpbCI6InNhbXVlbG1la2FsYTNAZ21haWwuY29tIiwiZnVsbF9uYW1lIjoiU2FtdWVsIE1la2FsYSIsInJvbGUiOiJPV05FUiJ9.PoyraO7HrORFDoLt57-5wPjNEAO4hC97kfZFGCEnSC0
+
+# Login
+POST {{baseUrl}}/api/auth/token/
+Content-Type: application/json
+
+{
+    "email": "samuelmekala3@gmail.com",
+    "password": "Samuel@264"
+}
+
+###
+# List Visits
+
+GET {{baseUrl}}/api/visits/list/
+Authorization: Bearer {{token}}
+
+###
+# Pending Ordered Tests
+
+GET {{baseUrl}}/api/laboratory/ordered-tests/pending/
+Authorization: Bearer {{token}}
+
+###
+# Create Sample
+
+POST {{baseUrl}}/api/laboratory/samples/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "visit_id": "VIS000001",
+  "sample_type": "BLOOD",
+  "remarks": "Sprint 11 API Test"
+}
+
+###
+# Assign Sample to Ordered Test
+
+POST {{baseUrl}}/api/laboratory/ordered-tests/ORD000001/assign-sample/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "sample_id": "SAM000004"
+}
+
+###
+# Create Result
+
+POST {{baseUrl}}/api/laboratory/results/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "order_id": "ORD000001",
+  "sample_id": "SAM000004"
+}
+
+###
+# Update Hemoglobin
+
+PATCH {{baseUrl}}/api/laboratory/results/RES000003/parameters/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "parameter_id": "PAR000001",
+  "value": "14.5",
+  "remarks": "Normal"
+}
+
+###
+# Update RBC
+
+PATCH {{baseUrl}}/api/laboratory/results/RES000003/parameters/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "parameter_id": "PAR000002",
+  "value": "5.1",
+  "remarks": "Normal"
+}
+
+###
+# Update WBC
+
+PATCH {{baseUrl}}/api/laboratory/results/RES000003/parameters/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "parameter_id": "PAR000003",
+  "value": "7500",
+  "remarks": "Normal"
+}
+
+###
+# Update Platelets
+
+PATCH {{baseUrl}}/api/laboratory/results/RES000003/parameters/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "parameter_id": "PAR000004",
+  "value": "250000",
+  "remarks": "Normal"
+}
+
+###
+# Update Hematocrit
+
+PATCH {{baseUrl}}/api/laboratory/results/RES000003/parameters/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "parameter_id": "PAR000005",
+  "value": "43",
+  "remarks": "Normal"
+}
+
+###
+# Submit Result
+
+POST {{baseUrl}}/api/laboratory/results/RES000003/submit/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "remarks": "Reviewed by technician"
+}
+
+###
+# Approve Result
+
+POST {{baseUrl}}/api/laboratory/results/RES000003/approve/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "remarks": "Approved by pathologist"
+}

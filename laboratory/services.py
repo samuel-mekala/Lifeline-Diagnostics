@@ -87,10 +87,15 @@ class OrderedTestService:
         except Sample.DoesNotExist as exc:
             raise ValueError("Sample not found.") from exc
 
-        if sample.visit_id != ordered_test.visit_id:
+        if ordered_test.status != "PENDING":
             raise ValueError(
-                "Sample and ordered test must belong to the same visit."
+                "Samples can only be assigned to pending ordered tests."
             )
+
+        SampleService.prepare_for_assignment(
+            sample=sample,
+            ordered_test=ordered_test,
+        )
 
         ordered_test.sample = sample
         ordered_test.status = "SAMPLE_COLLECTED"
@@ -105,6 +110,11 @@ class OrderedTestService:
 
 
 class SampleService:
+
+    PENDING = "PENDING"
+    COLLECTED = "COLLECTED"
+    REJECTED = "REJECTED"
+
 
     @staticmethod
     @transaction.atomic
@@ -133,11 +143,67 @@ class SampleService:
 
     @staticmethod
     @transaction.atomic
+    def collect_sample(*, sample):
+        if sample.status != SampleService.PENDING:
+            raise ValueError("Only pending samples can be collected.")
+
+        sample.status = SampleService.COLLECTED
+        sample.collected_at = timezone.now()
+        sample.save(update_fields=["status", "collected_at"])
+        return sample
+
+    @staticmethod
+    @transaction.atomic
+    def reject_sample(*, sample):
+        if sample.status not in {
+            SampleService.PENDING,
+            SampleService.COLLECTED,
+        }:
+            raise ValueError("Rejected samples cannot change status.")
+
+        sample.status = SampleService.REJECTED
+        sample.save(update_fields=["status"])
+        return sample
+
+    @staticmethod
+    def validate_compatibility(*, sample, ordered_test):
+        if sample.visit_id != ordered_test.visit_id:
+            raise ValueError(
+                "Sample and ordered test must belong to the same visit."
+            )
+
+        if sample.sample_type != ordered_test.laboratory_test.sample_type:
+            raise ValueError(
+                "Sample type does not match the ordered test requirement."
+            )
+
+    @staticmethod
+    @transaction.atomic
+    def prepare_for_assignment(*, sample, ordered_test):
+        SampleService.validate_compatibility(
+            sample=sample,
+            ordered_test=ordered_test,
+        )
+
+        if sample.status == SampleService.PENDING:
+            SampleService.collect_sample(sample=sample)
+        elif sample.status != SampleService.COLLECTED:
+            raise ValueError("Only collected samples can be assigned to ordered tests.")
+
+        return sample
+
+    @staticmethod
+    @transaction.atomic
     def update_sample(
         *,
         sample,
         **kwargs,
     ):
+        if "status" in kwargs or "collected_at" in kwargs:
+            raise ValueError(
+                "Use the sample lifecycle service methods to change sample status."
+            )
+
         for field, value in kwargs.items():
             setattr(sample, field, value)
 
@@ -212,6 +278,21 @@ class ResultService:
         if ordered_test.sample is None:
             raise ValueError(
                 "Sample has not been assigned."
+            )
+
+        if ordered_test.status != "SAMPLE_COLLECTED":
+            raise ValueError(
+                "A result can only be created after sample collection."
+            )
+
+        SampleService.validate_compatibility(
+            sample=ordered_test.sample,
+            ordered_test=ordered_test,
+        )
+
+        if ordered_test.sample.status != SampleService.COLLECTED:
+            raise ValueError(
+                "A result can only be created from a collected sample."
             )
 
         result = Result.objects.create(

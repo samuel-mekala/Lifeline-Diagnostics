@@ -1,6 +1,8 @@
 from django.http import HttpResponse
 
+from rest_framework import status
 from rest_framework.exceptions import NotFound
+from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.permissions import PathologistPermission
@@ -18,9 +20,12 @@ class DownloadReportAPIView(APIView):
         except Visit.DoesNotExist as exc:
             raise NotFound("Visit not found.") from exc
 
-        report_data = ReportService.get_report_data(
-            visit,
-        )
+        try:
+            report_data = ReportService.get_report_data(
+                visit,
+            )
+        except ValueError as exc:
+            return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
         include_header = (
             request.GET.get("plain") != "true"

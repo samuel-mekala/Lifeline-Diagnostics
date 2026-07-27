@@ -15,9 +15,11 @@ from laboratory.models import (
 )
 from laboratory.services import (
     LaboratoryTestService,
+    OrderedTestService,
     ResultApprovalService,
     ResultEntryService,
     ResultService,
+    SampleService,
     TestParameterService,
 )
 from patients.models import Patient
@@ -318,7 +320,10 @@ class ResultWorkflowServiceTests(TestCase):
             order_id="ORD-SERVICE-1",
             visit=visit,
             laboratory_test=laboratory_test,
-            sample=sample,
+        )
+        OrderedTestService.assign_sample(
+            order_id=ordered_test.order_id,
+            sample_id=sample.sample_id,
         )
         self.result = ResultService.create_result(order_id=ordered_test.order_id)
         self.result_parameter = self.result.parameters.get()
@@ -371,3 +376,99 @@ class ResultWorkflowServiceTests(TestCase):
                 result_parameter=self.result_parameter,
                 value="102",
             )
+
+
+class SampleWorkflowServiceTests(TestCase):
+    def setUp(self):
+        self.laboratory_test = LaboratoryTestService.create_test(
+            name="Sample Workflow Test",
+            category="BIOCHEMISTRY",
+            sample_type="BLOOD",
+        )
+        patient = Patient.objects.create(
+            patient_id="PAT-SAMPLE-1",
+            full_name="Sample Patient",
+            date_of_birth=date(1990, 1, 1),
+            gender="M",
+            phone="9888888888",
+            address="Sample test address",
+        )
+        self.visit = Visit.objects.create(
+            visit_id="VIS-SAMPLE-1",
+            patient=patient,
+        )
+        self.sample = Sample.objects.create(
+            sample_id="SAM-SAMPLE-1",
+            visit=self.visit,
+            sample_type="BLOOD",
+        )
+        self.ordered_test = OrderedTest.objects.create(
+            order_id="ORD-SAMPLE-1",
+            visit=self.visit,
+            laboratory_test=self.laboratory_test,
+        )
+
+    def test_assigning_a_pending_sample_collects_it_and_prevents_reassignment(self):
+        assigned_ordered_test = OrderedTestService.assign_sample(
+            order_id=self.ordered_test.order_id,
+            sample_id=self.sample.sample_id,
+        )
+        self.sample.refresh_from_db()
+
+        self.assertEqual(self.sample.status, SampleService.COLLECTED)
+        self.assertEqual(assigned_ordered_test.status, "SAMPLE_COLLECTED")
+
+        with self.assertRaisesMessage(
+            ValueError,
+            "Samples can only be assigned to pending ordered tests.",
+        ):
+            OrderedTestService.assign_sample(
+                order_id=self.ordered_test.order_id,
+                sample_id=self.sample.sample_id,
+            )
+
+    def test_rejected_sample_cannot_transition_or_be_assigned(self):
+        rejected_sample = SampleService.reject_sample(sample=self.sample)
+
+        with self.assertRaisesMessage(
+            ValueError,
+            "Only pending samples can be collected.",
+        ):
+            SampleService.collect_sample(sample=rejected_sample)
+        with self.assertRaisesMessage(
+            ValueError,
+            "Only collected samples can be assigned to ordered tests.",
+        ):
+            OrderedTestService.assign_sample(
+                order_id=self.ordered_test.order_id,
+                sample_id=rejected_sample.sample_id,
+            )
+
+    def test_generic_sample_updates_cannot_bypass_lifecycle_transitions(self):
+        with self.assertRaisesMessage(
+            ValueError,
+            "Use the sample lifecycle service methods to change sample status.",
+        ):
+            SampleService.update_sample(
+                sample=self.sample,
+                status=SampleService.COLLECTED,
+            )
+
+    def test_sample_type_must_match_the_ordered_test(self):
+        urine_sample = Sample.objects.create(
+            sample_id="SAM-SAMPLE-2",
+            visit=self.visit,
+            sample_type="URINE",
+        )
+
+        with self.assertRaisesMessage(
+            ValueError,
+            "Sample type does not match the ordered test requirement.",
+        ):
+            OrderedTestService.assign_sample(
+                order_id=self.ordered_test.order_id,
+                sample_id=urine_sample.sample_id,
+            )
+
+        urine_sample.refresh_from_db()
+        self.assertEqual(urine_sample.status, SampleService.PENDING)

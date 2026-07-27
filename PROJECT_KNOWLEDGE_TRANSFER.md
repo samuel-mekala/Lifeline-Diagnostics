@@ -1,68 +1,93 @@
-Lifeline Diagnostics - Knowledge Transfer
-Project Overview
+# Lifeline Diagnostics — Knowledge Transfer v2
 
-This is a Django REST Framework based Laboratory Information Management System (LIMS) for diagnostic laboratories.
+> Read `CODING_RULES.md` before making any code changes.
 
-Architecture follows:
+# Project Overview
+
+Production-grade Laboratory Information Management System (LIMS)
+
+Built using:
+
+- Python
+- Django
+- Django REST Framework
+- SQLite (Development)
+- MySQL (Production)
+- ReportLab
+
+---
+
+# Architecture
 
 APIView
-    ↓
+
+↓
+
 Serializer
-    ↓
+
+↓
+
 Service Layer
-    ↓
+
+↓
+
 Models
-    ↓
+
+↓
+
 Database
 
-Business logic must remain inside the Service layer.
+Business logic belongs ONLY inside the Service Layer.
 
-Tech Stack
-Python
-Django
-Django REST Framework
-MySQL (Production)
-SQLite (Development)
-ReportLab (PDF Reports)
-Modules
+Views remain thin.
 
-Completed modules:
+Serializers validate input only.
 
-Accounts
-Patients
-Visits
-Laboratory
-Billing
-Reports
+---
 
-Future modules:
+# Workflow
 
-Inventory
-Notifications
-Dashboard
-Analytics
-Settings
-Workflow
 Patient
-    ↓
+
+↓
+
 Visit
-    ↓
+
+↓
+
 Sample
-    ↓
+
+↓
+
 Ordered Test
-    ↓
+
+↓
+
 Result Entry
-    ↓
+
+↓
+
 Submit
-    ↓
+
+↓
+
 Approve
-    ↓
+
+↓
+
 Generate Report
-    ↓
+
+↓
+
 Invoice
-    ↓
+
+↓
+
 Payment
-ID System
+
+---
+
+# Business IDs
 
 Internal Primary Keys
 
@@ -71,92 +96,107 @@ UUID
 Business IDs
 
 PAT
+
 VIS
+
 SAM
+
 ORD
+
 RES
+
 REP
+
 INV
+
 PAY
-Entry Modes
 
-Visit supports
+---
 
-WALK_IN
-HOME_COLLECTION
-ONLINE
-DOCTOR_REFERRAL
-
-Billing price depends on entry mode.
-
-Project Principles
-Never put business logic inside Views.
-Business logic belongs inside Services.
-Views should remain thin.
-Serializers validate input.
-Services implement workflows.
-Keep APIs backward compatible whenever possible.
-Current Status
+# Current Modules
 
 Completed
 
-Patient Management
-Visit Management
-Laboratory Workflow
-Billing
-PDF Reports
-End-to-End Workflow
+- Accounts
+- Patients
+- Visits
+- Laboratory
+- Billing
+- Reports
 
-Tests currently pass.
+Future
 
-python manage.py check
-python manage.py test
-Git
+- Inventory
+- Notifications
+- Dashboard
+- Analytics
+- Settings
 
-Repository already initialized.
+---
 
-Current branch
+# Development Philosophy
 
-main
+- Business logic belongs inside Services.
+- Views remain thin.
+- Serializers validate only.
+- Keep APIs backward compatible.
+- Never rewrite working modules.
+- Keep commits small and focused.
+- Production-ready code only.
 
-Latest stable commit has been pushed to GitHub.
+---
 
-Current Development Phase
+# Current Development Phase
 
-The project is now in Production Hardening.
+Production Hardening
 
-We are NOT building major new features.
+---
 
-We are fixing security, integrity and production issues.
+# Locked Sprint Roadmap
 
-Code Review Findings
+## ✅ Sprint 10.1
 
-We already have a review report.
+Security & Authentication
 
-We will implement fixes sprint-by-sprint.
+Completed:
 
-Do NOT attempt to fix everything at once.
+- JWT Authentication
+- Role-Based Authorization
+- Protected APIs
+- Permission Classes
 
-Locked Sprint Roadmap
+---
 
-Sprint 10.1
-
-Authentication
-
-JWT
-Role-based permissions
-Protect APIs
-
-Sprint 10.2
+## ✅ Sprint 10.2
 
 Result Integrity
 
-Immutable approved results
-Approval workflow
+Completed:
+
+- Result Workflow
+- Result Immutability
+- Approval Workflow
+- Approval Timestamp
+- Workflow Validation
+
+---
+
+## ▶ Current Sprint
 
 Sprint 11
 
-Laboratory Workflow
+Laboratory Workflow Corrections
+
+Scope:
+
+- Sample Lifecycle
+- Sample Type Validation
+- Report Completeness
+- Package Workflow
+
+---
+
+## Future Roadmap
 
 Sprint 12
 
@@ -168,7 +208,7 @@ Production Readiness
 
 Sprint 14
 
-Validation & Tests
+Validation & Testing
 
 Sprint 15
 
@@ -180,51 +220,78 @@ Documentation
 
 Sprint 17
 
-Frontend
+Frontend Integration
 
 Sprint 18
 
 Deployment
 
-Development Rules
+---
 
-Before every completion:
+# Testing Rules
 
-Run
+Before completing every sprint:
 
 python manage.py check
 
-Run
-
 python manage.py test
 
-Fix all failing tests.
+Manual API Testing
 
-Only then finish the sprint.
+Only then:
 
-Do not modify unrelated code.
+Commit
 
-Do not introduce breaking API changes.
+Push
 
-Keep commits focused on a single sprint.
+Update Documentation
 
-Coding Standards
-Follow existing architecture.
-Reuse existing services.
-Do not duplicate business logic.
-Keep code production-ready.
-Write tests for every new feature or fix.
-Prefer readability over cleverness.
-Current Sprint
+---
 
-Sprint 10.1
+# Git Workflow
 
-Implement ONLY:
+One Sprint
 
-JWT Authentication
-Role-based Authorization
-Protected APIs
-Permission Classes
+↓
+
+Codex
+
+↓
+
+ChatGPT Review
+
+↓
+
+Fix
+
+↓
+
 Tests
 
-Do not work on other review items until Sprint 10.1 is complete.
+↓
+
+Manual API Testing
+
+↓
+
+Commit
+
+↓
+
+Push
+
+↓
+
+Update PROJECT_STATE.md
+
+↓
+
+Update PROJECT_KNOWLEDGE_TRANSFER.md
+
+---
+
+# Current Stable Commit
+
+f3ecf04
+
+feat(laboratory): implement result workflow with state transitions
