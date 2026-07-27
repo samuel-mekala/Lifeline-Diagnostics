@@ -8,6 +8,12 @@ from patients.models import Patient
 
 
 class Visit(models.Model):
+    class EntryMode(models.TextChoices):
+        WALK_IN = "WALK_IN", "Walk In"
+        HOME_COLLECTION = "HOME_COLLECTION", "Home Collection"
+        ONLINE = "ONLINE", "Online"
+        DOCTOR_REFERRAL = "DOCTOR_REFERRAL", "Doctor Referral"
+
     STATUS_CHOICES = [
         ("REGISTERED", "Registered"),
         ("SAMPLE_COLLECTED", "Sample Collected"),
@@ -31,6 +37,12 @@ class Visit(models.Model):
         Patient,
         on_delete=models.CASCADE,
         related_name="visits",
+    )
+
+    entry_mode = models.CharField(
+        max_length=20,
+        choices=EntryMode.choices,
+        default=EntryMode.WALK_IN,
     )
 
     status = models.CharField(

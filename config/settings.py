@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     "settings_app",
     "chatbot",
     "common",
+    "rest_framework",
+
 
     # Django Apps
     'django.contrib.admin',

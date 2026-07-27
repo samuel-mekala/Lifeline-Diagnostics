@@ -1,17 +1,18 @@
 from django.contrib import admin
-
-from common.services.id_generator import generate_business_id
-
+from common.admin import BusinessIDAdmin
 from .models import Visit
 
 # Register your models here.
 
 @admin.register(Visit)
-class VisitAdmin(admin.ModelAdmin):
+class VisitAdmin(BusinessIDAdmin):
+    business_id_field = "visit_id"
+    business_id_prefix = "VIS"
     exclude = ("visit_id",)
 
     list_display = (
         "visit_id",
+        "id",
         "patient",
         "status",
         "created_at",
@@ -29,13 +30,3 @@ class VisitAdmin(admin.ModelAdmin):
     )
 
     ordering = ("-created_at",)
-
-    def save_model(self, request, obj, form, change):
-        if not obj.visit_id:
-            obj.visit_id = generate_business_id(
-                model=Visit,
-                field="visit_id",
-                prefix="VIS",
-            )
-
-        super().save_model(request, obj, form, change)

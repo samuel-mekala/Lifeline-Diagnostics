@@ -1,13 +1,14 @@
-from common.services.id_generator import generate_business_id
 from django.contrib import admin
-
+from common.admin import BusinessIDAdmin
 from .models import Patient
 
 # Register your models here.
 
 
 @admin.register(Patient)
-class PatientAdmin(admin.ModelAdmin):
+class PatientAdmin(BusinessIDAdmin):
+    business_id_field = "patient_id"
+    business_id_prefix = "PAT"
     exclude = ("patient_id",)
     list_display = (
         "patient_id",
@@ -29,13 +30,3 @@ class PatientAdmin(admin.ModelAdmin):
     )
 
     ordering = ("patient_id",)
-
-    def save_model(self, request, obj, form, change):
-        if not obj.patient_id:
-            obj.patient_id = generate_business_id(
-                model=Patient,
-                field="patient_id",
-                prefix="PAT",
-            )
-
-        super().save_model(request, obj, form, change)
