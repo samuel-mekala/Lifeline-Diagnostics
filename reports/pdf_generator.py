@@ -1,5 +1,6 @@
 from io import BytesIO
 from pathlib import Path
+from xml.sax.saxutils import escape
 BASE_DIR = Path(__file__).resolve().parent
 
 LETTERHEAD = BASE_DIR / "assets" / "letterhead.pdf"
@@ -63,7 +64,34 @@ class ReportPDFGenerator:
     BLUE = colors.HexColor("#1F4E79")
 
     @staticmethod
+    def _text(value, default="-"):
+        return escape(str(value if value not in (None, "") else default))
+
+    @staticmethod
+    def validate_report_data(report_data):
+        required_keys = {"patient", "visit", "report", "results"}
+        if not isinstance(report_data, dict):
+            raise ValueError("Report data must be a dictionary.")
+
+        missing_keys = required_keys.difference(report_data)
+        if missing_keys:
+            raise ValueError(
+                "Report data is missing required fields: "
+                + ", ".join(sorted(missing_keys))
+                + "."
+            )
+
+        results = list(report_data["results"])
+        if not results:
+            raise ValueError("Cannot generate a PDF without approved results.")
+        if any(result.status != "APPROVED" for result in results):
+            raise ValueError("Cannot generate a PDF with unapproved results.")
+
+        return results
+
+    @staticmethod
     def generate(report_data, include_header=True):
+        results = ReportPDFGenerator.validate_report_data(report_data)
 
         buffer = BytesIO()
 
@@ -83,7 +111,6 @@ class ReportPDFGenerator:
         patient = report_data["patient"]
         visit = report_data["visit"]
         report = report_data["report"]
-        results = report_data["results"]
 
         if not include_header:
             ReportPDFGenerator.build_title(
@@ -227,18 +254,18 @@ class ReportPDFGenerator:
 
             [
                 Paragraph("<b>Patient Name</b>", styles["Label"]),
-                Paragraph(patient.full_name or "-", styles["Value"]),
+                Paragraph(ReportPDFGenerator._text(patient.full_name), styles["Value"]),
 
                 Paragraph("<b>Report ID</b>", styles["Label"]),
-                Paragraph(report.report_id or "-", styles["Value"]),
+                Paragraph(ReportPDFGenerator._text(report.report_id), styles["Value"]),
             ],
 
             [
                 Paragraph("<b>Patient ID</b>", styles["Label"]),
-                Paragraph(patient.patient_id or "-", styles["Value"]),
+                Paragraph(ReportPDFGenerator._text(patient.patient_id), styles["Value"]),
 
                 Paragraph("<b>Visit ID</b>", styles["Label"]),
-                Paragraph(visit.visit_id or "-", styles["Value"]),
+                Paragraph(ReportPDFGenerator._text(visit.visit_id), styles["Value"]),
             ],
 
             [
@@ -249,21 +276,21 @@ class ReportPDFGenerator:
                 ),
 
                 Paragraph("<b>Generated On</b>", styles["Label"]),
-                Paragraph(generated_at, styles["Value"]),
+                Paragraph(ReportPDFGenerator._text(generated_at), styles["Value"]),
             ],
 
             [
                 Paragraph("<b>Phone</b>", styles["Label"]),
-                Paragraph(patient.phone or "-", styles["Value"]),
+                Paragraph(ReportPDFGenerator._text(patient.phone), styles["Value"]),
 
                 Paragraph("<b>Status</b>", styles["Label"]),
-                Paragraph(status, styles["Value"]),
+                Paragraph(ReportPDFGenerator._text(status), styles["Value"]),
             ],
 
             [
                 Paragraph("<b>Address</b>", styles["Label"]),
                 Paragraph(
-                    patient.address or "-",
+                    ReportPDFGenerator._text(patient.address),
                     styles["Value"],
                 ),
 
@@ -347,7 +374,7 @@ class ReportPDFGenerator:
             banner = Table(
                 [[
                     Paragraph(
-                        f"<b>{result.ordered_test.laboratory_test.name.upper()}</b>",
+                        f"<b>{ReportPDFGenerator._text(result.ordered_test.laboratory_test.name.upper())}</b>",
                         styles["DepartmentTitle"],
                     )
                 ]],
@@ -411,30 +438,24 @@ class ReportPDFGenerator:
 
             value = parameter.display_value
 
-            if parameter.flag == parameter.Flag.HIGH:
-                value = f"{value} ↑"
-
-            elif parameter.flag == parameter.Flag.LOW:
-                value = f"{value} ↓"
-
             rows.append(
                 [
                     Paragraph(
-                        parameter.test_parameter.name,
+                        ReportPDFGenerator._text(parameter.test_parameter.name),
                         getSampleStyleSheet()["BodyText"],
                     ),
                     Paragraph(
-                        f"<b>{value}</b>"
+                        f"<b>{ReportPDFGenerator._text(value)}</b>"
                         if parameter.flag
                         else str(value),
                         getSampleStyleSheet()["BodyText"],
                     ),
                     Paragraph(
-                        parameter.test_parameter.unit or "-",
+                        ReportPDFGenerator._text(parameter.test_parameter.unit),
                         getSampleStyleSheet()["BodyText"],
                     ),
                     Paragraph(
-                        parameter.reference_range or "-",
+                        ReportPDFGenerator._text(parameter.reference_range),
                         getSampleStyleSheet()["BodyText"],
                     ),
                 ]

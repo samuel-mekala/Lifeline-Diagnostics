@@ -12,8 +12,6 @@ class InvoiceService:
 
     @staticmethod
     def _ensure_editable(invoice):
-        print("DEBUG invoice:", invoice.invoice_id)
-        print("DEBUG status:", invoice.status)
         if invoice.status != Invoice.Status.DRAFT:
             raise ValidationError(
                 "Only draft invoices can have items or totals modified."

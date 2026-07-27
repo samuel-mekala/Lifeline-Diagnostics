@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.permissions import VisitPermission
+from common.pagination import OptionalPageNumberPagination
 from patients.models import Patient
 from visits.models import Visit
 from visits.serializers import (
@@ -120,12 +121,17 @@ class VisitListAPIView(APIView):
             "patient"
         ).order_by("-created_at")
 
-        serializer = VisitSerializer(
-            visits,
-            many=True,
-        )
+        return self.paginated_response(request, visits)
 
-        return Response(serializer.data)
+    @staticmethod
+    def paginated_response(request, visits):
+        paginator = OptionalPageNumberPagination()
+        page = paginator.paginate_queryset(visits, request)
+        if page is not None:
+            return paginator.get_paginated_response(
+                VisitSerializer(page, many=True).data
+            )
+        return Response(VisitSerializer(visits, many=True).data)
 
 
 class VisitSearchAPIView(APIView):
@@ -140,9 +146,4 @@ class VisitSearchAPIView(APIView):
             | Q(patient__full_name__icontains=query)
         ).order_by("-created_at")
 
-        serializer = VisitSerializer(
-            visits,
-            many=True,
-        )
-
-        return Response(serializer.data)
+        return VisitListAPIView.paginated_response(request, visits)

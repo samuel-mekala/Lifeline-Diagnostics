@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.permissions import PatientPermission
+from common.pagination import OptionalPageNumberPagination
 from patients.models import Patient
 from patients.serializers import (
     CreatePatientSerializer,
@@ -81,12 +82,17 @@ class PatientListAPIView(APIView):
     def get(self, request):
         patients = Patient.objects.all().order_by("-registered_on")
 
-        serializer = PatientSerializer(
-            patients,
-            many=True,
-        )
+        return self.paginated_response(request, patients)
 
-        return Response(serializer.data)
+    @staticmethod
+    def paginated_response(request, patients):
+        paginator = OptionalPageNumberPagination()
+        page = paginator.paginate_queryset(patients, request)
+        if page is not None:
+            return paginator.get_paginated_response(
+                PatientSerializer(page, many=True).data
+            )
+        return Response(PatientSerializer(patients, many=True).data)
 
 
 class PatientSearchAPIView(APIView):
@@ -101,9 +107,4 @@ class PatientSearchAPIView(APIView):
             | Q(phone__icontains=query)
         ).order_by("-registered_on")
 
-        serializer = PatientSerializer(
-            patients,
-            many=True,
-        )
-
-        return Response(serializer.data)
+        return PatientListAPIView.paginated_response(request, patients)

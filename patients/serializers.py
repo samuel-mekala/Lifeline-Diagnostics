@@ -1,9 +1,17 @@
 from rest_framework import serializers
+from django.utils import timezone
 
 from patients.models import Patient
 
 
-class CreatePatientSerializer(serializers.Serializer):
+class PatientDateOfBirthValidationMixin:
+    def validate_date_of_birth(self, value):
+        if value > timezone.localdate():
+            raise serializers.ValidationError("Date of birth cannot be in the future.")
+        return value
+
+
+class CreatePatientSerializer(PatientDateOfBirthValidationMixin, serializers.Serializer):
     full_name = serializers.CharField(max_length=255)
 
     date_of_birth = serializers.DateField()
@@ -23,7 +31,7 @@ class CreatePatientSerializer(serializers.Serializer):
     address = serializers.CharField()
 
 
-class UpdatePatientSerializer(serializers.Serializer):
+class UpdatePatientSerializer(PatientDateOfBirthValidationMixin, serializers.Serializer):
     full_name = serializers.CharField(
         max_length=255,
         required=False,

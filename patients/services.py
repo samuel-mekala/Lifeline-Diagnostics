@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.utils import timezone
 
 from common.services.id_generator import generate_business_id
 from patients.models import Patient
@@ -18,6 +19,9 @@ class PatientService:
         address="",
         linked_user=None,
     ):
+        if date_of_birth > timezone.localdate():
+            raise ValueError("Date of birth cannot be in the future.")
+
         return Patient.objects.create(
             patient_id=generate_business_id(
                 model=Patient,
@@ -40,6 +44,12 @@ class PatientService:
         patient,
         **data,
     ):
+        if (
+            "date_of_birth" in data
+            and data["date_of_birth"] > timezone.localdate()
+        ):
+            raise ValueError("Date of birth cannot be in the future.")
+
         for field, value in data.items():
             setattr(patient, field, value)
 

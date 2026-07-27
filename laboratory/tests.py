@@ -22,6 +22,7 @@ from laboratory.services import (
     SampleService,
     TestParameterService,
 )
+from laboratory.serializers import CreateSampleSerializer
 from patients.models import Patient
 from reports.models import Report
 from visits.models import Visit
@@ -479,3 +480,112 @@ class SampleWorkflowServiceTests(TestCase):
 
         urine_sample.refresh_from_db()
         self.assertEqual(urine_sample.status, SampleService.PENDING)
+
+
+class LaboratoryValidationTests(TestCase):
+    def setUp(self):
+        self.laboratory_test = LaboratoryTestService.create_test(
+            name="Validation Test",
+            category="BIOCHEMISTRY",
+            sample_type="BLOOD",
+        )
+        TestParameterService.create_parameter(
+            laboratory_test=self.laboratory_test,
+            name="Validated Parameter",
+            display_order=1,
+        )
+        patient = Patient.objects.create(
+            patient_id="PAT-VALIDATION-1",
+            full_name="Validation Patient",
+            date_of_birth=date(1990, 1, 1),
+            gender="M",
+            phone="9111111111",
+            address="Validation address",
+        )
+        self.visit = Visit.objects.create(
+            visit_id="VIS-VALIDATION-1",
+            patient=patient,
+        )
+
+    def test_sample_serializer_rejects_unsupported_sample_types(self):
+        serializer = CreateSampleSerializer(
+            data={"visit_id": self.visit.visit_id, "sample_type": "SALIVA"}
+        )
+
+        self.assertFalse(serializer.is_valid())
+        self.assertIn("sample_type", serializer.errors)
+
+    def test_inactive_laboratory_tests_cannot_be_ordered(self):
+        self.laboratory_test.is_active = False
+        self.laboratory_test.save(update_fields=["is_active"])
+
+        with self.assertRaisesMessage(
+            ValueError,
+            "Inactive laboratory tests cannot be ordered.",
+        ):
+            OrderedTestService.create_ordered_test(
+                visit_id=self.visit.visit_id,
+                test_id=self.laboratory_test.test_id,
+            )
+
+    def test_result_creation_is_idempotently_rejected_and_values_cannot_be_blank(self):
+        sample = Sample.objects.create(
+            sample_id="SAM-VALIDATION-1",
+            visit=self.visit,
+            sample_type="BLOOD",
+            status=SampleService.COLLECTED,
+        )
+        ordered_test = OrderedTest.objects.create(
+            order_id="ORD-VALIDATION-1",
+            visit=self.visit,
+            laboratory_test=self.laboratory_test,
+            sample=sample,
+            status="SAMPLE_COLLECTED",
+        )
+        result = ResultService.create_result(order_id=ordered_test.order_id)
+
+        with self.assertRaisesMessage(
+            ValueError,
+            "A result already exists for this ordered test.",
+        ):
+            ResultService.create_result(order_id=ordered_test.order_id)
+
+        with self.assertRaisesMessage(
+            ValueError,
+            "Result parameter value cannot be blank.",
+        ):
+            ResultEntryService.update_parameter(
+                result_parameter=result.parameters.get(),
+                value="   ",
+            )
+
+        result.status = Result.Status.SUBMITTED
+        result.save(update_fields=["status"])
+        with self.assertRaisesMessage(
+            ValueError,
+            "A rejection remark is required.",
+        ):
+            ResultApprovalService.reject_result(result=result, remarks="   ")
+
+    def test_pending_ordered_tests_support_opt_in_pagination(self):
+        OrderedTest.objects.create(
+            order_id="ORD-VALIDATION-PAGE",
+            visit=self.visit,
+            laboratory_test=self.laboratory_test,
+        )
+        technician = User.objects.create_user(
+            email="laboratory-pagination@example.com",
+            full_name="Laboratory Pagination User",
+            password="strong-password-123",
+            role=User.Role.LAB_TECHNICIAN,
+        )
+        client = APIClient()
+        client.force_authenticate(technician)
+
+        response = client.get(
+            "/api/laboratory/ordered-tests/pending/?page=1&page_size=1"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 1)
+        self.assertEqual(len(response.data["results"]), 1)

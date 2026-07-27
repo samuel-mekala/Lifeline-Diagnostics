@@ -1,11 +1,12 @@
 from rest_framework import serializers
 
+from common.choices import SAMPLE_TYPE_CHOICES
 from laboratory.models import OrderedTest, Result, ResultParameter, Sample
 
 
 class CreateSampleSerializer(serializers.Serializer):
-    visit_id = serializers.CharField()
-    sample_type = serializers.CharField()
+    visit_id = serializers.CharField(max_length=20)
+    sample_type = serializers.ChoiceField(choices=SAMPLE_TYPE_CHOICES)
     remarks = serializers.CharField(
         required=False,
         allow_blank=True,
@@ -14,8 +15,8 @@ class CreateSampleSerializer(serializers.Serializer):
 
 
 class CreateOrderedTestSerializer(serializers.Serializer):
-    visit_id = serializers.CharField()
-    test_id = serializers.CharField()
+    visit_id = serializers.CharField(max_length=20)
+    test_id = serializers.CharField(max_length=20)
     remarks = serializers.CharField(
         required=False,
         allow_blank=True,
@@ -24,16 +25,16 @@ class CreateOrderedTestSerializer(serializers.Serializer):
 
 
 class CreateResultSerializer(serializers.Serializer):
-    order_id = serializers.CharField()
+    order_id = serializers.CharField(max_length=20)
 
 
 class AssignSampleSerializer(serializers.Serializer):
-    sample_id = serializers.CharField()
+    sample_id = serializers.CharField(max_length=20)
 
 
 class UpdateResultParameterSerializer(serializers.Serializer):
-    parameter_id = serializers.CharField()
-    value = serializers.CharField()
+    parameter_id = serializers.CharField(max_length=20)
+    value = serializers.CharField(max_length=100, trim_whitespace=True)
     remarks = serializers.CharField(
         required=False,
         allow_blank=True,

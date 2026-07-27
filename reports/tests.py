@@ -10,6 +10,7 @@ from laboratory.models import LaboratoryTest, OrderedTest, Package, PackageTest,
 from laboratory.services import LaboratoryTestService
 from patients.models import Patient
 from reports.models import Report
+from reports.pdf_generator import ReportPDFGenerator
 from reports.services import ReportService
 from visits.models import Visit
 
@@ -158,3 +159,33 @@ class ReportCompletenessServiceTests(TestCase):
             "Cannot generate report: results are missing for ordered tests: "
             "Endpoint Missing Result Test.",
         )
+
+    def test_pdf_generator_rejects_incomplete_data_and_escapes_dynamic_text(self):
+        with self.assertRaisesMessage(
+            ValueError,
+            "Report data is missing required fields: patient, report, results, visit.",
+        ):
+            ReportPDFGenerator.generate({})
+        with self.assertRaisesMessage(
+            ValueError,
+            "Cannot generate a PDF without approved results.",
+        ):
+            ReportPDFGenerator.generate(
+                {
+                    "patient": self.visit.patient,
+                    "visit": self.visit,
+                    "report": None,
+                    "results": [],
+                }
+            )
+
+        laboratory_test = self.create_laboratory_test("Glucose <fasting & post-meal>")
+        result = self.approve_result(self.create_ordered_test(laboratory_test))
+        self.visit.patient.full_name = "Patient <One & Two>"
+        self.visit.patient.save(update_fields=["full_name"])
+        report_data = ReportService.get_report_data(self.visit)
+
+        pdf = ReportPDFGenerator.generate(report_data)
+
+        self.assertEqual(result.status, Result.Status.APPROVED)
+        self.assertTrue(pdf.getvalue().startswith(b"%PDF"))

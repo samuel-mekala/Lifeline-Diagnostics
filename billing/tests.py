@@ -1,12 +1,13 @@
 from datetime import date
 from decimal import Decimal
 
+from django.db import IntegrityError, transaction
 from django.test import TestCase
 from rest_framework.exceptions import ValidationError
 from rest_framework.test import APIClient
 
 from accounts.models import User
-from billing.models import Invoice
+from billing.models import Invoice, InvoiceItem, Payment
 from billing.services import InvoiceService, PaymentService
 from laboratory.services import LaboratoryTestService
 from laboratory.models import TestPrice
@@ -247,3 +248,46 @@ class BillingIntegrityServiceTests(TestCase):
                 invoice=invoice,
                 laboratory_test=self.laboratory_test,
             )
+
+    def test_database_constraints_reject_invalid_financial_values(self):
+        invoice = InvoiceService.create_invoice(visit=self.visit)
+
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                Invoice.objects.filter(pk=invoice.pk).update(
+                    subtotal=Decimal("-0.01")
+                )
+
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                Payment.objects.create(
+                    payment_id="PAY-INVALID-1",
+                    invoice=invoice,
+                    amount=Decimal("0.00"),
+                    payment_method="CASH",
+                )
+
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                InvoiceItem.objects.create(
+                    invoice=invoice,
+                    item_type=InvoiceItem.ItemType.TEST,
+                    item_id="TES-INVALID-1",
+                    item_name="Invalid item",
+                    quantity=0,
+                    unit_price=Decimal("1.00"),
+                    line_total=Decimal("1.00"),
+                )
+
+    def test_invoice_service_validation_returns_a_controlled_api_error(self):
+        invoice = InvoiceService.create_invoice(visit=self.visit)
+        client = APIClient()
+        client.force_authenticate(user=self.billing_user)
+
+        response = client.post(f"/api/billing/finalize/{invoice.invoice_id}/")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.data,
+            {"error": "An invoice must have at least one item before finalization."},
+        )

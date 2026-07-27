@@ -1,5 +1,5 @@
 @baseUrl = http://127.0.0.1:8000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzg1MTQ2NzM0LCJpYXQiOjE3ODUxNDY0MzQsImp0aSI6ImUxNGJiMGZhODYyNzQwNzg4NGRjMTQ4MWY0YTNlYTZjIiwidXNlcl9pZCI6IjEiLCJlbWFpbCI6InNhbXVlbG1la2FsYTNAZ21haWwuY29tIiwiZnVsbF9uYW1lIjoiU2FtdWVsIE1la2FsYSIsInJvbGUiOiJPV05FUiJ9.GIm21VNzlDD5ZV8v9uRknmUTLb3sxwju4zAArYSRLZ8
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzg1MTUwMTc1LCJpYXQiOjE3ODUxNDk4NzUsImp0aSI6ImMyOTI3YTk3YjVlODRjN2NhZjI0ZDFiNmU1YTg0YmI0IiwidXNlcl9pZCI6IjEiLCJlbWFpbCI6InNhbXVlbG1la2FsYTNAZ21haWwuY29tIiwiZnVsbF9uYW1lIjoiU2FtdWVsIE1la2FsYSIsInJvbGUiOiJPV05FUiJ9.W7KSmPRRQzq7cwcNhdfKZ4M3jxxaXOXe6rXucZcXZw8
 
 # Login
 POST {{baseUrl}}/api/auth/token/
@@ -405,3 +405,128 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {}
+
+############################################################
+# Sprint 14 - Validation & Testing
+############################################################
+
+###
+# 1. Future Date of Birth (Should Fail)
+# Expected: 400 Bad Request
+
+POST {{baseUrl}}/api/patients/create/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "full_name": "Future Patient",
+    "gender": "M",
+    "date_of_birth": "2050-01-01",
+    "phone": "9999999999",
+    "address": "Hyderabad"
+}
+
+###
+
+# 2. Duplicate Result Creation (Should Fail)
+# Expected: 400 Bad Request
+
+POST {{baseUrl}}/api/laboratory/results/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "order_id": "ORD000001",
+    "sample_id": "SAM000004"
+}
+
+###
+
+# 3. Blank Result Parameter (Should Fail)
+# Expected: 400 Bad Request
+
+PATCH {{baseUrl}}/api/laboratory/results/RES000003/parameters/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "parameter_id": "PAR000001",
+    "value": "    ",
+    "remarks": ""
+}
+
+###
+
+# 4. Submit Already Submitted/Approved Result (Should Fail)
+# Expected: 400 Bad Request
+
+POST {{baseUrl}}/api/laboratory/results/RES000003/submit/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "remarks": "Submitting again"
+}
+
+###
+
+# 5. Approve Without Valid Workflow (Should Fail)
+# Expected: 400 Bad Request
+
+POST {{baseUrl}}/api/laboratory/results/RES000001/approve/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "remarks": "Approval validation"
+}
+
+###
+
+# 6. Reject Without Remarks (Should Fail)
+# Expected: 400 Bad Request
+
+POST {{baseUrl}}/api/laboratory/results/RES000001/reject/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "remarks": ""
+}
+
+###
+
+# 7. Invalid Discount (Should Fail)
+# Expected: 400 Bad Request
+
+PATCH {{baseUrl}}/api/billing/apply-discount/INV000003/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "discount": "999999.00"
+}
+
+###
+
+# 8. Pagination (Legacy Response)
+# Expected: JSON array
+
+GET {{baseUrl}}/api/patients/list/
+Authorization: Bearer {{token}}
+
+###
+
+# 9. Pagination (Paged Response)
+# Expected: count, next, previous, results
+
+GET {{baseUrl}}/api/patients/list/?page=1
+Authorization: Bearer {{token}}
+
+###
+
+# 10. Download Approved Report
+# Expected: PDF downloads successfully
+
+GET {{baseUrl}}/reports/VIS000001/download/
+Authorization: Bearer {{token}}

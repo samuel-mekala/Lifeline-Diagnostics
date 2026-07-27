@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.utils import timezone
 from common.services.id_generator import generate_business_id
 from billing.models import InvoiceItem
@@ -75,6 +76,7 @@ class ReportService:
                 )
 
     @staticmethod
+    @transaction.atomic
     def get_report_data(visit):
         ReportService.validate_report_completeness(visit)
 

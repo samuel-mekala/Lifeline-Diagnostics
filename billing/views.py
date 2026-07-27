@@ -1,4 +1,5 @@
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -16,6 +17,22 @@ from billing.serializers import (
 from billing.services import InvoiceService, PaymentService
 from laboratory.models import LaboratoryTest, Package
 from visits.models import Visit
+
+
+def service_error_response(exception):
+    if isinstance(exception, ValidationError):
+        detail = exception.detail
+        if isinstance(detail, list):
+            message = "; ".join(str(item) for item in detail)
+        else:
+            message = str(detail)
+    else:
+        message = str(exception)
+
+    return Response(
+        {"error": message},
+        status=status.HTTP_400_BAD_REQUEST,
+    )
 
 
 class CreateInvoiceAPIView(APIView):
@@ -38,11 +55,8 @@ class CreateInvoiceAPIView(APIView):
                 visit=visit,
                 **serializer.validated_data,
             )
-        except ValueError as exc:
-            return Response(
-                {"error": str(exc)},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        except (ValueError, ValidationError) as exc:
+            return service_error_response(exc)
 
         return Response(
             InvoiceSerializer(invoice).data,
@@ -78,11 +92,8 @@ class AddTestAPIView(APIView):
                 invoice=invoice,
                 laboratory_test=laboratory_test,
             )
-        except ValueError as exc:
-            return Response(
-                {"error": str(exc)},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        except (ValueError, ValidationError) as exc:
+            return service_error_response(exc)
 
         return Response(
             InvoiceSerializer(invoice).data,
@@ -118,11 +129,8 @@ class AddPackageAPIView(APIView):
                 invoice=invoice,
                 package=package,
             )
-        except ValueError as exc:
-            return Response(
-                {"error": str(exc)},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        except (ValueError, ValidationError) as exc:
+            return service_error_response(exc)
 
         return Response(
             InvoiceSerializer(invoice).data,
@@ -142,9 +150,10 @@ class RemoveInvoiceItemAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        invoice = InvoiceService.remove_item(
-            invoice_item=invoice_item,
-        )
+        try:
+            invoice = InvoiceService.remove_item(invoice_item=invoice_item)
+        except (ValueError, ValidationError) as exc:
+            return service_error_response(exc)
 
         return Response(
             InvoiceSerializer(invoice).data,
@@ -167,10 +176,13 @@ class ApplyDiscountAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        invoice = InvoiceService.apply_discount(
-            invoice=invoice,
-            discount=serializer.validated_data["discount"],
-        )
+        try:
+            invoice = InvoiceService.apply_discount(
+                invoice=invoice,
+                discount=serializer.validated_data["discount"],
+            )
+        except (ValueError, ValidationError) as exc:
+            return service_error_response(exc)
 
         return Response(
             InvoiceSerializer(invoice).data,
@@ -190,7 +202,10 @@ class FinalizeInvoiceAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        invoice = InvoiceService.finalize_invoice(invoice=invoice)
+        try:
+            invoice = InvoiceService.finalize_invoice(invoice=invoice)
+        except (ValueError, ValidationError) as exc:
+            return service_error_response(exc)
 
         return Response(
             InvoiceSerializer(invoice).data,
@@ -213,10 +228,13 @@ class RecordPaymentAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        payment = PaymentService.record_payment(
-            invoice=invoice,
-            **serializer.validated_data,
-        )
+        try:
+            payment = PaymentService.record_payment(
+                invoice=invoice,
+                **serializer.validated_data,
+            )
+        except (ValueError, ValidationError) as exc:
+            return service_error_response(exc)
 
         return Response(
             PaymentSerializer(payment).data,
@@ -236,7 +254,10 @@ class RefundPaymentAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        payment = PaymentService.refund_payment(payment=payment)
+        try:
+            payment = PaymentService.refund_payment(payment=payment)
+        except (ValueError, ValidationError) as exc:
+            return service_error_response(exc)
 
         return Response(
             PaymentSerializer(payment).data,

@@ -95,6 +95,18 @@ class Invoice(models.Model):
         ordering = ["-created_at"]
         verbose_name = "Invoice"
         verbose_name_plural = "Invoices"
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    models.Q(subtotal__gte=0)
+                    & models.Q(discount__gte=0)
+                    & models.Q(total_amount__gte=0)
+                    & models.Q(amount_paid__gte=0)
+                    & models.Q(balance_due__gte=0)
+                ),
+                name="invoice_amounts_non_negative",
+            ),
+        ]
 
     def __str__(self):
         return self.invoice_id
@@ -154,6 +166,17 @@ class InvoiceItem(models.Model):
         ordering = ["id"]
         verbose_name = "Invoice Item"
         verbose_name_plural = "Invoice Items"
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    models.Q(quantity__gte=1)
+                    & models.Q(unit_price__gte=0)
+                    & models.Q(discount__gte=0)
+                    & models.Q(line_total__gte=0)
+                ),
+                name="invoice_item_amounts_valid",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.invoice.invoice_id} - {self.item_name}"
@@ -222,6 +245,12 @@ class Payment(models.Model):
         ordering = ["-paid_at"]
         verbose_name = "Payment"
         verbose_name_plural = "Payments"
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(amount__gt=0),
+                name="payment_amount_positive",
+            ),
+        ]
 
     def __str__(self):
         return self.payment_id

@@ -7,6 +7,7 @@ from accounts.permissions import (
     PathologistPermission,
     ResultReviewPermission,
 )
+from common.pagination import OptionalPageNumberPagination
 from laboratory.models import OrderedTest, Result, ResultParameter
 from laboratory.serializers import (
     ApproveResultSerializer,
@@ -216,6 +217,12 @@ class PendingOrderedTestsAPIView(APIView):
         ordered_tests = OrderedTest.objects.filter(
             status__in=["PENDING", "SAMPLE_COLLECTED", "IN_PROGRESS"],
         ).select_related("visit__patient", "laboratory_test")
+        paginator = OptionalPageNumberPagination()
+        page = paginator.paginate_queryset(ordered_tests, request, view=self)
+        if page is not None:
+            return paginator.get_paginated_response(
+                OrderedTestSerializer(page, many=True).data
+            )
         return Response(OrderedTestSerializer(ordered_tests, many=True).data)
 
 
@@ -225,6 +232,12 @@ class PendingResultsAPIView(APIView):
         results = Result.objects.filter(
             status=Result.Status.SUBMITTED,
         ).select_related("ordered_test__visit__patient", "ordered_test__laboratory_test")
+        paginator = OptionalPageNumberPagination()
+        page = paginator.paginate_queryset(results, request, view=self)
+        if page is not None:
+            return paginator.get_paginated_response(
+                ResultSerializer(page, many=True).data
+            )
         return Response(ResultSerializer(results, many=True).data)
 
 

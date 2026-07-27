@@ -36,13 +36,18 @@ class OrderedTestService:
         sample=None,
         remarks="",
     ):
-        visit = Visit.objects.get(
-            visit_id=visit_id
-        )
+        try:
+            visit = Visit.objects.get(visit_id=visit_id)
+        except Visit.DoesNotExist as exc:
+            raise ValueError("Visit not found.") from exc
 
-        laboratory_test = LaboratoryTest.objects.get(
-            test_id=test_id
-        )
+        try:
+            laboratory_test = LaboratoryTest.objects.get(test_id=test_id)
+        except LaboratoryTest.DoesNotExist as exc:
+            raise ValueError("Laboratory test not found.") from exc
+
+        if not laboratory_test.is_active:
+            raise ValueError("Inactive laboratory tests cannot be ordered.")
 
         return OrderedTest.objects.create(
             order_id=generate_business_id(
@@ -125,9 +130,10 @@ class SampleService:
         collected_by=None,
         remarks="",
     ):
-        visit = Visit.objects.get(
-            visit_id=visit_id
-        )
+        try:
+            visit = Visit.objects.get(visit_id=visit_id)
+        except Visit.DoesNotExist as exc:
+            raise ValueError("Visit not found.") from exc
 
         return Sample.objects.create(
             sample_id=generate_business_id(
@@ -275,6 +281,9 @@ class ResultService:
             order_id=order_id
         )
 
+        if Result.objects.filter(ordered_test=ordered_test).exists():
+            raise ValueError("A result already exists for this ordered test.")
+
         if ordered_test.sample is None:
             raise ValueError(
                 "Sample has not been assigned."
@@ -348,6 +357,10 @@ class ResultEntryService:
         if result_parameter.result.status != Result.Status.DRAFT:
             raise ValueError("Only draft results can be edited.")
 
+        value = value.strip()
+        if not value:
+            raise ValueError("Result parameter value cannot be blank.")
+
         result_parameter.value = value
         result_parameter.remarks = remarks
         result_parameter.save(
@@ -388,6 +401,8 @@ class ResultApprovalService:
             raise ValueError(
                 "Only submitted results can be approved."
             )
+        if verified_by is None or not verified_by.pk:
+            raise ValueError("An approving pathologist is required.")
 
         result.status = Result.Status.APPROVED
         result.verified_by = verified_by
@@ -411,6 +426,8 @@ class ResultApprovalService:
     def reject_result(*, result, remarks=""):
         if result.status != Result.Status.SUBMITTED:
             raise ValueError("Only submitted results can be rejected.")
+        if not remarks.strip():
+            raise ValueError("A rejection remark is required.")
 
         result.status = Result.Status.REJECTED
         result.remarks = remarks

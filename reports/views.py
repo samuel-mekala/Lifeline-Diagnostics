@@ -24,17 +24,13 @@ class DownloadReportAPIView(APIView):
             report_data = ReportService.get_report_data(
                 visit,
             )
+            include_header = request.GET.get("plain") != "true"
+            pdf = ReportPDFGenerator.generate(
+                report_data,
+                include_header=include_header,
+            )
         except ValueError as exc:
             return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
-
-        include_header = (
-            request.GET.get("plain") != "true"
-        )
-
-        pdf = ReportPDFGenerator.generate(
-            report_data,
-            include_header=include_header,
-        )
 
         response = HttpResponse(
             pdf,

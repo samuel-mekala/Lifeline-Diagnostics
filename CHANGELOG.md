@@ -85,3 +85,47 @@
 ### Commit
 
 `4b3df56` — Sprint 12: Billing integrity workflow
+
+## Sprint 13
+
+### Features
+
+- Added environment-based configuration for production settings.
+- Added production security configuration (HTTPS, HSTS, secure cookies, proxy support).
+- Added centralized DRF exception handling.
+- Added structured API error responses.
+- Added application, warning, and error logging.
+- Added `/health/` endpoint with database connectivity validation.
+- Added production README and `.env.example`.
+
+### Verification
+
+- `python manage.py check` ✅
+- `python manage.py test` ✅ (40 tests)
+- `python manage.py collectstatic --noinput` ✅
+- Manual API Testing completed.
+
+### Commit
+
+`ac57d0f` — feat: production readiness
+
+## Sprint 14 – Validation & Testing
+
+### Added
+- Optional pagination for list endpoints while preserving legacy API responses.
+- Additional validation for patient, laboratory, and billing workflows.
+- Database integrity improvements.
+- Enhanced PDF report generation.
+
+### Improved
+- Manual API testing coverage.
+- Validation error handling.
+- Production readiness verification.
+
+### Testing
+- python manage.py check ✅
+- python manage.py test (50 tests passed) ✅
+- Manual API Testing Completed ✅
+- PDF Generation Verified ✅
+- Legacy Pagination Verified ✅
+- Optional Pagination Verified ✅
