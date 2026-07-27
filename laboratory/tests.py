@@ -6,9 +6,23 @@ from rest_framework.test import APIClient
 
 from accounts.models import User
 from billing.models import Invoice, Payment
-from laboratory.models import LaboratoryTest, Result, TestPrice
-from laboratory.services import LaboratoryTestService, TestParameterService
+from laboratory.models import (
+    LaboratoryTest,
+    OrderedTest,
+    Result,
+    Sample,
+    TestPrice,
+)
+from laboratory.services import (
+    LaboratoryTestService,
+    ResultApprovalService,
+    ResultEntryService,
+    ResultService,
+    TestParameterService,
+)
+from patients.models import Patient
 from reports.models import Report
+from visits.models import Visit
 
 
 @override_settings(ALLOWED_HOSTS=["testserver", "localhost"])
@@ -126,6 +140,22 @@ class LaboratoryBusinessWorkflowTests(TestCase):
         result_id = result_response.data["result_id"]
         parameter_id = result_response.data["parameters"][0]["parameter_id"]
 
+        technician_approve_response = self.client.post(
+            f"/api/laboratory/results/{result_id}/approve/",
+            {"remarks": "Unauthorized approval attempt"},
+            format="json",
+        )
+        self.assertEqual(technician_approve_response.status_code, 403)
+
+        self.authenticate_as(self.pathologist)
+        pathologist_submit_response = self.client.post(
+            f"/api/laboratory/results/{result_id}/submit/",
+            {"remarks": "Unauthorized submission attempt"},
+            format="json",
+        )
+        self.assertEqual(pathologist_submit_response.status_code, 403)
+        self.authenticate_as(self.lab_technician)
+
         parameter_response = self.client.patch(
             f"/api/laboratory/results/{result_id}/parameters/",
             {
@@ -144,7 +174,25 @@ class LaboratoryBusinessWorkflowTests(TestCase):
             format="json",
         )
         self.assertEqual(submit_response.status_code, 200)
-        self.assertEqual(submit_response.data["status"], "PENDING_APPROVAL")
+        self.assertEqual(submit_response.data["status"], "SUBMITTED")
+
+        resubmit_response = self.client.post(
+            f"/api/laboratory/results/{result_id}/submit/",
+            {"remarks": "Invalid resubmission"},
+            format="json",
+        )
+        self.assertEqual(resubmit_response.status_code, 400)
+
+        submitted_edit_response = self.client.patch(
+            f"/api/laboratory/results/{result_id}/parameters/",
+            {
+                "parameter_id": parameter_id,
+                "value": "100",
+                "remarks": "Invalid submitted edit",
+            },
+            format="json",
+        )
+        self.assertEqual(submitted_edit_response.status_code, 400)
 
         self.authenticate_as(self.pathologist)
         approve_response = self.client.post(
@@ -159,6 +207,19 @@ class LaboratoryBusinessWorkflowTests(TestCase):
             self.pathologist,
         )
 
+        self.authenticate_as(self.lab_technician)
+        approved_edit_response = self.client.patch(
+            f"/api/laboratory/results/{result_id}/parameters/",
+            {
+                "parameter_id": parameter_id,
+                "value": "90",
+                "remarks": "Invalid approved edit",
+            },
+            format="json",
+        )
+        self.assertEqual(approved_edit_response.status_code, 400)
+
+        self.authenticate_as(self.pathologist)
         report_response = self.client.get(
             f"/reports/{visit_response.data['visit_id']}/download/"
         )
@@ -214,3 +275,99 @@ class LaboratoryBusinessWorkflowTests(TestCase):
         self.assertEqual(invoice.status, Invoice.Status.UNPAID)
         self.assertEqual(invoice.amount_paid, Decimal("0.00"))
         self.assertEqual(invoice.balance_due, Decimal("140.00"))
+
+
+class ResultWorkflowServiceTests(TestCase):
+    def setUp(self):
+        self.pathologist = User.objects.create_user(
+            email="service-pathologist@example.com",
+            full_name="Service Pathologist",
+            password="strong-password-123",
+            role=User.Role.PATHOLOGIST,
+        )
+        laboratory_test = LaboratoryTestService.create_test(
+            name="Workflow Service Test",
+            category="BIOCHEMISTRY",
+            sample_type="BLOOD",
+        )
+        TestParameterService.create_parameter(
+            laboratory_test=laboratory_test,
+            name="Service Parameter",
+            unit="mg/dL",
+            reference_range="70-99",
+            display_order=1,
+        )
+        patient = Patient.objects.create(
+            patient_id="PAT-SERVICE-1",
+            full_name="Service Patient",
+            date_of_birth=date(1990, 1, 1),
+            gender="M",
+            phone="9999999999",
+            address="Service test address",
+        )
+        visit = Visit.objects.create(
+            visit_id="VIS-SERVICE-1",
+            patient=patient,
+        )
+        sample = Sample.objects.create(
+            sample_id="SAM-SERVICE-1",
+            visit=visit,
+            sample_type="BLOOD",
+        )
+        ordered_test = OrderedTest.objects.create(
+            order_id="ORD-SERVICE-1",
+            visit=visit,
+            laboratory_test=laboratory_test,
+            sample=sample,
+        )
+        self.result = ResultService.create_result(order_id=ordered_test.order_id)
+        self.result_parameter = self.result.parameters.get()
+
+    def submit_result(self):
+        ResultEntryService.update_parameter(
+            result_parameter=self.result_parameter,
+            value="100",
+        )
+        return ResultApprovalService.submit_result(result=self.result)
+
+    def test_valid_draft_submitted_approved_transition(self):
+        submitted_result = self.submit_result()
+        self.assertEqual(submitted_result.status, Result.Status.SUBMITTED)
+
+        approved_result = ResultApprovalService.approve_result(
+            result=submitted_result,
+            verified_by=self.pathologist,
+        )
+        self.assertEqual(approved_result.status, Result.Status.APPROVED)
+        self.assertEqual(approved_result.verified_by, self.pathologist)
+
+    def test_invalid_transitions_and_approved_results_are_immutable(self):
+        with self.assertRaisesMessage(ValueError, "Only submitted results can be approved."):
+            ResultApprovalService.approve_result(
+                result=self.result,
+                verified_by=self.pathologist,
+            )
+
+        submitted_result = self.submit_result()
+        with self.assertRaisesMessage(ValueError, "Only draft results can be submitted."):
+            ResultApprovalService.submit_result(result=submitted_result)
+        with self.assertRaisesMessage(ValueError, "Only draft results can be edited."):
+            ResultEntryService.update_parameter(
+                result_parameter=self.result_parameter,
+                value="101",
+            )
+
+        approved_result = ResultApprovalService.approve_result(
+            result=submitted_result,
+            verified_by=self.pathologist,
+        )
+        with self.assertRaisesMessage(ValueError, "Only submitted results can be approved."):
+            ResultApprovalService.approve_result(
+                result=approved_result,
+                verified_by=self.pathologist,
+            )
+        with self.assertRaisesMessage(ValueError, "Only draft results can be edited."):
+            ResultEntryService.update_parameter(
+                result_parameter=self.result_parameter,
+                value="102",
+            )

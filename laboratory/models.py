@@ -370,7 +370,7 @@ class Result(models.Model):
 
     class Status(models.TextChoices):
         DRAFT = "DRAFT", "Draft"
-        PENDING_APPROVAL = "PENDING_APPROVAL", "Pending Approval"
+        SUBMITTED = "SUBMITTED", "Submitted"
         APPROVED = "APPROVED", "Approved"
         REJECTED = "REJECTED", "Rejected"
 

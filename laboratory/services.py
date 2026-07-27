@@ -264,6 +264,9 @@ class ResultEntryService:
         value,
         remarks="",
     ):
+        if result_parameter.result.status != Result.Status.DRAFT:
+            raise ValueError("Only draft results can be edited.")
+
         result_parameter.value = value
         result_parameter.remarks = remarks
         result_parameter.save(
@@ -282,34 +285,41 @@ class ResultApprovalService:
 
     @staticmethod
     @transaction.atomic
-    def submit_for_approval(result):
+    def submit_result(*, result, remarks=""):
+        if result.status != Result.Status.DRAFT:
+            raise ValueError("Only draft results can be submitted.")
+
         if result.parameters.filter(value="").exists():
             raise ValueError(
                 "All result parameters must have values before submission."
             )
 
-        result.status = Result.Status.PENDING_APPROVAL
-        result.save(update_fields=["status"])
+        result.status = Result.Status.SUBMITTED
+        result.remarks = remarks
+        result.save(update_fields=["status", "remarks", "updated_at"])
 
         return result
 
     @staticmethod
     @transaction.atomic
-    def approve_result(*, result, verified_by):
-        if result.status != Result.Status.PENDING_APPROVAL:
+    def approve_result(*, result, verified_by, remarks=""):
+        if result.status != Result.Status.SUBMITTED:
             raise ValueError(
-                "Only pending results can be approved."
+                "Only submitted results can be approved."
             )
 
         result.status = Result.Status.APPROVED
         result.verified_by = verified_by
         result.verified_at = timezone.now()
+        result.remarks = remarks
 
         result.save(
             update_fields=[
                 "status",
                 "verified_by",
                 "verified_at",
+                "remarks",
+                "updated_at",
             ]
         )
 
@@ -317,10 +327,14 @@ class ResultApprovalService:
 
     @staticmethod
     @transaction.atomic
-    def reject_result(*, result):
-        result.status = Result.Status.REJECTED
+    def reject_result(*, result, remarks=""):
+        if result.status != Result.Status.SUBMITTED:
+            raise ValueError("Only submitted results can be rejected.")
 
-        result.save(update_fields=["status"])
+        result.status = Result.Status.REJECTED
+        result.remarks = remarks
+
+        result.save(update_fields=["status", "remarks", "updated_at"])
 
         return result
 

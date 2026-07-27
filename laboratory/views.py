@@ -128,11 +128,14 @@ class UpdateResultParameterAPIView(APIView):
         except ResultParameter.DoesNotExist:
             return error_response("Result parameter not found.", status.HTTP_404_NOT_FOUND)
 
-        result_parameter = ResultEntryService.update_parameter(
-            result_parameter=result_parameter,
-            value=serializer.validated_data["value"],
-            remarks=serializer.validated_data["remarks"],
-        )
+        try:
+            result_parameter = ResultEntryService.update_parameter(
+                result_parameter=result_parameter,
+                value=serializer.validated_data["value"],
+                remarks=serializer.validated_data["remarks"],
+            )
+        except ValueError as exc:
+            return error_response(str(exc))
         return Response({
             "parameter_id": result_parameter.test_parameter.parameter_id,
             "value": result_parameter.value,
@@ -152,11 +155,11 @@ class SubmitResultAPIView(APIView):
         except Result.DoesNotExist:
             return error_response("Result not found.", status.HTTP_404_NOT_FOUND)
 
-        result.remarks = serializer.validated_data["remarks"]
-        result.save(update_fields=["remarks", "updated_at"])
-
         try:
-            result = ResultApprovalService.submit_for_approval(result)
+            result = ResultApprovalService.submit_result(
+                result=result,
+                remarks=serializer.validated_data["remarks"],
+            )
         except ValueError as exc:
             return error_response(str(exc))
 
@@ -174,13 +177,11 @@ class ApproveResultAPIView(APIView):
         except Result.DoesNotExist:
             return error_response("Result not found.", status.HTTP_404_NOT_FOUND)
 
-        result.remarks = serializer.validated_data["remarks"]
-        result.save(update_fields=["remarks", "updated_at"])
-
         try:
             result = ResultApprovalService.approve_result(
                 result=result,
-                verified_by=request.user if request.user.is_authenticated else None,
+                verified_by=request.user,
+                remarks=serializer.validated_data["remarks"],
             )
         except ValueError as exc:
             return error_response(str(exc))
@@ -199,9 +200,13 @@ class RejectResultAPIView(APIView):
         except Result.DoesNotExist:
             return error_response("Result not found.", status.HTTP_404_NOT_FOUND)
 
-        result.remarks = serializer.validated_data["remarks"]
-        result.save(update_fields=["remarks", "updated_at"])
-        result = ResultApprovalService.reject_result(result=result)
+        try:
+            result = ResultApprovalService.reject_result(
+                result=result,
+                remarks=serializer.validated_data["remarks"],
+            )
+        except ValueError as exc:
+            return error_response(str(exc))
         return Response(ResultSerializer(result).data)
 
 
@@ -218,7 +223,7 @@ class PendingResultsAPIView(APIView):
     permission_classes = [PathologistPermission]
     def get(self, request):
         results = Result.objects.filter(
-            status=Result.Status.PENDING_APPROVAL,
+            status=Result.Status.SUBMITTED,
         ).select_related("ordered_test__visit__patient", "ordered_test__laboratory_test")
         return Response(ResultSerializer(results, many=True).data)
 
