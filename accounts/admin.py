@@ -12,6 +12,7 @@ class CustomUserAdmin(UserAdmin):
         "email",
         "full_name",
         "phone",
+        "role",
         "is_staff",
         "is_active",
     )
@@ -19,6 +20,7 @@ class CustomUserAdmin(UserAdmin):
     list_filter = (
         "is_staff",
         "is_active",
+        "role",
     )
 
     ordering = ("email",)
@@ -44,6 +46,7 @@ class CustomUserAdmin(UserAdmin):
                 "fields": (
                     "full_name",
                     "phone",
+                    "role",
                 )
             },
         ),
@@ -79,6 +82,7 @@ class CustomUserAdmin(UserAdmin):
                     "email",
                     "full_name",
                     "phone",
+                    "role",
                     "password1",
                     "password2",
                     "is_staff",

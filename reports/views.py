@@ -1,44 +1,50 @@
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
 
+from rest_framework.exceptions import NotFound
+from rest_framework.views import APIView
+
+from accounts.permissions import PathologistPermission
 from reports.pdf_generator import ReportPDFGenerator
 from reports.services import ReportService
 from visits.models import Visit
 
 
-def download_report(request, visit_id):
-    visit = get_object_or_404(
-        Visit,
-        visit_id=visit_id,
-    )
+class DownloadReportAPIView(APIView):
+    permission_classes = [PathologistPermission]
 
-    report_data = ReportService.get_report_data(
-        visit,
-    )
+    def get(self, request, visit_id):
+        try:
+            visit = Visit.objects.get(visit_id=visit_id)
+        except Visit.DoesNotExist as exc:
+            raise NotFound("Visit not found.") from exc
 
-    include_header = (
-        request.GET.get("plain") != "true"
-    )
+        report_data = ReportService.get_report_data(
+            visit,
+        )
 
-    pdf = ReportPDFGenerator.generate(
-        report_data,
-        include_header=include_header,
-    )
+        include_header = (
+            request.GET.get("plain") != "true"
+        )
 
-    response = HttpResponse(
-        pdf,
-        content_type="application/pdf",
-    )
+        pdf = ReportPDFGenerator.generate(
+            report_data,
+            include_header=include_header,
+        )
 
-    report = report_data["report"]
-    patient = report_data["patient"]
+        response = HttpResponse(
+            pdf,
+            content_type="application/pdf",
+        )
 
-    filename = (
-        f"{report.report_id}_{patient.patient_id}.pdf"
-    )
+        report = report_data["report"]
+        patient = report_data["patient"]
 
-    response["Content-Disposition"] = (
-        f'attachment; filename="{filename}"'
-    )
+        filename = (
+            f"{report.report_id}_{patient.patient_id}.pdf"
+        )
 
-    return response
+        response["Content-Disposition"] = (
+            f'attachment; filename="{filename}"'
+        )
+
+        return response

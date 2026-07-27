@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from accounts.permissions import BillingPermission
 from billing.models import Invoice, InvoiceItem, Payment
 from billing.serializers import (
     AddPackageSerializer,
@@ -18,6 +19,7 @@ from visits.models import Visit
 
 
 class CreateInvoiceAPIView(APIView):
+    permission_classes = [BillingPermission]
 
     def post(self, request, visit_id):
         serializer = CreateInvoiceSerializer(data=request.data)
@@ -43,6 +45,7 @@ class CreateInvoiceAPIView(APIView):
 
 
 class AddTestAPIView(APIView):
+    permission_classes = [BillingPermission]
 
     def post(self, request, invoice_id):
         serializer = AddTestSerializer(data=request.data)
@@ -82,6 +85,7 @@ class AddTestAPIView(APIView):
 
 
 class AddPackageAPIView(APIView):
+    permission_classes = [BillingPermission]
 
     def post(self, request, invoice_id):
         serializer = AddPackageSerializer(data=request.data)
@@ -121,6 +125,7 @@ class AddPackageAPIView(APIView):
 
 
 class RemoveInvoiceItemAPIView(APIView):
+    permission_classes = [BillingPermission]
 
     def delete(self, request, item_id):
         try:
@@ -142,6 +147,7 @@ class RemoveInvoiceItemAPIView(APIView):
 
 
 class ApplyDiscountAPIView(APIView):
+    permission_classes = [BillingPermission]
 
     def patch(self, request, invoice_id):
         serializer = ApplyDiscountSerializer(data=request.data)
@@ -167,6 +173,7 @@ class ApplyDiscountAPIView(APIView):
 
 
 class RecordPaymentAPIView(APIView):
+    permission_classes = [BillingPermission]
 
     def post(self, request, invoice_id):
         serializer = RecordPaymentSerializer(data=request.data)
@@ -192,6 +199,7 @@ class RecordPaymentAPIView(APIView):
 
 
 class RefundPaymentAPIView(APIView):
+    permission_classes = [BillingPermission]
 
     def post(self, request, payment_id):
         try:

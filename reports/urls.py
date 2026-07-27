@@ -1,11 +1,11 @@
 from django.urls import path
 
-from reports.views import download_report
+from reports.views import DownloadReportAPIView
 
 urlpatterns = [
     path(
         "<str:visit_id>/download/",
-        download_report,
+        DownloadReportAPIView.as_view(),
         name="download_report",
     ),
 ]

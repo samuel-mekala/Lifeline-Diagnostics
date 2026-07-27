@@ -4,8 +4,9 @@ from decimal import Decimal
 from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
 
+from accounts.models import User
 from billing.models import Invoice, Payment
-from laboratory.models import LaboratoryTest, TestPrice
+from laboratory.models import LaboratoryTest, Result, TestPrice
 from laboratory.services import LaboratoryTestService, TestParameterService
 from reports.models import Report
 
@@ -16,6 +17,24 @@ class LaboratoryBusinessWorkflowTests(TestCase):
 
     def setUp(self):
         self.client = APIClient()
+        self.receptionist = User.objects.create_user(
+            email="reception@example.com",
+            full_name="Reception User",
+            password="strong-password-123",
+            role=User.Role.RECEPTIONIST,
+        )
+        self.lab_technician = User.objects.create_user(
+            email="technician@example.com",
+            full_name="Lab Technician",
+            password="strong-password-123",
+            role=User.Role.LAB_TECHNICIAN,
+        )
+        self.pathologist = User.objects.create_user(
+            email="pathologist@example.com",
+            full_name="Pathologist",
+            password="strong-password-123",
+            role=User.Role.PATHOLOGIST,
+        )
         self.test = LaboratoryTestService.create_test(
             name="End-to-End Glucose",
             category="BIOCHEMISTRY",
@@ -33,7 +52,11 @@ class LaboratoryBusinessWorkflowTests(TestCase):
             walk_in_price=Decimal("100.00"),
         )
 
+    def authenticate_as(self, user):
+        self.client.force_authenticate(user=user)
+
     def test_complete_patient_to_payment_workflow(self):
+        self.authenticate_as(self.receptionist)
         patient_response = self.client.post(
             "/api/patients/create/",
             {
@@ -61,6 +84,7 @@ class LaboratoryBusinessWorkflowTests(TestCase):
         self.assertEqual(visit_response.status_code, 201)
         visit_id = visit_response.data["visit_id"]
 
+        self.authenticate_as(self.lab_technician)
         sample_response = self.client.post(
             "/api/laboratory/samples/",
             {
@@ -122,6 +146,7 @@ class LaboratoryBusinessWorkflowTests(TestCase):
         self.assertEqual(submit_response.status_code, 200)
         self.assertEqual(submit_response.data["status"], "PENDING_APPROVAL")
 
+        self.authenticate_as(self.pathologist)
         approve_response = self.client.post(
             f"/api/laboratory/results/{result_id}/approve/",
             {"remarks": "Approved"},
@@ -129,6 +154,10 @@ class LaboratoryBusinessWorkflowTests(TestCase):
         )
         self.assertEqual(approve_response.status_code, 200)
         self.assertEqual(approve_response.data["status"], "APPROVED")
+        self.assertEqual(
+            Result.objects.get(result_id=result_id).verified_by,
+            self.pathologist,
+        )
 
         report_response = self.client.get(
             f"/reports/{visit_response.data['visit_id']}/download/"
@@ -138,6 +167,7 @@ class LaboratoryBusinessWorkflowTests(TestCase):
         self.assertTrue(report_response.content.startswith(b"%PDF"))
         self.assertTrue(Report.objects.filter(visit__visit_id=visit_id).exists())
 
+        self.authenticate_as(self.receptionist)
         invoice_response = self.client.post(
             f"/api/billing/create/{visit_id}/",
             {"payment_preference": "PAY_NOW"},

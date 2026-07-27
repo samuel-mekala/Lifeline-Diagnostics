@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from accounts.permissions import VisitPermission
 from patients.models import Patient
 from visits.models import Visit
 from visits.serializers import (
@@ -16,6 +17,7 @@ from visits.services import VisitService
 
 
 class CreateVisitAPIView(APIView):
+    permission_classes = [VisitPermission]
 
     def post(self, request):
         serializer = CreateVisitSerializer(data=request.data)
@@ -44,6 +46,7 @@ class CreateVisitAPIView(APIView):
 
 
 class VisitDetailAPIView(APIView):
+    permission_classes = [VisitPermission]
 
     def get(self, request, visit_id):
         try:
@@ -60,6 +63,7 @@ class VisitDetailAPIView(APIView):
 
 
 class UpdateVisitAPIView(APIView):
+    permission_classes = [VisitPermission]
 
     def patch(self, request, visit_id):
         serializer = UpdateVisitSerializer(data=request.data)
@@ -84,6 +88,7 @@ class UpdateVisitAPIView(APIView):
 
 
 class UpdateVisitStatusAPIView(APIView):
+    permission_classes = [VisitPermission]
 
     def patch(self, request, visit_id):
         serializer = UpdateVisitStatusSerializer(data=request.data)
@@ -108,6 +113,7 @@ class UpdateVisitStatusAPIView(APIView):
 
 
 class VisitListAPIView(APIView):
+    permission_classes = [VisitPermission]
 
     def get(self, request):
         visits = Visit.objects.select_related(
@@ -123,6 +129,7 @@ class VisitListAPIView(APIView):
 
 
 class VisitSearchAPIView(APIView):
+    permission_classes = [VisitPermission]
 
     def get(self, request):
         query = request.GET.get("q", "").strip()

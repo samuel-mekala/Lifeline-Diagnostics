@@ -2,6 +2,11 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from accounts.permissions import (
+    LaboratoryTechnicianPermission,
+    PathologistPermission,
+    ResultReviewPermission,
+)
 from laboratory.models import OrderedTest, Result, ResultParameter
 from laboratory.serializers import (
     ApproveResultSerializer,
@@ -31,6 +36,7 @@ def error_response(message, http_status=status.HTTP_400_BAD_REQUEST):
 
 
 class CreateSampleAPIView(APIView):
+    permission_classes = [LaboratoryTechnicianPermission]
     def post(self, request):
         serializer = CreateSampleSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -44,6 +50,7 @@ class CreateSampleAPIView(APIView):
 
 
 class CreateOrderedTestAPIView(APIView):
+    permission_classes = [LaboratoryTechnicianPermission]
     def post(self, request):
         serializer = CreateOrderedTestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -62,6 +69,7 @@ class CreateOrderedTestAPIView(APIView):
 
 
 class AssignSampleAPIView(APIView):
+    permission_classes = [LaboratoryTechnicianPermission]
     def post(self, request, order_id):
         serializer = AssignSampleSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -83,6 +91,7 @@ class AssignSampleAPIView(APIView):
 
 
 class CreateResultAPIView(APIView):
+    permission_classes = [LaboratoryTechnicianPermission]
     def post(self, request):
         serializer = CreateResultSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -103,6 +112,7 @@ class CreateResultAPIView(APIView):
 
 
 class UpdateResultParameterAPIView(APIView):
+    permission_classes = [LaboratoryTechnicianPermission]
     def patch(self, request, result_id):
         serializer = UpdateResultParameterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -132,6 +142,7 @@ class UpdateResultParameterAPIView(APIView):
 
 
 class SubmitResultAPIView(APIView):
+    permission_classes = [LaboratoryTechnicianPermission]
     def post(self, request, result_id):
         serializer = SubmitResultSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -153,6 +164,7 @@ class SubmitResultAPIView(APIView):
 
 
 class ApproveResultAPIView(APIView):
+    permission_classes = [PathologistPermission]
     def post(self, request, result_id):
         serializer = ApproveResultSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -177,6 +189,7 @@ class ApproveResultAPIView(APIView):
 
 
 class RejectResultAPIView(APIView):
+    permission_classes = [PathologistPermission]
     def post(self, request, result_id):
         serializer = RejectResultSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -193,6 +206,7 @@ class RejectResultAPIView(APIView):
 
 
 class PendingOrderedTestsAPIView(APIView):
+    permission_classes = [LaboratoryTechnicianPermission]
     def get(self, request):
         ordered_tests = OrderedTest.objects.filter(
             status__in=["PENDING", "SAMPLE_COLLECTED", "IN_PROGRESS"],
@@ -201,6 +215,7 @@ class PendingOrderedTestsAPIView(APIView):
 
 
 class PendingResultsAPIView(APIView):
+    permission_classes = [PathologistPermission]
     def get(self, request):
         results = Result.objects.filter(
             status=Result.Status.PENDING_APPROVAL,
@@ -209,6 +224,7 @@ class PendingResultsAPIView(APIView):
 
 
 class ResultDetailAPIView(APIView):
+    permission_classes = [ResultReviewPermission]
     def get(self, request, result_id):
         try:
             result = Result.objects.select_related(

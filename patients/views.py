@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from accounts.permissions import PatientPermission
 from patients.models import Patient
 from patients.serializers import (
     CreatePatientSerializer,
@@ -14,6 +15,7 @@ from patients.services import PatientService
 
 
 class CreatePatientAPIView(APIView):
+    permission_classes = [PatientPermission]
 
     def post(self, request):
         serializer = CreatePatientSerializer(data=request.data)
@@ -30,6 +32,7 @@ class CreatePatientAPIView(APIView):
 
 
 class PatientDetailAPIView(APIView):
+    permission_classes = [PatientPermission]
 
     def get(self, request, patient_id):
         try:
@@ -47,6 +50,7 @@ class PatientDetailAPIView(APIView):
 
 
 class UpdatePatientAPIView(APIView):
+    permission_classes = [PatientPermission]
 
     def patch(self, request, patient_id):
         serializer = UpdatePatientSerializer(data=request.data)
@@ -72,6 +76,7 @@ class UpdatePatientAPIView(APIView):
 
 
 class PatientListAPIView(APIView):
+    permission_classes = [PatientPermission]
 
     def get(self, request):
         patients = Patient.objects.all().order_by("-registered_on")
@@ -85,6 +90,7 @@ class PatientListAPIView(APIView):
 
 
 class PatientSearchAPIView(APIView):
+    permission_classes = [PatientPermission]
 
     def get(self, request):
         query = request.GET.get("q", "").strip()
