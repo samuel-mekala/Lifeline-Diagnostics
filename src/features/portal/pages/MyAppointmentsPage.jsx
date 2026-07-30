@@ -21,8 +21,8 @@ export const MyAppointmentsPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    setAppointments(PortalDataStore.getAppointments());
-  }, []);
+    setAppointments(PortalDataStore.getAppointments(user));
+  }, [user]);
 
   const filteredAppointments = appointments.filter((a) =>
     a.appointment_number.toLowerCase().includes(searchQuery.toLowerCase()) ||

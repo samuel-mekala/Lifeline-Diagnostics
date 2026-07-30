@@ -23,8 +23,8 @@ export const MyReportsPage = () => {
   const [selectedReport, setSelectedReport] = useState(null); // For Official Report Modal
 
   useEffect(() => {
-    setReports(PortalDataStore.getReports());
-  }, []);
+    setReports(PortalDataStore.getReports(user));
+  }, [user]);
 
   // Filter Reports
   const filteredReports = reports.filter((r) =>

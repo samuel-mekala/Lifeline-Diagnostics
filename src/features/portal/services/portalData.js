@@ -265,27 +265,64 @@ const saveStore = (key, data) => {
 };
 
 export const PortalDataStore = {
-  getAppointments: () => loadStore(STORAGE_KEYS.APPOINTMENTS, DEFAULT_APPOINTMENTS),
+  getAppointments: (currentUser) => {
+    const list = loadStore(STORAGE_KEYS.APPOINTMENTS, DEFAULT_APPOINTMENTS);
+    if (!currentUser) return list;
+    const email = currentUser.email?.toLowerCase();
+    const pid = currentUser.patient_id;
+    return list.filter((a) => {
+      if (email && (a.patient_email?.toLowerCase() === email || a.email?.toLowerCase() === email)) return true;
+      if (pid && a.patient_id === pid) return true;
+      if (email === 'patient@gmail.com' && (!a.patient_email || a.patient_email === 'patient@gmail.com')) return true;
+      return false;
+    });
+  },
   saveAppointments: (data) => saveStore(STORAGE_KEYS.APPOINTMENTS, data),
 
-  getInvoices: () => loadStore(STORAGE_KEYS.INVOICES, DEFAULT_INVOICES),
+  getInvoices: (currentUser) => {
+    const list = loadStore(STORAGE_KEYS.INVOICES, DEFAULT_INVOICES);
+    if (!currentUser) return list;
+    const email = currentUser.email?.toLowerCase();
+    const pid = currentUser.patient_id;
+    return list.filter((i) => {
+      if (email && (i.patient_email?.toLowerCase() === email || i.email?.toLowerCase() === email)) return true;
+      if (pid && i.patient_id === pid) return true;
+      if (email === 'patient@gmail.com' && (!i.patient_email || i.patient_email === 'patient@gmail.com')) return true;
+      return false;
+    });
+  },
   saveInvoices: (data) => saveStore(STORAGE_KEYS.INVOICES, data),
 
-  getReports: () => loadStore(STORAGE_KEYS.REPORTS, DEFAULT_REPORTS),
+  getReports: (currentUser) => {
+    const list = loadStore(STORAGE_KEYS.REPORTS, DEFAULT_REPORTS);
+    if (!currentUser) return list;
+    const email = currentUser.email?.toLowerCase();
+    const pid = currentUser.patient_id;
+    return list.filter((r) => {
+      if (email && (r.patient_email?.toLowerCase() === email || r.email?.toLowerCase() === email)) return true;
+      if (pid && r.patient_id === pid) return true;
+      if (email === 'patient@gmail.com' && (!r.patient_email || r.patient_email === 'patient@gmail.com')) return true;
+      return false;
+    });
+  },
   saveReports: (data) => saveStore(STORAGE_KEYS.REPORTS, data),
 
   getTickets: () => loadStore(STORAGE_KEYS.TICKETS, DEFAULT_TICKETS),
   saveTickets: (data) => saveStore(STORAGE_KEYS.TICKETS, data),
 
-  // Method to create a complete new booking with linked invoice & appointment
+  // Method to create a complete new booking with linked invoice & appointment and sync to Operations Workstations
   createBooking: ({ collectionType, selectedTests, selectedPackages, branch, date, time, address, paymentPreference, patientUser }) => {
-    const appointments = PortalDataStore.getAppointments();
-    const invoices = PortalDataStore.getInvoices();
+    const appointments = loadStore(STORAGE_KEYS.APPOINTMENTS, DEFAULT_APPOINTMENTS);
+    const invoices = loadStore(STORAGE_KEYS.INVOICES, DEFAULT_INVOICES);
 
     const timestamp = Date.now();
     const visitId = `VIS-${Math.floor(100000 + Math.random() * 900000)}`;
     const aptNumber = `APT-2026-${Math.floor(1000 + Math.random() * 9000)}`;
     const invNumber = `INV-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const pId = patientUser?.patient_id || `PAT-${Math.floor(100000 + Math.random() * 900000)}`;
+    const pEmail = patientUser?.email || 'patient@gmail.com';
+    const pName = patientUser?.full_name || 'Patient';
 
     // Calculate Items & Total
     let items = [];
@@ -303,11 +340,14 @@ export const PortalDataStore = {
 
     const isPaidNow = paymentPreference === 'PAY_NOW';
 
-    // 1. Create Appointment Object
+    // 1. Create Appointment Object for Patient
     const newApt = {
       id: `APT-${timestamp}`,
       appointment_number: aptNumber,
       visit_id: visitId,
+      patient_id: pId,
+      patient_name: pName,
+      patient_email: pEmail,
       collection_type: collectionType,
       scheduled_date: date,
       scheduled_time: time,
@@ -322,13 +362,14 @@ export const PortalDataStore = {
       created_at: new Date().toISOString(),
     };
 
-    // 2. Create Invoice Object
+    // 2. Create Invoice Object for Patient
     const newInv = {
       id: invNumber,
       invoice_number: invNumber,
       visit_id: visitId,
-      patient_name: patientUser?.full_name || 'Rahul Sharma',
-      patient_id: patientUser?.patient_id || 'PAT-009842',
+      patient_name: pName,
+      patient_id: pId,
+      patient_email: pEmail,
       status: isPaidNow ? 'PAID' : 'UNPAID',
       payment_preference: paymentPreference,
       subtotal,
@@ -357,6 +398,60 @@ export const PortalDataStore = {
 
     PortalDataStore.saveAppointments(appointments);
     PortalDataStore.saveInvoices(invoices);
+
+    // 3. Sync to Operations Workstation Data Store (Reception Desk & Tech Workstation)
+    try {
+      const opsPatientsRaw = localStorage.getItem('lifeline_ops_patients');
+      const opsPatients = opsPatientsRaw ? JSON.parse(opsPatientsRaw) : [];
+
+      const opsVisitsRaw = localStorage.getItem('lifeline_ops_visits');
+      const opsVisits = opsVisitsRaw ? JSON.parse(opsVisitsRaw) : [];
+
+      const existingOpPatient = opsPatients.find((p) => p.email?.toLowerCase() === pEmail.toLowerCase());
+      if (!existingOpPatient) {
+        opsPatients.unshift({
+          id: pId,
+          patient_id: pId,
+          full_name: pName,
+          age: 30,
+          gender: 'Male',
+          mobile: patientUser?.phone || '+91 98765 43210',
+          email: pEmail,
+          address: address || 'Hyderabad',
+          referring_doctor: 'Self Walk-In',
+          emergency_contact: patientUser?.phone || '+91 98765 43210',
+          registered_at: new Date().toISOString(),
+          visit_count: 1,
+        });
+        localStorage.setItem('lifeline_ops_patients', JSON.stringify(opsPatients));
+      }
+
+      opsVisits.unshift({
+        id: visitId,
+        visit_id: visitId,
+        patient_name: pName,
+        patient_id: pId,
+        patient_email: pEmail,
+        patient_mobile: patientUser?.phone || '+91 98765 43210',
+        branch_name: branch?.name || 'Main Branch - Hyderabad (Central Hub)',
+        branch_code: 'MAIN',
+        visit_type: collectionType,
+        scheduled_at: `${date} ${time}`,
+        status: collectionType === 'HOME_COLLECTION' ? 'SCHEDULED' : 'BOOKED',
+        payment_status: isPaidNow ? 'PAID' : 'UNPAID',
+        payment_preference: paymentPreference,
+        total_amount: subtotal,
+        amount_paid: isPaidNow ? subtotal : 0,
+        balance_due: isPaidNow ? 0 : subtotal,
+        tests_summary: items.map((i) => i.item_name).join(', '),
+        token_number: `TOK-${Math.floor(100 + Math.random() * 900)}`,
+        created_at: new Date().toISOString(),
+        items,
+      });
+      localStorage.setItem('lifeline_ops_visits', JSON.stringify(opsVisits));
+    } catch (err) {
+      console.warn('Operations sync warning:', err);
+    }
 
     return { appointment: newApt, invoice: newInv };
   },

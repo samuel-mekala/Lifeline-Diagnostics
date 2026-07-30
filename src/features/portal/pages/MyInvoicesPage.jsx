@@ -25,12 +25,12 @@ export const MyInvoicesPage = () => {
   const [paymentSuccessMsg, setPaymentSuccessMsg] = useState('');
 
   const refreshInvoices = () => {
-    setInvoices(PortalDataStore.getInvoices());
+    setInvoices(PortalDataStore.getInvoices(user));
   };
 
   useEffect(() => {
     refreshInvoices();
-  }, []);
+  }, [user]);
 
   const handlePayInvoice = (e) => {
     e.preventDefault();

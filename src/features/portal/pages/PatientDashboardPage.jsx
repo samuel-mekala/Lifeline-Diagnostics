@@ -33,10 +33,10 @@ export const PatientDashboardPage = () => {
 
   // Fetch / Sync Live Local Data
   useEffect(() => {
-    setAppointments(PortalDataStore.getAppointments());
-    setInvoices(PortalDataStore.getInvoices());
-    setReports(PortalDataStore.getReports());
-  }, []);
+    setAppointments(PortalDataStore.getAppointments(user));
+    setInvoices(PortalDataStore.getInvoices(user));
+    setReports(PortalDataStore.getReports(user));
+  }, [user]);
 
   // Compute live KPI metrics
   const upcomingAppointments = appointments.filter(
