@@ -299,15 +299,6 @@ export const PortalLayout = () => {
               <Menu className="w-5 h-5" />
             </button>
 
-            {/* Brand Logo & Title beside top header */}
-            <div className="flex items-center gap-2.5 border-r border-slate-200/80 pr-4 mr-1 hidden md:flex shrink-0">
-              <Logo showText={false} className="w-8 h-8 shrink-0" />
-              <div>
-                <h1 className="text-xs font-black text-slate-900 tracking-tight leading-none">Life Line Diagnostics</h1>
-                <p className="text-[9px] font-bold text-blue-600 tracking-wider uppercase mt-0.5">NABL Certified LIMS</p>
-              </div>
-            </div>
-
             {/* Global Interactive Search Bar with Recommendations */}
             <div className="max-w-md w-full relative hidden sm:block">
               <InteractiveSearchBar
@@ -336,9 +327,9 @@ export const PortalLayout = () => {
           <div className="flex items-center gap-3 shrink-0">
             {/* Branch Scope Badge (Operations Staff) */}
             {user?.role !== 'PATIENT' && (
-              <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-200/80 rounded-xl text-xs font-semibold text-blue-800">
-                <Building2 className="w-3.5 h-3.5 text-blue-600" />
-                <span className="truncate max-w-[140px]">{activeBranch}</span>
+              <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-blue-50/90 border border-blue-300/90 rounded-xl text-xs sm:text-sm font-extrabold text-blue-900 shadow-xs">
+                <Building2 className="w-4 h-4 text-blue-600 shrink-0" />
+                <span className="whitespace-nowrap">{activeBranch}</span>
               </div>
             )}
 
