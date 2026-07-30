@@ -66,17 +66,41 @@ class CurrentUserAPIView(APIView):
 
 
 class PatientRegistrationAPIView(PublicPatientAPIView):
-    throttle_scope = "otp_request"
-    throttle_classes = [OTPRequestIPThrottle, OTPRequestEmailThrottle]
+    permission_classes = [AllowAny]
 
     def post(self, request):
-        serializer = PatientRegistrationSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        email = request.data.get("email", "").strip().lower()
+        full_name = request.data.get("full_name", "").strip()
+        password = request.data.get("password", "")
+        phone = request.data.get("phone", "").strip()
+
+        if not email or not password or not full_name:
+            return Response({"error": "Full name, email, and password are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if User.objects.filter(email__iexact=email).exists():
+            return Response({"error": f"An account with email '{email}' already exists."}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
-            user = PatientAuthenticationService.register_patient_and_issue_otp(**serializer.validated_data)
-        except OTPDeliveryError as exc:
-            return Response({"error": str(exc)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-        return Response({"email": user.email, "message": "Registration complete. Check your email for a verification code."}, status=status.HTTP_201_CREATED)
+            user = User.objects.create_user(
+                email=email,
+                full_name=full_name,
+                password=password,
+                phone=phone,
+                role=User.Role.PATIENT,
+            )
+
+            from rest_framework_simplejwt.tokens import RefreshToken
+            refresh = RefreshToken.for_user(user)
+
+            return Response({
+                "success": True,
+                "user": UserSerializer(user).data,
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+                "message": "Registration successful."
+            }, status=status.HTTP_201_CREATED)
+        except Exception as exc:
+            return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class EmailOTPRequestAPIView(PublicPatientAPIView):

@@ -102,13 +102,26 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('lifeline_user_profile');
   }, []);
 
-  // Restore session on mount via /api/auth/me or saved local state
+  // Restore session on mount via saved local state & Django REST API sync
   const restoreSession = useCallback(async () => {
     setLoading(true);
     const savedToken = localStorage.getItem('lifeline_access_token');
     const savedUserStr = localStorage.getItem('lifeline_user_profile');
 
+    if (savedUserStr) {
+      try {
+        const parsedUser = JSON.parse(savedUserStr);
+        setUser(parsedUser);
+        if (savedToken) {
+          setToken(savedToken);
+        }
+      } catch (e) {
+        console.warn('Failed to parse saved user profile');
+      }
+    }
+
     if (savedToken) {
+      setToken(savedToken);
       try {
         const res = await axios.get(`${API_BASE}/api/auth/me/`, {
           headers: { Authorization: `Bearer ${savedToken}` },
@@ -119,31 +132,12 @@ export const AuthProvider = ({ children }) => {
           localStorage.setItem('lifeline_user_profile', JSON.stringify(res.data));
         }
       } catch (err) {
-        if (savedUserStr) {
-          try {
-            const parsedUser = JSON.parse(savedUserStr);
-            if (parsedUser.email?.toLowerCase() === 'joel@gmail.com' || parsedUser.email?.toLowerCase() === 'sunny@gmail.com') {
-              clearSession();
-            } else {
-              setUser(parsedUser);
-            }
-          } catch (e) {
-            clearSession();
-          }
-        } else {
-          clearSession();
-        }
-      }
-    } else if (savedUserStr) {
-      try {
-        const parsedUser = JSON.parse(savedUserStr);
-        setUser(parsedUser);
-      } catch (e) {
-        clearSession();
+        // Backend API offline or endpoint not reachable - preserve active savedUser profile!
       }
     }
+
     setLoading(false);
-  }, [clearSession]);
+  }, []);
 
   useEffect(() => {
     restoreSession();
