@@ -125,44 +125,16 @@
   <!-- Top High-Tech Navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark navbar-cyber sticky-top py-2.5">
     <div class="container-fluid px-4">
-      <!-- Official Emblem Logo -->
+      <!-- Official Frontend Logo Image -->
       <a class="navbar-brand d-flex align-items-center gap-3 text-decoration-none" href="/">
-        <!-- Official Emblem Badge -->
-        <div style="width: 48px; height: 48px; flex-shrink: 0;" class="drop-shadow">
-          <svg viewBox="0 0 200 200" style="width: 100%; height: 100%;" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="100" cy="100" r="92" fill="#1E56A0" stroke="#10316B" stroke-width="4" />
-            <circle cx="100" cy="100" r="74" fill="#FFFFFF" />
-            <path d="M 30,100 A 70,70 0 1,1 170,100" fill="none" id="textPathTop" />
-            <path d="M 170,100 A 70,70 0 0,1 30,100" fill="none" id="textPathBottom" />
-
-            <text fill="#FFFFFF" font-size="13" font-weight="900" letter-spacing="1.2">
-              <textPath href="#textPathTop" startOffset="50%" text-anchor="middle">
-                LIFE LINE DIAGNOSTICS
-              </textPath>
-            </text>
-
-            <text fill="#FFFFFF" font-size="12" font-weight="800" letter-spacing="1.5">
-              <textPath href="#textPathBottom" startOffset="50%" text-anchor="middle">
-                PATHLABS INDIA
-              </textPath>
-            </text>
-
-            <circle cx="36" cy="115" r="3" fill="#DC2626" />
-            <circle cx="164" cy="115" r="3" fill="#DC2626" />
-
-            <ellipse cx="100" cy="52" rx="7" ry="14" fill="#2E7D32" />
-            <ellipse cx="88" cy="56" rx="6" ry="12" fill="#4CAF50" transform="rotate(-25 88 56)" />
-            <ellipse cx="112" cy="56" rx="6" ry="12" fill="#4CAF50" transform="rotate(25 112 56)" />
-
-            <!-- ECG Pulse Wave -->
-            <path d="M 50 105 H 80 L 90 75 L 105 130 L 120 90 L 130 105 H 150" stroke="#1E56A0" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
+        <div style="width: 52px; height: 52px; flex-shrink: 0;" class="rounded-circle overflow-hidden shadow-lg border border-primary border-opacity-25">
+          <img src="/static/logo.png" onerror="this.onerror=null; this.src='/static/logo.jpg';" alt="Life Line Diagnostics Logo" style="width: 100%; height: 100%; object-fit: contain;" />
         </div>
 
         <div class="d-flex flex-column justify-content-center">
           <div class="d-flex align-items-center gap-2">
             <span class="fs-4 font-black text-white lh-1 tracking-tight">Life Line Diagnostics</span>
-            <span class="badge bg-primary bg-opacity-25 text-cyan border border-info border-opacity-25 font-mono" style="font-size: 0.65rem;">API BACKEND v6.0</span>
+            <span class="badge bg-primary bg-opacity-20 text-cyan border border-info border-opacity-25 font-mono px-2 py-0.5" style="font-size: 0.65rem;">API BACKEND</span>
           </div>
           <span class="text-emerald font-extrabold uppercase tracking-wider" style="font-size: 0.68rem; margin-top: 4px; letter-spacing: 0.08em;">
             PATH LABS INDIA &middot; ISO 9001:2008 &middot; NABL CERTIFIED
@@ -177,18 +149,19 @@
           <span>REST API ONLINE</span>
         </div>
 
-        <a href="http://localhost:3000" target="_blank" class="btn btn-gradient-blue btn-sm font-black px-4 py-2 rounded-3 text-xs d-flex align-items-center gap-2">
+        <a href="http://localhost:3000" target="_blank" class="btn btn-gradient-blue btn-sm font-black px-3.5 py-2 rounded-3 text-xs d-flex align-items-center gap-2">
           <i class="bi bi-box-arrow-up-right"></i>
-          <span>Launch React Web App (Port 3000)</span>
+          <span>Launch Web App (Port 3000)</span>
         </a>
 
-        <a href="/admin/" target="_blank" class="btn btn-glass-secondary btn-sm font-bold px-3.5 py-2 rounded-3 text-xs d-flex align-items-center gap-2">
+        <a href="/admin/" target="_blank" class="btn btn-glass-secondary btn-sm font-bold px-3 py-2 rounded-3 text-xs d-flex align-items-center gap-2">
           <i class="bi bi-shield-lock"></i>
-          <span>Django Admin (/admin/)</span>
+          <span>Django Admin</span>
         </a>
       </div>
     </div>
   </nav>
+
 
   <!-- Main Content Body -->
   <main class="flex-grow-1 p-3 p-md-4 container-fluid">

@@ -15,34 +15,35 @@ Life Line Diagnostics | Django REST API & Developer Control Hub
 
     <div class="position-relative z-1">
       <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
-        <span class="badge bg-emerald bg-opacity-25 text-emerald border border-emerald border-opacity-25 px-3 py-2 rounded-pill font-mono" style="font-size: 0.75rem;">
+        <span class="badge bg-emerald bg-opacity-20 text-emerald border border-emerald border-opacity-30 px-3 py-2 rounded-pill font-mono" style="font-size: 0.72rem;">
           <i class="bi bi-shield-check me-1.5"></i> NABL ACCREDITED DJANGO REST BACKEND SERVER
         </span>
-        <span class="badge bg-primary bg-opacity-25 text-cyan border border-info border-opacity-25 px-3 py-2 rounded-pill font-mono" style="font-size: 0.75rem;">
+        <span class="badge bg-info bg-opacity-20 text-cyan border border-info border-opacity-30 px-3 py-2 rounded-pill font-mono" style="font-size: 0.72rem;">
           <i class="bi bi-database-check me-1.5 text-cyan"></i> DB: MySQL 9.7 (lifeline_diagnostics)
         </span>
       </div>
 
       <h1 class="display-6 font-black text-white mb-2 tracking-tight">
-        Life Line Diagnostics <span style="color: #38bdf8;">API & Developer Hub</span>
+        Life Line Diagnostics <span style="color: #38bdf8;">API Control Hub</span>
       </h1>
       <p class="text-slate-300 lead fs-6 max-w-2xl mb-4" style="color: #94a3b8; max-width: 750px; line-height: 1.6;">
-        Central control hub powering automated specimen barcode generation (`LLD-B-XXXXXX`), laboratory analyzer result parameter entries, pathologist digital sign-offs, and NABL A4 PDF report publishing.
+        Powers automated specimen barcode generation (`LLD-B-XXXXXX`), laboratory analyzer result parameter entries, pathologist digital sign-offs, and NABL A4 PDF report publishing.
       </p>
 
       <div class="d-flex flex-wrap align-items-center gap-3">
-        <a href="http://localhost:3000" target="_blank" class="btn btn-gradient-blue btn-lg font-black px-4 py-2.5 rounded-3 shadow flex items-center gap-2" style="font-size: 0.92rem;">
+        <a href="http://localhost:3000" target="_blank" class="btn btn-gradient-blue font-black px-4 py-2.5 rounded-3 shadow flex items-center gap-2" style="font-size: 0.88rem;">
           <i class="bi bi-box-arrow-up-right me-1"></i> Launch React Web App (Port 3000)
         </a>
-        <a href="/admin/" target="_blank" class="btn btn-glass-secondary btn-lg font-bold px-4 py-2.5 rounded-3 flex items-center gap-2" style="font-size: 0.92rem;">
-          <i class="bi bi-shield-lock me-1"></i> Django Admin Console (/admin/)
+        <a href="/admin/" target="_blank" class="btn btn-glass-secondary font-bold px-3.5 py-2.5 rounded-3 flex items-center gap-2" style="font-size: 0.88rem;">
+          <i class="bi bi-shield-lock me-1"></i> Django Admin (/admin/)
         </a>
-        <a href="/health/" target="_blank" class="btn btn-glass-secondary btn-lg font-bold px-4 py-2.5 rounded-3 flex items-center gap-2" style="font-size: 0.92rem;">
-          <i class="bi bi-heart-pulse me-1 text-emerald"></i> Health Status API (/health/)
+        <a href="/health/" target="_blank" class="btn btn-glass-secondary font-bold px-3.5 py-2.5 rounded-3 flex items-center gap-2" style="font-size: 0.88rem;">
+          <i class="bi bi-heart-pulse me-1 text-emerald"></i> API Health (/health/)
         </a>
       </div>
     </div>
   </div>
+
 
   <!-- Live System Status & Architecture Grid -->
   <div class="row g-3 mb-4">
@@ -208,19 +209,20 @@ Life Line Diagnostics | Django REST API & Developer Control Hub
               <div class="d-flex justify-content-between align-items-center mb-1.5">
                 <span class="fw-black text-white fs-6">{{ u.full_name }}</span>
                 {% if u.role == "OWNER" %}
-                  <span class="badge bg-warning text-dark font-black font-mono">👑 OWNER</span>
+                  <span class="badge bg-warning bg-opacity-20 text-amber border border-warning border-opacity-30 font-black font-mono px-2.5 py-1">👑 OWNER</span>
                 {% elif u.role == "ADMIN" %}
-                  <span class="badge bg-primary font-black font-mono">⚡ ADMIN</span>
+                  <span class="badge bg-primary bg-opacity-20 text-cyan border border-primary border-opacity-30 font-black font-mono px-2.5 py-1">⚡ ADMIN</span>
                 {% elif u.role == "RECEPTIONIST" %}
-                  <span class="badge bg-info text-dark font-black font-mono">🏢 RECEPTIONIST</span>
+                  <span class="badge bg-info bg-opacity-20 text-cyan border border-info border-opacity-30 font-black font-mono px-2.5 py-1">🏢 RECEPTIONIST</span>
                 {% elif u.role == "LAB_TECHNICIAN" %}
-                  <span class="badge bg-success font-black font-mono">🧪 LAB_TECH</span>
+                  <span class="badge bg-success bg-opacity-20 text-emerald border border-success border-opacity-30 font-black font-mono px-2.5 py-1">🧪 LAB_TECH</span>
                 {% elif u.role == "PATHOLOGIST" %}
-                  <span class="badge bg-danger font-black font-mono">🩺 PATHOLOGIST</span>
+                  <span class="badge bg-danger bg-opacity-20 text-rose border border-danger border-opacity-30 font-black font-mono px-2.5 py-1">🩺 PATHOLOGIST</span>
                 {% else %}
-                  <span class="badge bg-secondary font-black font-mono">👤 PATIENT</span>
+                  <span class="badge bg-secondary bg-opacity-20 text-slate-300 border border-secondary border-opacity-30 font-black font-mono px-2.5 py-1">👤 PATIENT</span>
                 {% endif %}
               </div>
+
               <div class="text-cyan font-mono small fw-bold" style="color: #38bdf8;">{{ u.email }}</div>
               <div class="text-slate-400 small mt-2 d-flex align-items-center justify-content-between" style="color: #94a3b8;">
                 <span>Password: <code class="text-white px-2 py-0.5 rounded font-mono" style="background: rgba(255,255,255,0.12);">admin123</code></span>
