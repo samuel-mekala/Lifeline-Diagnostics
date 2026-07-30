@@ -203,63 +203,92 @@ export default function TestCatalogPage() {
       {/* View Content: Health Packages Catalog */}
       {activeTab === 'HEALTH_PACKAGES' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {CATALOG_PACKAGES.map((pkg) => (
-            <div
-              key={pkg.id}
-              className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-sm hover:shadow-lg transition-all space-y-5 flex flex-col justify-between"
-            >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-emerald-200">
-                    {pkg.included_test_count} Tests Included
-                  </span>
-                  {pkg.popular && (
-                    <span className="bg-amber-100 text-amber-800 text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                      <Sparkles className="w-3 h-3 text-amber-600" /> MOST POPULAR
+          {(packages.length > 0 ? packages : CATALOG_PACKAGES).map((pkg) => {
+            const walkIn = pkg.walk_in_price || pkg.price || 750;
+            const homePrice = pkg.home_collection_price || Math.round(walkIn * 1.5);
+            const doctorPrice = pkg.doctor_referral_price || Math.round(walkIn * 2.0);
+
+            return (
+              <div
+                key={pkg.id || pkg.package_id}
+                className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-sm hover:shadow-lg transition-all space-y-5 flex flex-col justify-between"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-emerald-200">
+                      {pkg.test_count || pkg.included_test_count || (pkg.tests ? pkg.tests.length : 10)} Tests Included
                     </span>
+                    {pkg.popular && (
+                      <span className="bg-amber-100 text-amber-800 text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 text-amber-600" /> MOST POPULAR
+                      </span>
+                    )}
+                  </div>
+
+                  <h3 className="text-base font-extrabold text-slate-900">{pkg.name}</h3>
+                  <p className="text-xs text-slate-500 leading-relaxed">{pkg.description}</p>
+
+                  {pkg.tests && pkg.tests.length > 0 ? (
+                    <div className="p-3 bg-blue-50/60 rounded-2xl border border-blue-100 text-xs space-y-2">
+                      <div className="font-bold text-blue-900 text-[11px] uppercase tracking-wider">Included Test Parameters:</div>
+                      <div className="grid grid-cols-2 gap-1 text-[11px] text-slate-700 font-medium max-h-24 overflow-y-auto custom-scrollbar">
+                        {pkg.tests.map((tName, i) => (
+                          <span key={i} className="flex items-center gap-1 truncate">
+                            <Check className="w-3 h-3 text-emerald-600 shrink-0" /> {tName}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-blue-50/60 rounded-2xl border border-blue-100 text-xs space-y-2">
+                      <div className="font-bold text-blue-900 text-[11px] uppercase tracking-wider">Key Included Diagnostics:</div>
+                      <div className="grid grid-cols-2 gap-1.5 text-[11px] text-slate-700 font-medium">
+                        <span className="flex items-center gap-1">
+                          <Check className="w-3 h-3 text-emerald-600" /> CBC Profile
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Check className="w-3 h-3 text-emerald-600" /> Fasting Sugar
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Check className="w-3 h-3 text-emerald-600" /> Lipid Balance
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Check className="w-3 h-3 text-emerald-600" /> Kidney & Liver
+                        </span>
+                      </div>
+                    </div>
                   )}
                 </div>
 
-                <h3 className="text-base font-extrabold text-slate-900">{pkg.name}</h3>
-                <p className="text-xs text-slate-500 leading-relaxed">{pkg.description}</p>
+                <div className="pt-4 border-t border-slate-100 space-y-3">
+                  <div className="grid grid-cols-3 gap-1.5 text-center">
+                    <div className="bg-slate-50 p-2 rounded-xl border border-slate-200/60">
+                      <span className="text-[9px] font-bold text-slate-500 uppercase block">Walk-In</span>
+                      <span className="text-xs font-black text-slate-900">₹{walkIn}</span>
+                    </div>
 
-                <div className="p-3 bg-blue-50/60 rounded-2xl border border-blue-100 text-xs space-y-2">
-                  <div className="font-bold text-blue-900 text-[11px] uppercase tracking-wider">Key Included Diagnostics:</div>
-                  <div className="grid grid-cols-2 gap-1.5 text-[11px] text-slate-700 font-medium">
-                    <span className="flex items-center gap-1">
-                      <Check className="w-3 h-3 text-emerald-600" /> CBC Profile
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Check className="w-3 h-3 text-emerald-600" /> Fasting Sugar
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Check className="w-3 h-3 text-emerald-600" /> Lipid Balance
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Check className="w-3 h-3 text-emerald-600" /> Kidney & Liver
-                    </span>
+                    <div className="bg-blue-50 p-2 rounded-xl border border-blue-200/60">
+                      <span className="text-[9px] font-bold text-blue-700 uppercase block">Home (1.5x)</span>
+                      <span className="text-xs font-black text-blue-900">₹{homePrice}</span>
+                    </div>
+
+                    <div className="bg-purple-50 p-2 rounded-xl border border-purple-200/60">
+                      <span className="text-[9px] font-bold text-purple-700 uppercase block">Doc Ref (2.0x)</span>
+                      <span className="text-xs font-black text-purple-900">₹{doctorPrice}</span>
+                    </div>
                   </div>
+
+                  <button
+                    onClick={() => handleBookPackage(pkg)}
+                    className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl shadow-md transition cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <CalendarPlus className="w-4 h-4" />
+                    <span>Book Package</span>
+                  </button>
                 </div>
               </div>
-
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] text-slate-400 font-bold block uppercase">Special Package Price</span>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-black text-slate-900">₹{pkg.price}</span>
-                    <span className="text-xs text-slate-400 line-through">₹{pkg.original_price}</span>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => handleBookPackage(pkg)}
-                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl shadow-md transition"
-                >
-                  Book Package
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
