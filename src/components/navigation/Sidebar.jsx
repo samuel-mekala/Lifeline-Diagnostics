@@ -162,22 +162,28 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
         } ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
       >
         {/* Brand Header */}
-        <div className="h-16 px-3.5 flex items-center justify-between border-b border-slate-800 shrink-0 bg-slate-950/40">
-          <div className="flex items-center gap-2.5 overflow-hidden min-w-0">
-            <Logo
-              showText={!isCollapsed}
-              textVariant="light"
-              className="w-9 h-9 shrink-0"
-              titleClassName="text-sm font-black tracking-tight leading-tight text-white truncate"
-              subtitleClassName="text-[9px] font-extrabold uppercase tracking-wider text-emerald-400 leading-none truncate mt-0.5"
-            />
-          </div>
+        <div className={`h-16 px-3 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} border-b border-slate-800 shrink-0 bg-slate-950/60`}>
+          {!isCollapsed ? (
+            <div className="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+              <Logo
+                showText={true}
+                textVariant="light"
+                className="w-8 h-8 shrink-0"
+                titleClassName="text-xs font-black tracking-tight leading-tight text-white truncate"
+                subtitleClassName="text-[8px] font-extrabold uppercase tracking-wider text-emerald-400 leading-none truncate mt-0.5"
+              />
+            </div>
+          ) : (
+            <div className="w-8 h-8 flex items-center justify-center shrink-0">
+              <Logo showText={false} textVariant="light" className="w-8 h-8" />
+            </div>
+          )}
 
           {/* Desktop Collapse Toggle */}
           <button
             type="button"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden lg:flex w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white items-center justify-center transition-colors cursor-pointer shrink-0"
+            className="hidden lg:flex w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white items-center justify-center transition-colors cursor-pointer shrink-0 ml-1"
             title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -253,11 +259,11 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
         </div>
 
         {/* User Profile Footer */}
-        <div className="p-3 border-t border-slate-800 bg-slate-950/80 shrink-0">
-          <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} gap-2`}>
-            {!isCollapsed ? (
-              <div className="min-w-0 flex-1 flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-blue-600/30 border border-blue-400/40 flex items-center justify-center text-blue-300 font-bold text-xs shrink-0 shadow-sm">
+        <div className="p-3 border-t border-slate-800 bg-slate-950/90 shrink-0">
+          {!isCollapsed ? (
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0 flex-1 flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-blue-600/30 border border-blue-400/40 flex items-center justify-center text-blue-300 font-bold text-xs shrink-0 shadow-sm">
                   {user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'U'}
                 </div>
                 <div className="min-w-0 flex-1">
@@ -270,21 +276,31 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
                   </div>
                 </div>
               </div>
-            ) : (
-              <div className="w-9 h-9 rounded-xl bg-blue-600/30 border border-blue-400/40 flex items-center justify-center text-blue-300 font-bold text-xs" title={user?.full_name}>
+
+              <button
+                type="button"
+                onClick={() => setShowLogoutModal(true)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer shrink-0 border border-slate-800 hover:border-red-500/30"
+                title="Sign Out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-blue-600/30 border border-blue-400/40 flex items-center justify-center text-blue-300 font-bold text-xs" title={`${user?.full_name} (${role})`}>
                 {user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'U'}
               </div>
-            )}
-
-            <button
-              type="button"
-              onClick={() => setShowLogoutModal(true)}
-              className="p-2 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer shrink-0"
-              title="Sign Out"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
+              <button
+                type="button"
+                onClick={() => setShowLogoutModal(true)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer border border-slate-800 hover:border-red-500/30"
+                title="Sign Out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
       </aside>
 
