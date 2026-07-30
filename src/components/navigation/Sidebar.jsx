@@ -164,13 +164,14 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
         {/* Brand Header */}
         <div className={`h-16 px-3 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} border-b border-slate-800 shrink-0 bg-slate-950/60`}>
           {!isCollapsed ? (
-            <div className="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+            <div className="flex items-center gap-2 overflow-hidden min-w-0 flex-1 pr-1">
               <Logo
                 showText={true}
                 textVariant="light"
+                subtitleText="PATH LABS INDIA"
                 className="w-8 h-8 shrink-0"
-                titleClassName="text-xs font-black tracking-tight leading-tight text-white truncate"
-                subtitleClassName="text-[8px] font-extrabold uppercase tracking-wider text-emerald-400 leading-none truncate mt-0.5"
+                titleClassName="text-xs font-black tracking-tight leading-tight text-white"
+                subtitleClassName="text-[9px] font-extrabold uppercase tracking-wider text-emerald-400 leading-none mt-0.5"
               />
             </div>
           ) : (
@@ -183,7 +184,7 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
           <button
             type="button"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden lg:flex w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white items-center justify-center transition-colors cursor-pointer shrink-0 ml-1"
+            className="hidden lg:flex w-7 h-7 rounded-lg bg-slate-800/90 hover:bg-blue-600 text-slate-400 hover:text-white items-center justify-center transition-colors cursor-pointer shrink-0 border border-slate-700/60 shadow-sm"
             title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}

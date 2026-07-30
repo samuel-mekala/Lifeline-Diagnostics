@@ -4,6 +4,8 @@ export const Logo = ({
   className = 'w-14 h-14 sm:w-16 sm:h-16',
   showText = true,
   textVariant = 'dark',
+  titleText = 'Life Line Diagnostics',
+  subtitleText = 'PATH LABS INDIA · ISO 9001:2008',
   titleClassName = 'text-lg sm:text-2xl font-black tracking-tight leading-none whitespace-nowrap',
   subtitleClassName = 'text-[11px] sm:text-xs font-extrabold uppercase tracking-wider mt-0.5 whitespace-nowrap',
 }) => {
@@ -19,7 +21,7 @@ export const Logo = ({
   };
 
   return (
-    <div className="flex items-center gap-2 sm:gap-2.5 select-none shrink-0">
+    <div className="flex items-center gap-2 sm:gap-2.5 select-none shrink-0 min-w-0">
       {/* Official Emblem Logo Image */}
       <div className={`relative shrink-0 ${className}`}>
         {!useSvg ? (
@@ -59,12 +61,12 @@ export const Logo = ({
       </div>
 
       {showText && (
-        <div className="flex flex-col justify-center min-w-0">
-          <h1 className={`whitespace-nowrap ${titleClassName} ${textVariant === 'light' ? 'text-white' : 'text-slate-900'}`}>
-            Life Line Diagnostics
+        <div className="flex flex-col justify-center min-w-0 overflow-hidden">
+          <h1 className={`whitespace-nowrap truncate ${titleClassName} ${textVariant === 'light' ? 'text-white' : 'text-slate-900'}`}>
+            {titleText}
           </h1>
-          <p className={`whitespace-nowrap ${subtitleClassName} ${textVariant === 'light' ? 'text-emerald-400' : 'text-emerald-600'}`}>
-            PATH LABS INDIA · ISO 9001:2008
+          <p className={`whitespace-nowrap truncate ${subtitleClassName} ${textVariant === 'light' ? 'text-emerald-400' : 'text-emerald-600'}`}>
+            {subtitleText}
           </p>
         </div>
       )}
