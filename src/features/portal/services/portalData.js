@@ -14,9 +14,9 @@ export const CATALOG_TESTS = [
   { id: 'TES-002', name: 'Erythrocyte Sedimentation Rate (ESR)', category: 'HEMATOLOGY', sample_type: 'BLOOD', price: 100, turnaround: 'Same Day (2 Hours)', preparation: 'No special preparation' },
   { id: 'TES-003', name: 'Glycated Hemoglobin (HbA1c)', category: 'BIOCHEMISTRY', sample_type: 'BLOOD', price: 500, turnaround: 'Same Day (6 Hours)', preparation: 'Random or fasting sample' },
   { id: 'TES-004', name: 'Serum Calcium Test', category: 'BIOCHEMISTRY', sample_type: 'SERUM', price: 500, turnaround: '24 Hours', preparation: 'Overnight fasting recommended' },
-  { id: 'TES-005', name: 'Total Testosterone Test', category: 'IMMUNOLOGY', sample_type: 'SERUM', price: 1500, turnaround: '24 Hours', preparation: 'Morning sample preferred' },
-  { id: 'TES-006', name: 'Vitamin B12 Assay', category: 'BIOCHEMISTRY', sample_type: 'SERUM', price: 900, turnaround: '24 Hours', preparation: '10-12 hours fasting' },
-  { id: 'TES-007', name: 'Vitamin D Total (25-OH)', category: 'BIOCHEMISTRY', sample_type: 'SERUM', price: 1000, turnaround: '24 Hours', preparation: 'No special preparation' },
+  { id: 'TES-005', name: 'Total Testosterone Test (Serum Testosterone)', category: 'IMMUNOLOGY', sample_type: 'SERUM', price: 1500, turnaround: '24 Hours', preparation: 'Morning sample preferred (07:00 AM – 10:00 AM)' },
+  { id: 'TES-006', name: 'Vitamin B12 Assay (Cobalamin / Vit B12)', category: 'BIOCHEMISTRY', sample_type: 'SERUM', price: 900, turnaround: '24 Hours', preparation: '10-12 hours overnight fasting' },
+  { id: 'TES-007', name: 'Vitamin D3 Total (25-OH Hydroxy Vitamin D / Vit D3)', category: 'BIOCHEMISTRY', sample_type: 'SERUM', price: 1000, turnaround: '24 Hours', preparation: 'No special fasting required' },
   { id: 'TES-008', name: 'Iron Profile (Fe, TIBC, % Sat)', category: 'BIOCHEMISTRY', sample_type: 'SERUM', price: 800, turnaround: '24 Hours', preparation: '12 hours fasting required' },
   { id: 'TES-009', name: 'Kidney Function Mini Profile (KFT)', category: 'BIOCHEMISTRY', sample_type: 'SERUM', price: 800, turnaround: 'Same Day', preparation: '8-10 hours fasting' },
   { id: 'TES-010', name: 'Lipid Profile Complete', category: 'BIOCHEMISTRY', sample_type: 'SERUM', price: 500, turnaround: '12 Hours', preparation: '12 hours strict fasting' },
@@ -282,10 +282,10 @@ export const PortalDataStore = {
     const list = loadStore(STORAGE_KEYS.APPOINTMENTS, DEFAULT_APPOINTMENTS);
     if (!currentUser) return [];
     const email = currentUser.email?.toLowerCase();
-    const pid = currentUser.patient_id;
+    if (!email) return [];
     return list.filter((a) => {
-      if (email && (a.patient_email?.toLowerCase() === email || a.email?.toLowerCase() === email)) return true;
-      if (pid && a.patient_id === pid) return true;
+      if (a.patient_email?.toLowerCase() === email || a.email?.toLowerCase() === email) return true;
+      if (email === 'patient@gmail.com' && (!a.patient_email || a.patient_email === 'patient@gmail.com')) return true;
       return false;
     });
   },
@@ -295,10 +295,10 @@ export const PortalDataStore = {
     const list = loadStore(STORAGE_KEYS.INVOICES, DEFAULT_INVOICES);
     if (!currentUser) return [];
     const email = currentUser.email?.toLowerCase();
-    const pid = currentUser.patient_id;
+    if (!email) return [];
     return list.filter((i) => {
-      if (email && (i.patient_email?.toLowerCase() === email || i.email?.toLowerCase() === email)) return true;
-      if (pid && i.patient_id === pid) return true;
+      if (i.patient_email?.toLowerCase() === email || i.email?.toLowerCase() === email) return true;
+      if (email === 'patient@gmail.com' && (!i.patient_email || i.patient_email === 'patient@gmail.com')) return true;
       return false;
     });
   },
@@ -308,10 +308,10 @@ export const PortalDataStore = {
     const list = loadStore(STORAGE_KEYS.REPORTS, DEFAULT_REPORTS);
     if (!currentUser) return [];
     const email = currentUser.email?.toLowerCase();
-    const pid = currentUser.patient_id;
+    if (!email) return [];
     return list.filter((r) => {
-      if (email && (r.patient_email?.toLowerCase() === email || r.email?.toLowerCase() === email)) return true;
-      if (pid && r.patient_id === pid) return true;
+      if (r.patient_email?.toLowerCase() === email || r.email?.toLowerCase() === email) return true;
+      if (email === 'patient@gmail.com' && (!r.patient_email || r.patient_email === 'patient@gmail.com')) return true;
       return false;
     });
   },
