@@ -77,12 +77,15 @@ export const BRANCHES = [
   },
 ];
 
-// Default Initial Seed Data
+// // Default Initial Seed Data (Explicitly tagged for demo account patient@gmail.com)
 const DEFAULT_APPOINTMENTS = [
   {
     id: 'APT-904101',
     appointment_number: 'APT-2026-0941',
     visit_id: 'VIS-904101',
+    patient_name: 'Rahul Sharma',
+    patient_id: 'PAT-009842',
+    patient_email: 'patient@gmail.com',
     collection_type: 'HOME_COLLECTION',
     scheduled_date: '2026-07-30',
     scheduled_time: '08:30 AM',
@@ -100,6 +103,9 @@ const DEFAULT_APPOINTMENTS = [
     id: 'APT-903822',
     appointment_number: 'APT-2026-0812',
     visit_id: 'VIS-903822',
+    patient_name: 'Rahul Sharma',
+    patient_id: 'PAT-009842',
+    patient_email: 'patient@gmail.com',
     collection_type: 'LAB_VISIT',
     scheduled_date: '2026-07-25',
     scheduled_time: '09:00 AM',
@@ -122,6 +128,7 @@ const DEFAULT_INVOICES = [
     visit_id: 'VIS-904101',
     patient_name: 'Rahul Sharma',
     patient_id: 'PAT-009842',
+    patient_email: 'patient@gmail.com',
     status: 'PAID',
     payment_preference: 'PAY_NOW',
     subtotal: 750,
@@ -143,6 +150,7 @@ const DEFAULT_INVOICES = [
     visit_id: 'VIS-903822',
     patient_name: 'Rahul Sharma',
     patient_id: 'PAT-009842',
+    patient_email: 'patient@gmail.com',
     status: 'PAID',
     payment_preference: 'PAY_NOW',
     subtotal: 300,
@@ -164,6 +172,7 @@ const DEFAULT_INVOICES = [
     visit_id: 'VIS-905102',
     patient_name: 'Rahul Sharma',
     patient_id: 'PAT-009842',
+    patient_email: 'patient@gmail.com',
     status: 'UNPAID',
     payment_preference: 'PAY_LATER',
     subtotal: 500,
@@ -185,6 +194,8 @@ const DEFAULT_REPORTS = [
     report_number: 'REP-2026-0812',
     visit_id: 'VIS-903822',
     invoice_id: 'INV-2026-0012',
+    patient_email: 'patient@gmail.com',
+    patient_id: 'PAT-009842',
     title: 'Complete Blood Picture (CBC)',
     status: 'GENERATED',
     payment_status: 'PAID', // Unlocked because invoice is paid!
@@ -204,6 +215,8 @@ const DEFAULT_REPORTS = [
     report_number: 'REP-2026-0902',
     visit_id: 'VIS-905102',
     invoice_id: 'INV-2026-0089',
+    patient_email: 'patient@gmail.com',
+    patient_id: 'PAT-009842',
     title: 'Thyroid Profile I (T3, T4, TSH)',
     status: 'GENERATED',
     payment_status: 'UNPAID', // LOCKED! Release blocked until invoice paid
@@ -267,13 +280,12 @@ const saveStore = (key, data) => {
 export const PortalDataStore = {
   getAppointments: (currentUser) => {
     const list = loadStore(STORAGE_KEYS.APPOINTMENTS, DEFAULT_APPOINTMENTS);
-    if (!currentUser) return list;
+    if (!currentUser) return [];
     const email = currentUser.email?.toLowerCase();
     const pid = currentUser.patient_id;
     return list.filter((a) => {
       if (email && (a.patient_email?.toLowerCase() === email || a.email?.toLowerCase() === email)) return true;
       if (pid && a.patient_id === pid) return true;
-      if (email === 'patient@gmail.com' && (!a.patient_email || a.patient_email === 'patient@gmail.com')) return true;
       return false;
     });
   },
@@ -281,13 +293,12 @@ export const PortalDataStore = {
 
   getInvoices: (currentUser) => {
     const list = loadStore(STORAGE_KEYS.INVOICES, DEFAULT_INVOICES);
-    if (!currentUser) return list;
+    if (!currentUser) return [];
     const email = currentUser.email?.toLowerCase();
     const pid = currentUser.patient_id;
     return list.filter((i) => {
       if (email && (i.patient_email?.toLowerCase() === email || i.email?.toLowerCase() === email)) return true;
       if (pid && i.patient_id === pid) return true;
-      if (email === 'patient@gmail.com' && (!i.patient_email || i.patient_email === 'patient@gmail.com')) return true;
       return false;
     });
   },
@@ -295,13 +306,12 @@ export const PortalDataStore = {
 
   getReports: (currentUser) => {
     const list = loadStore(STORAGE_KEYS.REPORTS, DEFAULT_REPORTS);
-    if (!currentUser) return list;
+    if (!currentUser) return [];
     const email = currentUser.email?.toLowerCase();
     const pid = currentUser.patient_id;
     return list.filter((r) => {
       if (email && (r.patient_email?.toLowerCase() === email || r.email?.toLowerCase() === email)) return true;
       if (pid && r.patient_id === pid) return true;
-      if (email === 'patient@gmail.com' && (!r.patient_email || r.patient_email === 'patient@gmail.com')) return true;
       return false;
     });
   },
