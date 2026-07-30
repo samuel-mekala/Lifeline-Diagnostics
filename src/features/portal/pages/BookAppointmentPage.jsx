@@ -414,12 +414,27 @@ export const BookAppointmentPage = () => {
                     </div>
 
                     <div className="mt-4 pt-3 border-t border-slate-200/60 flex items-center justify-between">
-                      <span className="text-sm font-extrabold text-slate-900">₹{pkg.price}</span>
-                      <span className={`text-[10px] font-bold px-2 py-1 rounded-lg ${
-                        isSelected ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-700'
-                      }`}>
-                        {isSelected ? 'Selected' : '+ Add Package'}
-                      </span>
+                      <span className="text-base font-black text-slate-900">₹{pkg.price}</span>
+                      <button
+                        type="button"
+                        className={`text-xs font-black px-3.5 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shadow-sm cursor-pointer ${
+                          isSelected
+                            ? 'bg-emerald-500 text-slate-950 shadow-emerald-500/25 ring-2 ring-emerald-400'
+                            : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-blue-600/20'
+                        }`}
+                      >
+                        {isSelected ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 stroke-[3]" />
+                            <span>Package Selected</span>
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                            <span>Add Package</span>
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
                 );
@@ -457,28 +472,43 @@ export const BookAppointmentPage = () => {
                     onClick={() => toggleTestSelection(test)}
                     className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 transition-all cursor-pointer ${
                       isSelected
-                        ? 'border-blue-500 bg-blue-50/60 ring-2 ring-blue-500'
-                        : 'border-slate-200 bg-slate-50 hover:bg-slate-100'
+                        ? 'border-blue-500 bg-blue-50/70 ring-2 ring-blue-500 shadow-sm'
+                        : 'border-slate-200 bg-slate-50 hover:bg-slate-100/80 hover:border-slate-300'
                     }`}
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded">
+                        <span className="text-[10px] font-black text-blue-700 bg-blue-100 px-2 py-0.5 rounded-md">
                           {test.category}
                         </span>
-                        <span className="text-[10px] text-slate-400 font-medium">{test.sample_type}</span>
+                        <span className="text-[10px] text-slate-500 font-bold">{test.sample_type}</span>
                       </div>
                       <p className="text-xs font-bold text-slate-900 truncate mt-1">{test.name}</p>
                       <p className="text-[10px] text-slate-500 mt-0.5">{test.preparation}</p>
                     </div>
 
-                    <div className="text-right shrink-0">
-                      <span className="text-xs font-extrabold text-slate-900 block mb-1">₹{test.price}</span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                        isSelected ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-700'
-                      }`}>
-                        {isSelected ? 'Added' : '+ Add'}
-                      </span>
+                    <div className="text-right shrink-0 flex flex-col items-end gap-1.5">
+                      <span className="text-sm font-black text-slate-900">₹{test.price}</span>
+                      <button
+                        type="button"
+                        className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 shadow-sm cursor-pointer ${
+                          isSelected
+                            ? 'bg-blue-600 text-white shadow-blue-600/25 font-black ring-2 ring-blue-500'
+                            : 'bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white border border-blue-200/80 font-bold'
+                        }`}
+                      >
+                        {isSelected ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 stroke-[3]" />
+                            <span>Added</span>
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                            <span>Add Test</span>
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
                 );
@@ -486,14 +516,14 @@ export const BookAppointmentPage = () => {
             </div>
           </div>
 
-          <div className="pt-2">
+          <div className="pt-3">
             <button
               type="button"
               onClick={handleNextToStep2}
-              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer"
+              className="w-full py-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white text-sm font-black rounded-2xl shadow-xl shadow-blue-600/25 flex items-center justify-center gap-2 transition-all cursor-pointer transform hover:-translate-y-0.5 active:translate-y-0"
             >
               <span>Continue to Schedule & Location</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 stroke-[3]" />
             </button>
           </div>
         </div>
