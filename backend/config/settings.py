@@ -13,6 +13,9 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+
 
 from django.core.exceptions import ImproperlyConfigured
 
@@ -97,6 +100,7 @@ INSTALLED_APPS = [
     "chatbot",
     "employees",
     "common",
+    "patient_portal",
     "rest_framework",
     "corsheaders",
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../providers/AuthProvider';
-import { PortalDataStore } from '../services/portalData';
+import portalAPI from '../../../services/portalAPI';
 import InteractiveSearchBar from '../../../components/common/InteractiveSearchBar';
 import {
   Calendar,
@@ -21,15 +21,28 @@ export const MyAppointmentsPage = () => {
   const { user } = useAuth();
   const [appointments, setAppointments] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setAppointments(PortalDataStore.getAppointments(user));
+    const load = async () => {
+      setLoading(true);
+      try {
+        const data = await portalAPI.getAppointments();
+        setAppointments(Array.isArray(data) ? data : []);
+      } catch (e) {
+        console.error('Appointments load error:', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (user) load();
   }, [user]);
 
   const filteredAppointments = appointments.filter((a) =>
-    a.appointment_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    a.items_summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    a.branch_name.toLowerCase().includes(searchQuery.toLowerCase())
+    (a.invoice_id || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (a.status || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (a.collection_type || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (a.patient_name || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (

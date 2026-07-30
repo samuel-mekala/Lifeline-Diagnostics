@@ -70,11 +70,24 @@ class Appointment(models.Model):
         LAB = "LAB", "Lab Visit"
 
     class Status(models.TextChoices):
-        BOOKED = "BOOKED", "Booked"
-        ACCEPTED = "ACCEPTED", "Accepted"
-        COLLECTED = "COLLECTED", "Collected"
+        # Online bookings
+        PENDING = "PENDING", "Pending (Awaiting Acceptance)"
+        ACCEPTED = "ACCEPTED", "Accepted by Technician"
+        VISITED = "VISITED", "Patient Visited / Technician Visited Home"
+        SAMPLE_COLLECTED = "SAMPLE_COLLECTED", "Sample Collected"
+        TESTED = "TESTED", "Testing Completed"
+        UNDER_REVIEW = "UNDER_REVIEW", "Under Review (Pathologist/Owner)"
+        APPROVED = "APPROVED", "Approved — Report Ready"
+        REJECTED = "REJECTED", "Rejected — Values Need Correction"
         COMPLETED = "COMPLETED", "Completed"
         CANCELLED = "CANCELLED", "Cancelled"
+        # Walk-in / direct
+        BOOKED = "BOOKED", "Booked"
+
+    class PaymentStatus(models.TextChoices):
+        UNPAID = "UNPAID", "Unpaid"
+        PAID = "PAID", "Paid"
+        PARTIALLY_PAID = "PARTIALLY_PAID", "Partially Paid"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="appointments")
@@ -82,13 +95,15 @@ class Appointment(models.Model):
     collection_type = models.CharField(max_length=10, choices=CollectionType.choices)
     scheduled_for = models.DateTimeField()
     address = models.ForeignKey("patients.PatientAddress", on_delete=models.SET_NULL, null=True, blank=True, related_name="appointments")
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.BOOKED)
+    status = models.CharField(max_length=25, choices=Status.choices, default=Status.PENDING)
     payment_preference = models.CharField(max_length=20, choices=[("PAY_NOW", "Pay Now"), ("PAY_LATER", "Pay Later")], default="PAY_LATER")
+    payment_status = models.CharField(max_length=20, choices=PaymentStatus.choices, default=PaymentStatus.UNPAID)
     assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="assigned_appointments")
     remarks = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ["scheduled_for"]
+        ordering = ["-created_at"]
         indexes = [models.Index(fields=["patient", "status"]), models.Index(fields=["scheduled_for", "status"])]
+

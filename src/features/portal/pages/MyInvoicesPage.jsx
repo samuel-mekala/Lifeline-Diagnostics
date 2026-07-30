@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { PortalDataStore } from '../services/portalData';
+import portalAPI from '../../../services/portalAPI';
 import OfficialReceiptModal from '../../../components/common/OfficialReceiptModal';
 import InteractiveSearchBar from '../../../components/common/InteractiveSearchBar';
 import { useAuth } from '../../../providers/AuthProvider';
+
 import {
   CreditCard,
   CheckCircle2,
@@ -24,33 +25,34 @@ export const MyInvoicesPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [paymentSuccessMsg, setPaymentSuccessMsg] = useState('');
 
-  const refreshInvoices = () => {
-    setInvoices(PortalDataStore.getInvoices(user));
+  const refreshInvoices = async () => {
+    try {
+      const data = await portalAPI.getInvoices();
+      setInvoices(Array.isArray(data) ? data : []);
+    } catch (e) {
+      console.error('Invoices load error:', e);
+    }
   };
 
   useEffect(() => {
-    refreshInvoices();
+    if (user) refreshInvoices();
   }, [user]);
 
   const handlePayInvoice = (e) => {
     e.preventDefault();
-    if (!payingInvoice) return;
-
-    const updated = PortalDataStore.payInvoice(payingInvoice.invoice_number, paymentMethod);
-    if (updated) {
-      refreshInvoices();
-      setPaymentSuccessMsg(`Invoice ${payingInvoice.invoice_number} paid successfully via ${paymentMethod}! Any pending reports have been released.`);
-      setPayingInvoice(null);
-      setTimeout(() => setPaymentSuccessMsg(''), 6000);
-    }
+    // Payment for PAY_LATER invoices is collected by staff (receptionist/technician)
+    // This modal is view-only for patients — show info message
+    setPaymentSuccessMsg('To pay a pending invoice, please contact our reception desk or your assigned technician.');
+    setPayingInvoice(null);
+    setTimeout(() => setPaymentSuccessMsg(''), 6000);
   };
 
   const filteredInvoices = invoices.filter((i) =>
-    i.invoice_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    i.visit_id.toLowerCase().includes(searchQuery.toLowerCase())
+    (i.invoice_id || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (i.visit_id || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const patientId = user?.patient_id || 'PAT-009842';
+  const patientId = user?.patient_id || '';
 
   return (
     <div className="space-y-6">

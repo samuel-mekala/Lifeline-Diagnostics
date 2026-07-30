@@ -37,6 +37,8 @@ urlpatterns = [
     path("api/analytics/", include("analytics.urls")),
     path("api/settings/", include("settings_app.urls")),
     path("api/employees/", include("employees.urls")),
-    path('api/', include(router.urls)), # Exposes root /api/ directory
+    path("api/portal/", include("patient_portal.urls")),  # Patient-facing portal API
+    path('api/', include(router.urls)),
+
     #path('', include('core.urls')),
 ]

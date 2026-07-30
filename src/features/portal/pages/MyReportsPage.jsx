@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { PortalDataStore } from '../services/portalData';
+import portalAPI from '../../../services/portalAPI';
 import OfficialReportModal from '../../../components/common/OfficialReportModal';
 import InteractiveSearchBar from '../../../components/common/InteractiveSearchBar';
 import { useAuth } from '../../../providers/AuthProvider';
@@ -21,19 +21,32 @@ export const MyReportsPage = () => {
   const [reports, setReports] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedReport, setSelectedReport] = useState(null); // For Official Report Modal
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setReports(PortalDataStore.getReports(user));
+    const fetchReports = async () => {
+      setLoading(true);
+      try {
+        const data = await portalAPI.getReports();
+        setReports(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error('Reports load error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (user) fetchReports();
   }, [user]);
 
   // Filter Reports
   const filteredReports = reports.filter((r) =>
-    r.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    r.report_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    r.visit_id.toLowerCase().includes(searchQuery.toLowerCase())
+    (r.title || r.report_id || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (r.report_id || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (r.visit_id || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const patientId = user?.patient_id || 'PAT-009842';
+  const patientId = user?.patient_id || '';
+
 
   return (
     <div className="space-y-6">

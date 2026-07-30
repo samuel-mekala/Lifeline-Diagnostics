@@ -57,3 +57,20 @@ class PathologistPermission(RolePermission):
 
 class UserManagementPermission(RolePermission):
     allowed_roles = ()
+
+
+class PatientSelfPermission(BasePermission):
+    """Allows only authenticated users with PATIENT role to access their own portal data."""
+    def has_permission(self, request, view):
+        user = request.user
+        return bool(
+            user
+            and user.is_authenticated
+            and user.is_active
+            and user.role == User.Role.PATIENT
+        )
+
+
+class StaffPermission(RolePermission):
+    """Allows any internal staff: Receptionist, Lab Technician, Pathologist, Owner, Admin."""
+    allowed_roles = EMPLOYEE_ROLES

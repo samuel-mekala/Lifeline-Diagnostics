@@ -73,6 +73,9 @@ class PatientRegistrationAPIView(PublicPatientAPIView):
         full_name = request.data.get("full_name", "").strip()
         password = request.data.get("password", "")
         phone = request.data.get("phone", "").strip()
+        date_of_birth = request.data.get("date_of_birth", "")
+        gender = request.data.get("gender", "M")
+        address = request.data.get("address", "").strip()
 
         if not email or not password or not full_name:
             return Response({"error": "Full name, email, and password are required."}, status=status.HTTP_400_BAD_REQUEST)
@@ -81,13 +84,37 @@ class PatientRegistrationAPIView(PublicPatientAPIView):
             return Response({"error": f"An account with email '{email}' already exists."}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            user = User.objects.create_user(
-                email=email,
-                full_name=full_name,
-                password=password,
-                phone=phone,
-                role=User.Role.PATIENT,
-            )
+            from django.db import transaction
+            with transaction.atomic():
+                # 1. Create User account
+                user = User.objects.create_user(
+                    email=email,
+                    full_name=full_name,
+                    password=password,
+                    phone=phone,
+                    role=User.Role.PATIENT,
+                )
+
+                # 2. Auto-create linked Patient record
+                from patients.models import Patient
+                from common.services.id_generator import generate_business_id
+                patient_id = generate_business_id(Patient, "patient_id", "PAT")
+                import datetime
+                try:
+                    dob = datetime.date.fromisoformat(date_of_birth) if date_of_birth else datetime.date(1990, 1, 1)
+                except ValueError:
+                    dob = datetime.date(1990, 1, 1)
+
+                Patient.objects.create(
+                    patient_id=patient_id,
+                    full_name=full_name,
+                    date_of_birth=dob,
+                    gender=gender if gender in ("M", "F", "O") else "M",
+                    phone=phone or "",
+                    email=email,
+                    address=address or "Not provided",
+                    linked_user=user,
+                )
 
             from rest_framework_simplejwt.tokens import RefreshToken
             refresh = RefreshToken.for_user(user)
@@ -97,10 +124,11 @@ class PatientRegistrationAPIView(PublicPatientAPIView):
                 "user": UserSerializer(user).data,
                 "access": str(refresh.access_token),
                 "refresh": str(refresh),
-                "message": "Registration successful."
+                "message": "Registration successful.",
             }, status=status.HTTP_201_CREATED)
         except Exception as exc:
             return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class EmailOTPRequestAPIView(PublicPatientAPIView):

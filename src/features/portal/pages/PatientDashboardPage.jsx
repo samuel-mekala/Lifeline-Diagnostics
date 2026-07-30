@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../../providers/AuthProvider';
-import { PortalDataStore, CATALOG_PACKAGES } from '../services/portalData';
+import { CATALOG_PACKAGES } from '../services/portalData';
+import portalAPI from '../../../services/portalAPI';
 import {
   Calendar,
   FileText,
@@ -30,22 +31,37 @@ export const PatientDashboardPage = () => {
   const [appointments, setAppointments] = useState([]);
   const [invoices, setInvoices] = useState([]);
   const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch / Sync Live Local Data
+  // Fetch real data from Django REST API
   useEffect(() => {
-    setAppointments(PortalDataStore.getAppointments(user));
-    setInvoices(PortalDataStore.getInvoices(user));
-    setReports(PortalDataStore.getReports(user));
+    const fetchAll = async () => {
+      setLoading(true);
+      try {
+        const [apts, invs, reps] = await Promise.all([
+          portalAPI.getAppointments(),
+          portalAPI.getInvoices(),
+          portalAPI.getReports(),
+        ]);
+        setAppointments(Array.isArray(apts) ? apts : []);
+        setInvoices(Array.isArray(invs) ? invs : []);
+        setReports(Array.isArray(reps) ? reps : []);
+      } catch (err) {
+        console.error('Dashboard load error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (user) fetchAll();
   }, [user]);
 
   // Compute live KPI metrics
   const upcomingAppointments = appointments.filter(
-    (a) => a.status === 'BOOKED' || a.status === 'ACCEPTED'
+    (a) => ['PENDING', 'ACCEPTED', 'BOOKED', 'VISITED'].includes(a.status)
   );
   const nextAppointment = upcomingAppointments[0] || null;
 
-  const pendingReports = reports.filter((r) => r.status === 'GENERATED' && r.payment_status === 'UNPAID');
-  const readyReports = reports.filter((r) => r.status === 'GENERATED' && r.payment_status === 'PAID');
+  const readyReports = reports.filter((r) => r.status === 'APPROVED');
 
   const unpaidInvoices = invoices.filter((i) => i.status === 'UNPAID' || i.balance_due > 0);
   const totalOutstandingBalance = unpaidInvoices.reduce((sum, inv) => sum + Number(inv.balance_due || 0), 0);

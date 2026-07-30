@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../../providers/AuthProvider';
-import { PortalDataStore, CATALOG_TESTS, CATALOG_PACKAGES, BRANCHES } from '../services/portalData';
+import { CATALOG_TESTS, CATALOG_PACKAGES, BRANCHES } from '../services/portalData';
+import portalAPI from '../../../services/portalAPI';
 import {
   Calendar,
   Clock,
@@ -39,7 +40,15 @@ export const BookAppointmentPage = () => {
   const [selectedBranch, setSelectedBranch] = useState(BRANCHES[0]);
   const [scheduledDate, setScheduledDate] = useState('');
   const [scheduledTime, setScheduledTime] = useState('08:30 AM');
-  const [address, setAddress] = useState(user?.address || 'Plot 12, Road No 12, Banjara Hills, Hyderabad, Telangana');
+
+  // Address selection state (2 Options for Home Collection)
+  const [addressOption, setAddressOption] = useState('EXISTING'); // 'EXISTING' or 'NEW'
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState('');
+  const [newAddressText, setNewAddressText] = useState('');
+  const [newAddressLabel, setNewAddressLabel] = useState('Home');
+  const [address, setAddress] = useState(user?.address || '');
+
   const [paymentPreference, setPaymentPreference] = useState('PAY_NOW'); // PAY_NOW or PAY_LATER
   const [notes, setNotes] = useState('');
 
@@ -49,6 +58,28 @@ export const BookAppointmentPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(null);
+
+  // Fetch saved addresses
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      try {
+        const addrs = await portalAPI.getAddresses();
+        if (Array.isArray(addrs) && addrs.length > 0) {
+          setSavedAddresses(addrs);
+          const defaultAddr = addrs.find((a) => a.is_default) || addrs[0];
+          setSelectedAddressId(defaultAddr.id);
+          setAddress(defaultAddr.address);
+        } else {
+          setAddressOption('NEW');
+        }
+      } catch (err) {
+        console.warn('Failed to load saved addresses:', err);
+        setAddressOption('NEW');
+      }
+    };
+    if (user) fetchAddresses();
+  }, [user]);
+
 
   // Handle preselected package if passed from Dashboard
   useEffect(() => {
@@ -141,31 +172,51 @@ export const BookAppointmentPage = () => {
   };
 
   // Final Submit Handler
-  const handleFinalBooking = (e) => {
+  const handleFinalBooking = async (e) => {
     e.preventDefault();
     try {
       setLoading(true);
       setError('');
 
-      const result = PortalDataStore.createBooking({
-        collectionType,
-        selectedTests,
-        selectedPackages,
-        branch: selectedBranch,
-        date: scheduledDate,
-        time: scheduledTime,
-        address,
-        paymentPreference,
-        patientUser: user,
-      });
+      // Build ISO datetime string
+      const dateTimeIso = `${scheduledDate}T${scheduledTime.includes('PM') && !scheduledTime.startsWith('12') ? parseInt(scheduledTime.split(':')[0], 10) + 12 : scheduledTime.split(':')[0].padStart(2, '0')}:${scheduledTime.split(':')[1].split(' ')[0]}:00`;
 
-      setBookingSuccess(result);
+      const payload = {
+        collection_type: collectionType === 'HOME_COLLECTION' ? 'HOME' : 'LAB',
+        scheduled_for: dateTimeIso,
+        payment_preference: paymentPreference,
+        test_ids: selectedTests.map((t) => t.test_id || t.id),
+        package_ids: selectedPackages.map((p) => p.package_id || p.id),
+        remarks: notes,
+      };
+
+      if (collectionType === 'HOME_COLLECTION') {
+        if (addressOption === 'EXISTING' && selectedAddressId) {
+          payload.address_id = selectedAddressId;
+        } else if (newAddressText) {
+          payload.new_address = newAddressText;
+          payload.new_address_label = newAddressLabel;
+        }
+      }
+
+      const res = await portalAPI.bookAppointment(payload);
+      setBookingSuccess({
+        appointment: {
+          appointment_number: res.visit_id || res.appointment_id,
+        },
+        invoice: {
+          invoice_number: res.invoice_id,
+        },
+        total_amount: res.total_amount,
+        payment_status: res.payment_status,
+      });
     } catch (err) {
-      setError(err.message || 'Failed to complete appointment booking. Please try again.');
+      setError(err.response?.data?.error || err.message || 'Failed to complete appointment booking. Please try again.');
     } finally {
       setLoading(false);
     }
   };
+
 
   // Filtered lists
   const filteredTests = CATALOG_TESTS.filter((t) =>
@@ -613,25 +664,117 @@ export const BookAppointmentPage = () => {
               </div>
             </div>
 
-            {/* Address Field (For Home Collection) */}
+            {/* Address Field (For Home Collection - 2 Options) */}
             {collectionType === 'HOME_COLLECTION' && (
-              <div className="pt-2">
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+              <div className="pt-2 space-y-3">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
                   Home Collection Address <span className="text-red-500">*</span>
                 </label>
-                <div className="relative">
-                  <MapPin className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-                  <textarea
-                    rows="3"
-                    required
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    placeholder="Enter complete residential address with landmark..."
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900"
-                  ></textarea>
+
+                {/* 2-Option Selector Tabs */}
+                <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => setAddressOption('EXISTING')}
+                    className={`py-2 text-xs font-bold rounded-lg transition-all ${
+                      addressOption === 'EXISTING'
+                        ? 'bg-white text-blue-700 shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    1. Select Saved Address ({savedAddresses.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAddressOption('NEW')}
+                    className={`py-2 text-xs font-bold rounded-lg transition-all ${
+                      addressOption === 'NEW'
+                        ? 'bg-white text-blue-700 shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    2. Provide New Address
+                  </button>
                 </div>
+
+                {/* Option 1: Saved Addresses Dropdown/List */}
+                {addressOption === 'EXISTING' && (
+                  <div>
+                    {savedAddresses.length > 0 ? (
+                      <div className="space-y-2 max-h-40 overflow-y-auto">
+                        {savedAddresses.map((addr) => (
+                          <div
+                            key={addr.id}
+                            onClick={() => {
+                              setSelectedAddressId(addr.id);
+                              setAddress(addr.address);
+                            }}
+                            className={`p-3 rounded-xl border cursor-pointer text-xs flex items-start justify-between transition-all ${
+                              selectedAddressId === addr.id
+                                ? 'border-blue-600 bg-blue-50/70 ring-2 ring-blue-500 font-medium'
+                                : 'border-slate-200 bg-slate-50 hover:bg-slate-100'
+                            }`}
+                          >
+                            <div className="flex items-start gap-2">
+                              <MapPin className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                              <div>
+                                <span className="font-bold text-slate-900 bg-slate-200 px-1.5 py-0.5 rounded text-[10px] uppercase">
+                                  {addr.label}
+                                </span>
+                                <p className="text-slate-700 mt-1">{addr.address}</p>
+                              </div>
+                            </div>
+                            {selectedAddressId === addr.id && <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-amber-600 bg-amber-50 p-3 rounded-xl border border-amber-200">
+                        No saved addresses found. Please choose "Provide New Address" to enter your address.
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Option 2: Enter New Address */}
+                {addressOption === 'NEW' && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <label className="text-[11px] font-bold text-slate-600">Label:</label>
+                      {['Home', 'Office', 'Other'].map((lbl) => (
+                        <button
+                          key={lbl}
+                          type="button"
+                          onClick={() => setNewAddressLabel(lbl)}
+                          className={`px-2.5 py-1 text-[11px] font-bold rounded-lg border transition-all ${
+                            newAddressLabel === lbl
+                              ? 'bg-blue-600 text-white border-blue-600'
+                              : 'bg-slate-50 text-slate-600 border-slate-200'
+                          }`}
+                        >
+                          {lbl}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="relative">
+                      <MapPin className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                      <textarea
+                        rows="3"
+                        required
+                        value={newAddressText}
+                        onChange={(e) => {
+                          setNewAddressText(e.target.value);
+                          setAddress(e.target.value);
+                        }}
+                        placeholder="Enter complete home/delivery address with landmark..."
+                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900"
+                      ></textarea>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
+
 
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
