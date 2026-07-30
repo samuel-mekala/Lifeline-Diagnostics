@@ -162,33 +162,46 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
         } ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
       >
         {/* Brand Header */}
-        <div className={`h-16 px-3 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} border-b border-slate-800 shrink-0 bg-slate-950/60`}>
+        <div className="h-16 px-3 flex items-center justify-between border-b border-slate-800 shrink-0 bg-slate-950/60">
           {!isCollapsed ? (
-            <div className="flex items-center gap-2 overflow-hidden min-w-0 flex-1 pr-1">
-              <Logo
-                showText={true}
-                textVariant="light"
-                subtitleText="PATH LABS INDIA"
-                className="w-8 h-8 shrink-0"
-                titleClassName="text-xs font-black tracking-tight leading-tight text-white"
-                subtitleClassName="text-[9px] font-extrabold uppercase tracking-wider text-emerald-400 leading-none mt-0.5"
-              />
-            </div>
+            <>
+              <div className="flex items-center gap-2 overflow-hidden min-w-0 flex-1 pr-1">
+                <Logo
+                  showText={true}
+                  textVariant="light"
+                  subtitleText="PATH LABS INDIA"
+                  className="w-8 h-8 shrink-0"
+                  titleClassName="text-xs font-black tracking-tight leading-tight text-white"
+                  subtitleClassName="text-[9px] font-extrabold uppercase tracking-wider text-emerald-400 leading-none mt-0.5"
+                />
+              </div>
+
+              {/* Desktop Collapse Toggle Button (Expanded State) */}
+              <button
+                type="button"
+                onClick={() => setIsCollapsed(true)}
+                className="hidden lg:flex w-7 h-7 rounded-lg bg-slate-800/90 hover:bg-blue-600 text-slate-400 hover:text-white items-center justify-center transition-colors cursor-pointer shrink-0 border border-slate-700/60 shadow-sm ms-auto"
+                title="Collapse sidebar"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            </>
           ) : (
-            <div className="w-8 h-8 flex items-center justify-center shrink-0">
-              <Logo showText={false} textVariant="light" className="w-8 h-8" />
+            /* Desktop Expand Toggle Button (Collapsed State) */
+            <div className="w-full flex items-center justify-center">
+              <button
+                type="button"
+                onClick={() => setIsCollapsed(false)}
+                className="w-10 h-10 rounded-xl bg-slate-800/60 hover:bg-blue-600 border border-slate-700/60 hover:border-blue-500 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-sm group"
+                title="Expand sidebar"
+              >
+                <div className="group-hover:hidden w-7 h-7 flex items-center justify-center">
+                  <Logo showText={false} textVariant="light" className="w-7 h-7" />
+                </div>
+                <ChevronRight className="w-5 h-5 hidden group-hover:block text-white" />
+              </button>
             </div>
           )}
-
-          {/* Desktop Collapse Toggle */}
-          <button
-            type="button"
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden lg:flex w-7 h-7 rounded-lg bg-slate-800/90 hover:bg-blue-600 text-slate-400 hover:text-white items-center justify-center transition-colors cursor-pointer shrink-0 border border-slate-700/60 shadow-sm"
-            title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-          </button>
         </div>
 
         {/* Branch Scope Selector (Operations Users) */}
