@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,136 +10,170 @@
   <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --primary: #0284c7;
-      --primary-dark: #0369a1;
-      --secondary: #0f172a;
-      --accent: #10b981;
-      --bg-light: #f8fafc;
-      --card-bg: #ffffff;
+      --bg-main: #020617;
+      --card-bg: #0f172a;
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary-blue: #2563eb;
+      --emerald-accent: #10b981;
+      --cyan-accent: #06b6d4;
     }
 
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      background-color: var(--bg-light);
-      color: #334155;
+      background-color: var(--bg-main);
+      color: #f8fafc;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
 
-    .brand-font {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-    }
-
     .navbar-custom {
-      background-color: #0f172a;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      background-color: #020617;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     }
 
-    .sidebar-link {
-      color: #94a3b8;
-      font-weight: 600;
-      font-size: 0.875rem;
-      padding: 0.65rem 1rem;
-      border-radius: 0.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      text-decoration: none;
+    .card-dark-glass {
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 1rem;
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    .card-dark-glass:hover {
+      border-color: rgba(37, 99, 235, 0.4);
+    }
+
+    .text-emerald {
+      color: #10b981 !important;
+    }
+
+    .bg-emerald-glow {
+      background-color: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+    }
+
+    .btn-gradient-blue {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      color: #ffffff;
+      border: none;
+      box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.39);
       transition: all 0.2s ease;
     }
 
-    .sidebar-link:hover, .sidebar-link.active {
+    .btn-gradient-blue:hover {
+      background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
       color: #ffffff;
-      background-color: #1e293b;
+      transform: translateY(-1px);
     }
 
-    .sidebar-link i {
-      font-size: 1.1rem;
-      color: #38bdf8;
+    .btn-dark-glass {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #f8fafc;
+      transition: all 0.2s ease;
     }
 
-    .card-custom {
-      background: var(--card-bg);
-      border: 1px solid #e2e8f0;
-      border-radius: 0.75rem;
-      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+    .btn-dark-glass:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .font-mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
 
-  <!-- Top Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top no-print py-2">
+  <!-- Top High-Tech Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top py-2.5">
     <div class="container-fluid px-4">
-      <a class="navbar-brand d-flex align-items-center gap-2 brand-font" href="/">
-        <div class="bg-primary text-white rounded-3 p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
-          <i class="bi bi-activity fs-5"></i>
+      <!-- Official Emblem Logo -->
+      <a class="navbar-brand d-flex align-items-center gap-3 text-decoration-none" href="/">
+        <!-- Official Emblem SVG Badge -->
+        <div style="width: 46px; height: 46px; flex-shrink: 0;" class="drop-shadow">
+          <svg viewBox="0 0 200 200" style="width: 100%; height: 100%;" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="100" cy="100" r="92" fill="#1E56A0" stroke="#10316B" stroke-width="4" />
+            <circle cx="100" cy="100" r="74" fill="#FFFFFF" />
+            <path d="M 30,100 A 70,70 0 1,1 170,100" fill="none" id="textPathTop" />
+            <path d="M 170,100 A 70,70 0 0,1 30,100" fill="none" id="textPathBottom" />
+
+            <text fill="#FFFFFF" font-size="13" font-weight="900" letter-spacing="1.2">
+              <textPath href="#textPathTop" startOffset="50%" text-anchor="middle">
+                LIFE LINE DIAGNOSTICS
+              </textPath>
+            </text>
+
+            <text fill="#FFFFFF" font-size="12" font-weight="800" letter-spacing="1.5">
+              <textPath href="#textPathBottom" startOffset="50%" text-anchor="middle">
+                PATHLABS INDIA
+              </textPath>
+            </text>
+
+            <circle cx="36" cy="115" r="3" fill="#DC2626" />
+            <circle cx="164" cy="115" r="3" fill="#DC2626" />
+
+            <ellipse cx="100" cy="52" rx="7" ry="14" fill="#2E7D32" />
+            <ellipse cx="88" cy="56" rx="6" ry="12" fill="#4CAF50" transform="rotate(-25 88 56)" />
+            <ellipse cx="112" cy="56" rx="6" ry="12" fill="#4CAF50" transform="rotate(25 112 56)" />
+
+            <!-- ECG Pulse Wave -->
+            <path d="M 50 105 H 80 L 90 75 L 105 130 L 120 90 L 130 105 H 150" stroke="#1E56A0" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
         </div>
-        <div>
-          <span class="fs-5 fw-bold text-white">LIFE LINE</span>
-          <span class="text-info fs-6 fw-semibold d-block" style="font-size: 0.65rem !important; margin-top: -4px;">DIAGNOSTICS LIMS</span>
+
+        <div class="d-flex flex-column justify-content-center">
+          <span class="fs-4 fw-black text-white lh-1 tracking-tight" style="letter-spacing: -0.02em;">Life Line Diagnostics</span>
+          <span class="text-emerald font-extrabold uppercase tracking-wider" style="font-size: 0.68rem; margin-top: 3px; letter-spacing: 0.08em;">
+            PATH LABS INDIA &middot; ISO 9001:2008 &middot; NABL CERTIFIED
+          </span>
         </div>
       </a>
 
+      <!-- Right Header Actions -->
       <div class="ms-auto d-flex align-items-center gap-3">
-        {% if user.is_authenticated %}
-          <div class="d-none d-md-flex flex-column text-end">
-            <span class="text-white fw-bold small">{{ user.first_name }} {{ user.last_name }}</span>
-            <span class="badge bg-primary text-uppercase" style="font-size: 0.65rem; width: fit-content; margin-left: auto;">{{ user.get_role_display|default:user.email }}</span>          </div>
-          <a href="#" class="btn btn-outline-light btn-sm fw-semibold">Logout</a>
-        {% else %}
-          <a href="#" class="btn btn-outline-light btn-sm fw-semibold">Sign In</a>
-          <a href="#" class="btn btn-primary btn-sm fw-semibold">Register</a>
-        {% endif %}
+        <a href="http://localhost:3000" target="_blank" class="btn btn-gradient-blue btn-sm fw-bold px-3.5 py-2 rounded-3 text-xs d-flex align-items-center gap-2">
+          <i class="bi bi-box-arrow-up-right"></i>
+          <span>Launch React App (Port 3000)</span>
+        </a>
+        <a href="/admin/" target="_blank" class="btn btn-dark-glass btn-sm fw-bold px-3 py-2 rounded-3 text-xs d-flex align-items-center gap-2">
+          <i class="bi bi-shield-lock"></i>
+          <span>Django Admin</span>
+        </a>
       </div>
     </div>
   </nav>
 
-  <!-- Main Workspace -->
-  <div class="container-fluid px-0 flex-grow-1 d-flex">
-    {% if user.is_authenticated %}
-    <!-- Sidebar Navigation -->
-    <div class="bg-dark border-end border-secondary border-opacity-25 no-print" style="width: 260px; min-height: calc(100vh - 58px); flex-shrink: 0;">
-      <div class="p-3">
-        <div class="text-uppercase text-secondary fw-bold px-3 mb-2" style="font-size: 0.65rem; letter-spacing: 0.1em;">
-          NAVIGATION
-        </div>
-        <a href="/" class="sidebar-link active mb-1">
-          <i class="bi bi-speedometer2"></i> Dashboard
-        </a>
+  <!-- Main Content Body -->
+  <main class="flex-grow-1 p-3 p-md-4">
+    {% if messages %}
+      <div class="no-print">
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags|default:'info' }} bg-dark text-white border-secondary alert-dismissible fade show shadow-sm fw-semibold mb-4" role="alert">
+            <i class="bi bi-info-circle-fill text-info me-2"></i> {{ message }}
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
       </div>
-    </div>
     {% endif %}
 
-    <!-- Content Area -->
-    <div class="flex-grow-1 p-4" style="background-color: #f8fafc;">
-      {% if messages %}
-        <div class="no-print">
-          {% for message in messages %}
-            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show shadow-sm border-0 fw-semibold mb-3" role="alert">
-              <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
-              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-          {% endfor %}
-        </div>
-      {% endif %}
+    {% block content %}{% endblock %}
+  </main>
 
-      {% block content %}{% endblock %}
-    </div>
-  </div>
-
-  <!-- Footer -->
-  <footer class="bg-dark text-slate-400 py-3 text-center no-print mt-auto border-top border-secondary border-opacity-25" style="font-size: 0.8rem;">
-    <div class="container text-secondary">
-      <span>Life Line Diagnostics Pathology LIMS &copy; 2026. NABL Certified Standards.</span>
+  <!-- High-Tech Dark Footer -->
+  <footer class="py-3 text-center border-top border-secondary border-opacity-25 mt-auto" style="background-color: #020617; font-size: 0.78rem;">
+    <div class="container text-slate-400">
+      <span class="text-slate-400" style="color: #94a3b8;">
+        Life Line Diagnostics Pathology LIMS &copy; 2026 &middot; NABL Certified Standards &middot; Powered by Django REST Framework & Vite React
+      </span>
     </div>
   </footer>
 
