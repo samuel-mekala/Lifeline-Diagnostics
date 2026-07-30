@@ -182,29 +182,29 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-blue-600 selection:text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-blue-600 selection:text-white overflow-x-hidden w-full max-w-full">
       {/* Top Emergency & Accreditation Utility Bar */}
-      <div className="bg-slate-950 text-slate-300 text-xs py-2 px-4 sm:px-8 border-b border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2">
-        <div className="flex items-center gap-4 flex-wrap justify-center sm:justify-start">
-          <a href="tel:+919603348519" className="flex items-center gap-1.5 font-semibold text-blue-400 hover:underline">
+      <div className="bg-slate-950 text-slate-300 text-[11px] sm:text-xs py-1.5 sm:py-2 px-3 sm:px-8 border-b border-slate-800 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-3 truncate">
+          <a href="tel:+919603348519" className="flex items-center gap-1.5 font-semibold text-blue-400 hover:underline shrink-0">
             <Phone className="w-3.5 h-3.5" />
-            <span>24/7 Phlebotomy Helpline: +91 96033 48519</span>
+            <span className="truncate">24/7 Helpline: +91 96033 48519</span>
           </a>
           <span className="hidden md:inline text-slate-700">|</span>
-          <span className="hidden md:flex items-center gap-1.5 text-emerald-400 font-bold">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>NABL ACCREDITED & ISO 9001:2015 CERTIFIED DIAGNOSTICS</span>
+          <span className="hidden md:flex items-center gap-1.5 text-emerald-400 font-bold truncate">
+            <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">NABL ACCREDITED & ISO 9001:2015 CERTIFIED DIAGNOSTICS</span>
           </span>
         </div>
 
-        <div className="flex items-center gap-4 text-[11px]">
-          <span className="text-slate-400 font-mono">Operating Hours: Mon - Sat: 06:00 AM - 09:30 PM</span>
+        <div className="hidden sm:flex items-center gap-3 text-[11px] shrink-0">
+          <span className="text-slate-400 font-mono hidden lg:inline">Mon-Sat: 06:00 AM - 09:30 PM</span>
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Link
               to={isAuthenticated ? '/portal/dashboard' : '/login'}
-              className="bg-blue-600 hover:bg-blue-500 text-white font-extrabold px-3.5 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm"
+              className="bg-blue-600 hover:bg-blue-500 text-white font-extrabold px-3 py-1 rounded-lg transition flex items-center gap-1 shadow-xs text-[11px]"
             >
-              <UserCheck className="w-3.5 h-3.5" />
+              <UserCheck className="w-3 h-3" />
               <span>{isAuthenticated ? 'My Dashboard' : 'Portal Sign In'}</span>
             </Link>
           </motion.div>
@@ -212,22 +212,22 @@ export default function LandingPage() {
       </div>
 
       {/* Main Navigation Header */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between gap-6">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-sm">
+        <div className="max-w-7xl mx-auto px-3 sm:px-8 h-16 sm:h-20 flex items-center justify-between gap-2 sm:gap-6">
           {/* Left Brand & Nav Links Grouped Naturally */}
-          <div className="flex items-center gap-8 xl:gap-12">
+          <div className="flex items-center gap-4 xl:gap-12 min-w-0">
             {/* Logo & Title */}
             <div
               onClick={handleHomeRefresh}
-              className="flex items-center gap-2.5 group transition cursor-pointer shrink-0"
+              className="flex items-center gap-2 group transition cursor-pointer shrink-0 min-w-0"
               title="Refresh & Return to Home"
             >
               <Logo
                 showText={true}
                 textVariant="dark"
-                className="w-13 h-13 sm:w-15 sm:h-15 group-hover:scale-105 transition-transform shrink-0"
-                titleClassName="text-base sm:text-xl font-black tracking-tight whitespace-nowrap"
-                subtitleClassName="text-[10px] sm:text-[11px] font-extrabold whitespace-nowrap"
+                className="w-10 h-10 sm:w-14 sm:h-14 group-hover:scale-105 transition-transform shrink-0"
+                titleClassName="text-sm sm:text-lg font-black tracking-tight truncate max-w-[150px] xs:max-w-none"
+                subtitleClassName="text-[9px] sm:text-[10px] font-extrabold truncate hidden xs:block"
               />
             </div>
 
@@ -265,12 +265,13 @@ export default function LandingPage() {
           </div>
 
           {/* Right Action Buttons */}
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setShowAiBot(true)}
-              className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl transition inline-flex items-center gap-1.5 border border-slate-200 cursor-pointer shadow-sm"
+              className="p-2 sm:px-3.5 sm:py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl transition inline-flex items-center gap-1.5 border border-slate-200 cursor-pointer shadow-xs"
+              title="Open AI Lab Assistant"
             >
               <Bot className="w-4 h-4 text-blue-600 shrink-0" />
               <span className="hidden sm:inline">AI Lab Assistant</span>
@@ -279,10 +280,10 @@ export default function LandingPage() {
             <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
               <Link
                 to={isAuthenticated ? '/portal/dashboard' : '/login'}
-                className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold rounded-xl shadow-md shadow-blue-600/20 transition inline-flex items-center gap-2 whitespace-nowrap"
+                className="px-3 py-2 sm:px-4 sm:py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold rounded-xl shadow-md shadow-blue-600/20 transition inline-flex items-center gap-1.5 whitespace-nowrap"
               >
-                <UserCheck className="w-4 h-4 shrink-0" />
-                <span>{isAuthenticated ? 'Go to Dashboard' : 'Portal Login'}</span>
+                <UserCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                <span>{isAuthenticated ? 'Dashboard' : 'Portal Login'}</span>
               </Link>
             </motion.div>
           </div>
@@ -442,18 +443,20 @@ export default function LandingPage() {
             </div>
 
             {/* Live Key Metrics */}
-            <div className="pt-4 grid grid-cols-3 gap-4 border-t border-slate-800/80 text-xs">
+            <div className="pt-4 grid grid-cols-3 gap-1.5 sm:gap-4 border-t border-slate-800/80 text-xs text-center sm:text-left">
               <div>
-                <div className="font-black text-white text-lg sm:text-2xl">30 Mins</div>
-                <div className="text-slate-400 text-[11px]">Home Sample Arrival</div>
+                <div className="font-black text-white text-sm sm:text-2xl">30 Mins</div>
+                <div className="text-slate-400 text-[9px] sm:text-[11px] leading-tight">Home Sample Arrival</div>
               </div>
+
               <div>
-                <div className="font-black text-white text-lg sm:text-2xl">100% Verified</div>
-                <div className="text-slate-400 text-[11px]">Pathologist Sign-off</div>
+                <div className="font-black text-emerald-400 text-sm sm:text-2xl">100% Verified</div>
+                <div className="text-slate-400 text-[9px] sm:text-[11px] leading-tight">Pathologist Sign-off</div>
               </div>
+
               <div>
-                <div className="font-black text-white text-lg sm:text-2xl">Pay Now/Later</div>
-                <div className="text-slate-400 text-[11px]">Instant Bill Generation</div>
+                <div className="font-black text-blue-400 text-sm sm:text-2xl">Pay Now/Later</div>
+                <div className="text-slate-400 text-[9px] sm:text-[11px] leading-tight">Instant Bill Generation</div>
               </div>
             </div>
           </div>
