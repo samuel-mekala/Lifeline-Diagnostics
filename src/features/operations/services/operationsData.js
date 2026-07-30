@@ -325,7 +325,7 @@ export const OperationsDataStore = {
   },
 
   // Assign Technician to Visit / Accept Home Collection
-  assignTechnician: (visitId, techName = 'Anil Kumar (Tech)', actorRole = 'RECEPTIONIST') => {
+  assignTechnician: (visitId, techName = 'Sunny (Tech)', actorRole = 'RECEPTIONIST') => {
     const visits = OperationsDataStore.getVisits();
     const vIdx = visits.findIndex((v) => v.visit_id === visitId);
     if (vIdx === -1) return false;

@@ -222,7 +222,7 @@ export const OnlineBookingsPage = () => {
                       {isHome && !apt.assigned_to && (
                         <button
                           onClick={() =>
-                            handleUpdateStatus(apt, { assigned_to_email: 'tech@lifeline.com', assigned_to: 'Anil Verma (Tech)' }, `Assigned Lab Technician Anil Verma to home pickup ${apt.invoice_id}.`)
+                            handleUpdateStatus(apt, { assigned_to_email: 'tech@lifeline.com', assigned_to: 'Sunny (Tech)' }, `Assigned Lab Technician Sunny to home pickup ${apt.invoice_id}.`)
                           }
                           className="px-2.5 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-900 font-bold text-xs rounded-xl transition cursor-pointer"
                         >

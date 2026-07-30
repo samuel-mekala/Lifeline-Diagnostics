@@ -53,7 +53,7 @@ SYSTEM_ACCOUNTS = [
     {"email": "samuel@gmail.com", "full_name": "Samuel Mekala", "role": "OWNER", "password": "admin123"},
     {"email": "admin@lifeline.com", "full_name": "System Admin", "role": "ADMIN", "password": "admin123"},
     {"email": "reception@lifeline.com", "full_name": "Priya Sharma", "role": "RECEPTIONIST", "password": "admin123"},
-    {"email": "tech@lifeline.com", "full_name": "Anil Verma", "role": "LAB_TECHNICIAN", "password": "admin123"},
+    {"email": "tech@lifeline.com", "full_name": "Sunny", "role": "LAB_TECHNICIAN", "password": "admin123"},
     {"email": "patho@lifeline.com", "full_name": "Dr. Sunita Rao", "role": "PATHOLOGIST", "password": "admin123"},
     {"email": "patient@gmail.com", "full_name": "Demo Patient", "role": "PATIENT", "password": "admin123"},
 ]

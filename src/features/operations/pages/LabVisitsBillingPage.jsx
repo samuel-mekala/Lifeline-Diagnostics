@@ -200,7 +200,7 @@ export const LabVisitsBillingPage = () => {
     } else if (actionType === 'MARK_VISITED') {
       updateFields = { status: 'VISITED' };
     } else if (actionType === 'ASSIGN_TECH') {
-      updateFields = { assigned_to_email: 'tech@lifeline.com', assigned_to: 'Anil Verma (Technician)' };
+      updateFields = { assigned_to_email: 'tech@lifeline.com', assigned_to: 'Sunny (Technician)' };
     }
 
     try {
@@ -220,7 +220,7 @@ export const LabVisitsBillingPage = () => {
     } else if (actionType === 'MARK_VISITED') {
       setToast({ type: 'success', title: 'Patient Arrival Recorded', message: `Patient ${apt.patient_name} marked as ARRIVED / VISITED at lab. Saved to MySQL database.` });
     } else if (actionType === 'ASSIGN_TECH') {
-      setToast({ type: 'success', title: 'Technician Assigned', message: `Assigned Lab Technician Anil Verma to home pickup ${apt.invoice_id || apt.id}. Saved to MySQL database.` });
+      setToast({ type: 'success', title: 'Technician Assigned', message: `Assigned Lab Technician Sunny to home pickup ${apt.invoice_id || apt.id}. Saved to MySQL database.` });
     }
   };
 
