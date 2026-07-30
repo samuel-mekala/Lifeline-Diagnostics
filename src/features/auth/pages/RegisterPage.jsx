@@ -97,17 +97,9 @@ export const RegisterPage = () => {
         return;
       }
 
-      const duplicateEmailUser = registeredList.find((u) => u.email?.toLowerCase() === normEmail) ||
-                                 opsPatients.find((p) => p.email?.toLowerCase() === normEmail);
+      const duplicateEmailUser = registeredList.find((u) => u.email?.toLowerCase() === normEmail);
       if (duplicateEmailUser) {
-        setError(`An account or patient record with email address "${normEmail}" already exists. Please sign in or use a different email.`);
-        return;
-      }
-
-      const duplicatePhoneUser = registeredList.find((u) => u.phone === normPhone) ||
-                                 opsPatients.find((p) => p.mobile === normPhone);
-      if (duplicatePhoneUser) {
-        setError(`An account or patient record with phone number "${normPhone}" already exists. Please sign in or use a different phone number.`);
+        setError(`An account with email address "${normEmail}" already exists. Please sign in or use a different email address.`);
         return;
       }
     } catch (err) {

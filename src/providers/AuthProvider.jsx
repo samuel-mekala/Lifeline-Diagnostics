@@ -50,14 +50,7 @@ export const AuthProvider = ({ children }) => {
   const getRegisteredUsersList = () => {
     try {
       const raw = localStorage.getItem('lifeline_registered_users_list');
-      if (!raw) return [];
-      const list = JSON.parse(raw);
-      // Filter out test emails joel@gmail.com and sunny@gmail.com
-      const cleaned = list.filter((u) => u.email?.toLowerCase() !== 'joel@gmail.com' && u.email?.toLowerCase() !== 'sunny@gmail.com');
-      if (cleaned.length !== list.length) {
-        localStorage.setItem('lifeline_registered_users_list', JSON.stringify(cleaned));
-      }
-      return cleaned;
+      return raw ? JSON.parse(raw) : [];
     } catch (e) {
       return [];
     }
