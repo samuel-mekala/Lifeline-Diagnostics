@@ -263,7 +263,18 @@ const DEFAULT_TICKETS = [
 const loadStore = (key, defaultData) => {
   try {
     const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : defaultData;
+    if (!raw) return defaultData;
+    let parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      const sanitized = parsed.filter(
+        (item) => item.appointment_number !== 'APT-2026-6566' && item.id !== 'APT-2026-6566' && item.visit_id !== 'VIS-2026-6566'
+      );
+      if (sanitized.length !== parsed.length) {
+        localStorage.setItem(key, JSON.stringify(sanitized));
+        return sanitized;
+      }
+    }
+    return parsed;
   } catch (e) {
     return defaultData;
   }
