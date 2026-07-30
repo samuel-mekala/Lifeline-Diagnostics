@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../../providers/AuthProvider';
 import { PortalDataStore } from '../services/portalData';
 import InteractiveSearchBar from '../../../components/common/InteractiveSearchBar';
 import {
@@ -17,6 +18,7 @@ import {
 } from 'lucide-react';
 
 export const MyAppointmentsPage = () => {
+  const { user } = useAuth();
   const [appointments, setAppointments] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
 
