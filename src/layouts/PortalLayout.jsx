@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Outlet, useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../providers/AuthProvider';
 import Sidebar from '../components/navigation/Sidebar';
+import InteractiveSearchBar from '../components/common/InteractiveSearchBar';
 import {
   Search,
   Bell,
@@ -115,23 +116,28 @@ export const PortalLayout = () => {
               <Menu className="w-5 h-5" />
             </button>
 
-            {/* Global Search Bar */}
-            <form onSubmit={handleGlobalSearch} className="max-w-md w-full relative hidden sm:block">
-              <div className="relative">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={globalSearchQuery}
-                  onChange={(e) => setGlobalSearchQuery(e.target.value)}
-                  placeholder={
-                    user?.role === 'PATIENT'
-                      ? 'Search tests, packages, reports or invoices...'
-                      : 'Global search: Patient ID, Sample Barcode, Visit ID...'
-                  }
-                  className="w-full bg-slate-100/80 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition-all"
-                />
-              </div>
-            </form>
+            {/* Global Interactive Search Bar with Recommendations */}
+            <div className="max-w-md w-full relative hidden sm:block">
+              <InteractiveSearchBar
+                value={globalSearchQuery}
+                onChange={setGlobalSearchQuery}
+                placeholder={
+                  user?.role === 'PATIENT'
+                    ? 'Search tests, packages, reports or invoices...'
+                    : 'Global search: Patient ID, Sample Barcode, Visit ID...'
+                }
+                suggestions={[
+                  { label: 'Complete Blood Count (CBC)', category: 'Hematology', tag: 'Popular' },
+                  { label: 'Thyroid Profile (T3, T4, TSH)', category: 'Immunology', tag: 'Hormones' },
+                  { label: 'Ayush-2 Full Body Checkup', category: 'Health Package', tag: 'Full Body' },
+                  { label: 'HbA1c Glycated Hemoglobin', category: 'Biochemistry', tag: 'Diabetes' },
+                  { label: 'Liver Function Test (LFT)', category: 'Biochemistry', tag: 'Hepatic' },
+                  { label: 'Kidney Function Test (KFT)', category: 'Biochemistry', tag: 'Renal' },
+                  { label: 'Lipid Profile (Cholesterol)', category: 'Biochemistry', tag: 'Heart' },
+                  { label: 'Sample Barcode (LLD-B-XXXXXX)', category: 'Laboratory', tag: 'Specimen' },
+                ]}
+              />
+            </div>
           </div>
 
           {/* Right Action Icons & Profile Menu */}
