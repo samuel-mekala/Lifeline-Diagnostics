@@ -15,18 +15,6 @@ A modern, full-stack NABL-accredited **Laboratory Information Management System 
 
 ---
 
-## 👥 Demo Logins & Access Accounts (Password: `password123`)
-
-| Role | Name | Email | Password | Primary Workflow |
-| :--- | :--- | :--- | :--- | :--- |
-| **PATIENT** | Demo Patient | `joel@gmail.com` | `password123` | Book appointments, view test catalog, track samples, download invoices & NABL PDF reports |
-| **LAB_TECHNICIAN** | **Sunny** | `tech@lifeline.com` | `password123` | Phlebotomist sample collection, barcode generation (`LLD-B-XXXXXX`), enter parameter values |
-| **PATHOLOGIST** | **Dr. Mallika Boyapati (MD)** | `patho@lifeline.com` | `password123` | Review test results, check HIGH/LOW flags, grant digital sign-off |
-| **RECEPTIONIST** | Priya Sharma | `reception@lifeline.com` | `password123` | Walk-in registration, desk billing, phlebotomist home pickup assignment, cash collection |
-| **ADMIN / OWNER** | Samuel Mekala | `samuel@gmail.com` | `admin123` | Multi-branch management, reagent stock inventory, employee work analysis, security audit logs |
-
----
-
 ## ✨ Key Features & Technical Highlights
 
 1. **Specimen Barcode & Accessioning Engine (`LLD-B-XXXXXX`)**:
