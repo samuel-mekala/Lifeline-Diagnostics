@@ -31,7 +31,9 @@ export const PortalLayout = () => {
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [isChatbotOpen, setIsChatbotOpen] = useState(true);
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(true);
+
 
 
 
@@ -285,21 +287,52 @@ export const PortalLayout = () => {
         </main>
       </div>
 
-      {/* Floating AI Assistant Launcher Button */}
+      {/* Floating AI Assistant Speech Bubble & Launcher Button */}
       {!isChatbotOpen && (
-        <button
-          onClick={() => setIsChatbotOpen(true)}
-          className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white p-3.5 rounded-full shadow-2xl flex items-center gap-2.5 transition-all hover:scale-105 border-2 border-white/20 group cursor-pointer"
-          title="Open LifeLong AI Health Assistant"
-        >
-          <div className="relative">
-            <Bot className="w-6 h-6 text-white" />
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full animate-ping"></span>
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full"></span>
-          </div>
-          <span className="text-xs font-black pr-1 hidden sm:inline tracking-wide">Ask LifeLong AI</span>
-        </button>
+        <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-2">
+          {/* Small Pop-up Speech Bubble */}
+          {showTooltip && (
+            <div
+              onClick={() => {
+                setIsChatbotOpen(true);
+                setShowTooltip(false);
+              }}
+              className="bg-slate-900 text-white text-xs px-3.5 py-2.5 rounded-2xl shadow-2xl border border-slate-700 max-w-xs flex items-center gap-2.5 cursor-pointer hover:bg-slate-800 transition-all border-l-4 border-l-blue-500 animate-fade-in"
+            >
+              <Sparkles className="w-4 h-4 text-amber-400 shrink-0 animate-pulse" />
+              <span className="font-bold text-[11px] text-slate-100">👋 How can I help you book a test today?</span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowTooltip(false);
+                }}
+                className="text-slate-400 hover:text-white p-0.5 rounded-lg hover:bg-slate-700/60"
+                title="Dismiss message"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
+          {/* Floating Icon Button */}
+          <button
+            onClick={() => {
+              setIsChatbotOpen(true);
+              setShowTooltip(false);
+            }}
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white p-3.5 rounded-full shadow-2xl flex items-center gap-2.5 transition-all hover:scale-105 border-2 border-white/20 group cursor-pointer"
+            title="Open LifeLong AI Health Assistant"
+          >
+            <div className="relative">
+              <Bot className="w-6 h-6 text-white" />
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full animate-ping"></span>
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full"></span>
+            </div>
+            <span className="text-xs font-black pr-1 hidden sm:inline tracking-wide">Ask LifeLong AI</span>
+          </button>
+        </div>
       )}
+
 
       {/* AI Chatbot Modal */}
       <AIChatbotModal isOpen={isChatbotOpen} onClose={() => setIsChatbotOpen(false)} />
