@@ -1,0 +1,268 @@
+.
+├── .DS_Store
+├── .env.example
+├── accounts
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── managers.py
+│   ├── migrations
+│   │   ├── __init__.py
+│   │   ├── 0001_initial.py
+│   │   ├── 0002_user_role.py
+│   │   ├── 0003_emailotp.py
+│   │   └── 0004_emailotp_abuse_protection.py
+│   ├── models.py
+│   ├── permissions.py
+│   ├── serializers.py
+│   ├── services.py
+│   ├── templates
+│   │   └── accounts
+│   │       └── home.html
+│   ├── test_sprint20.py
+│   ├── tests.py
+│   ├── throttles.py
+│   ├── urls.py
+│   └── views.py
+├── analytics
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── migrations
+│   │   └── __init__.py
+│   ├── models.py
+│   ├── serializers.py
+│   ├── services.py
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
+├── backend_structure.txt
+├── billing
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── migrations
+│   │   ├── __init__.py
+│   │   ├── 0001_initial.py
+│   │   ├── 0002_invoiceitem.py
+│   │   ├── 0003_payment.py
+│   │   ├── 0004_financial_integrity_constraints.py
+│   │   └── 0005_invoice_verification_token.py
+│   ├── models.py
+│   ├── pdf_generator.py
+│   ├── serializers.py
+│   ├── services.py
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
+├── chatbot
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── migrations
+│   │   └── __init__.py
+│   ├── models.py
+│   ├── tests.py
+│   └── views.py
+├── common
+│   ├── __init__.py
+│   ├── .DS_Store
+│   ├── admin.py
+│   ├── apps.py
+│   ├── choices.py
+│   ├── constants.py
+│   ├── exceptions.py
+│   ├── migrations
+│   │   ├── __init__.py
+│   │   └── 0001_activitylog.py
+│   ├── models.py
+│   ├── pagination.py
+│   ├── qr.py
+│   ├── serializers.py
+│   ├── services
+│   │   ├── __init__.py
+│   │   ├── activity.py
+│   │   ├── ai.py
+│   │   ├── health.py
+│   │   └── id_generator.py
+│   ├── test_activity.py
+│   ├── test_ai.py
+│   ├── tests.py
+│   ├── utils
+│   ├── utils.py
+│   └── views.py
+├── config
+│   ├── __init__.py
+│   ├── asgi.py
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── dashboard
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── migrations
+│   │   └── __init__.py
+│   ├── models.py
+│   ├── serializers.py
+│   ├── services.py
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
+├── Dockerfile
+├── inventory
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── migrations
+│   │   ├── __init__.py
+│   │   └── 0001_initial.py
+│   ├── models.py
+│   ├── serializers.py
+│   ├── services.py
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
+├── laboratory
+│   ├── __init__.py
+│   ├── .DS_Store
+│   ├── admin.py
+│   ├── apps.py
+│   ├── management
+│   │   └── commands
+│   │       ├── seed_laboratory.py
+│   │       └── seed_test_parameters.py
+│   ├── migrations
+│   │   ├── __init__.py
+│   │   ├── 0001_initial.py
+│   │   ├── 0002_orderedtest.py
+│   │   ├── 0003_sample_orderedtest_sample.py
+│   │   ├── 0004_testparameter.py
+│   │   ├── 0005_result_resultparameter.py
+│   │   ├── 0006_resultparameter_flag_resultparameter_reference_range.py
+│   │   ├── 0007_remove_testparameter_reference_range.py
+│   │   ├── 0008_package_remove_laboratorytest_price_packageprice_and_more.py
+│   │   ├── 0009_testparameter_reference_range.py
+│   │   └── 0010_result_status_workflow.py
+│   ├── models.py
+│   ├── serializers.py
+│   ├── services
+│   │   └── result_service.py
+│   ├── services.py
+│   ├── tests.py
+│   ├── urls.py
+│   ├── views.py
+│   └── workflows.py
+├── logs
+│   ├── .gitkeep
+│   ├── application.log
+│   ├── error.log
+│   └── warning.log
+├── manage.py
+├── notifications
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── management
+│   │   ├── __init__.py
+│   │   └── commands
+│   │       ├── __init__.py
+│   │       └── send_appointment_reminders.py
+│   ├── migrations
+│   │   ├── __init__.py
+│   │   └── 0001_notification.py
+│   ├── models.py
+│   ├── services.py
+│   ├── templates
+│   │   └── notifications
+│   │       ├── email.html
+│   │       └── email.txt
+│   ├── tests.py
+│   └── views.py
+├── patients
+│   ├── __init__.py
+│   ├── .DS_Store
+│   ├── address_serializers.py
+│   ├── address_services.py
+│   ├── address_views.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── migrations
+│   │   ├── __init__.py
+│   │   ├── 0001_initial.py
+│   │   └── 0002_patientaddress.py
+│   ├── models.py
+│   ├── serializers.py
+│   ├── services.py
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
+├── reports
+│   ├── __init__.py
+│   ├── .DS_Store
+│   ├── admin.py
+│   ├── apps.py
+│   ├── assets
+│   │   └── letterhead.pdf
+│   ├── migrations
+│   │   ├── __init__.py
+│   │   ├── 0001_initial.py
+│   │   ├── 0002_report_report_id.py
+│   │   └── 0003_report_verification_token.py
+│   ├── models.py
+│   ├── pdf_generator.py
+│   ├── serializers.py
+│   ├── services.py
+│   ├── templates
+│   │   └── reports
+│   │       └── report.html
+│   ├── tests.py
+│   ├── urls.py
+│   ├── utils
+│   │   └── letterhead.py
+│   └── views.py
+├── requirements.txt
+├── settings_app
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── migrations
+│   │   ├── __init__.py
+│   │   └── 0001_initial.py
+│   ├── models.py
+│   ├── serializers.py
+│   ├── services.py
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
+├── static
+│   ├── css
+│   │   └── style.css
+│   ├── icons
+│   ├── images
+│   └── js
+├── templates
+│   ├── base.html
+│   └── includes
+│       └── navbar.html
+└── visits
+    ├── __init__.py
+    ├── admin.py
+    ├── appointment_serializers.py
+    ├── appointment_services.py
+    ├── appointment_views.py
+    ├── apps.py
+    ├── migrations
+    │   ├── __init__.py
+    │   ├── 0001_initial.py
+    │   ├── 0002_visit_entry_mode.py
+    │   ├── 0003_appointment.py
+    │   └── 0004_rename_visits_app_patient_1d10af_idx_visits_appo_patient_46f1d3_idx_and_more.py
+    ├── models.py
+    ├── serializers.py
+    ├── services.py
+    ├── tests.py
+    ├── urls.py
+    └── views.py
+
+51 directories, 215 files

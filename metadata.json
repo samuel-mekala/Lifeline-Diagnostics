@@ -1,0 +1,6 @@
+{
+  "name": "Life Line Diagnostics LIMS",
+  "description": "Laboratory Information Management System for Life Line Diagnostics",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

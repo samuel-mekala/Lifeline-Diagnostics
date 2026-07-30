@@ -1,0 +1,10 @@
+Django==6.0.7
+djangorestframework==3.17.1
+djangorestframework-simplejwt==5.5.1
+django-cors-headers==4.7.0
+gunicorn==23.0.0
+whitenoise==6.9.0
+qrcode[pil]==8.2
+pymysql
+reportlab==4.4.1
+PyMuPDF==1.26.3

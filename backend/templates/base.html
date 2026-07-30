@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Life Line Diagnostics | NABL Accredited Pathology LIMS{% endblock %}</title>
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --secondary: #0f172a;
+      --accent: #10b981;
+      --bg-light: #f8fafc;
+      --card-bg: #ffffff;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-light);
+      color: #334155;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-font {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .navbar-custom {
+      background-color: #0f172a;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar-link {
+      color: #94a3b8;
+      font-weight: 600;
+      font-size: 0.875rem;
+      padding: 0.65rem 1rem;
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .sidebar-link:hover, .sidebar-link.active {
+      color: #ffffff;
+      background-color: #1e293b;
+    }
+
+    .sidebar-link i {
+      font-size: 1.1rem;
+      color: #38bdf8;
+    }
+
+    .card-custom {
+      background: var(--card-bg);
+      border: 1px solid #e2e8f0;
+      border-radius: 0.75rem;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+    }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top no-print py-2">
+    <div class="container-fluid px-4">
+      <a class="navbar-brand d-flex align-items-center gap-2 brand-font" href="/">
+        <div class="bg-primary text-white rounded-3 p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+          <i class="bi bi-activity fs-5"></i>
+        </div>
+        <div>
+          <span class="fs-5 fw-bold text-white">LIFE LINE</span>
+          <span class="text-info fs-6 fw-semibold d-block" style="font-size: 0.65rem !important; margin-top: -4px;">DIAGNOSTICS LIMS</span>
+        </div>
+      </a>
+
+      <div class="ms-auto d-flex align-items-center gap-3">
+        {% if user.is_authenticated %}
+          <div class="d-none d-md-flex flex-column text-end">
+            <span class="text-white fw-bold small">{{ user.first_name }} {{ user.last_name }}</span>
+            <span class="badge bg-primary text-uppercase" style="font-size: 0.65rem; width: fit-content; margin-left: auto;">{{ user.get_role_display|default:user.email }}</span>          </div>
+          <a href="#" class="btn btn-outline-light btn-sm fw-semibold">Logout</a>
+        {% else %}
+          <a href="#" class="btn btn-outline-light btn-sm fw-semibold">Sign In</a>
+          <a href="#" class="btn btn-primary btn-sm fw-semibold">Register</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Workspace -->
+  <div class="container-fluid px-0 flex-grow-1 d-flex">
+    {% if user.is_authenticated %}
+    <!-- Sidebar Navigation -->
+    <div class="bg-dark border-end border-secondary border-opacity-25 no-print" style="width: 260px; min-height: calc(100vh - 58px); flex-shrink: 0;">
+      <div class="p-3">
+        <div class="text-uppercase text-secondary fw-bold px-3 mb-2" style="font-size: 0.65rem; letter-spacing: 0.1em;">
+          NAVIGATION
+        </div>
+        <a href="/" class="sidebar-link active mb-1">
+          <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Content Area -->
+    <div class="flex-grow-1 p-4" style="background-color: #f8fafc;">
+      {% if messages %}
+        <div class="no-print">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show shadow-sm border-0 fw-semibold mb-3" role="alert">
+              <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-dark text-slate-400 py-3 text-center no-print mt-auto border-top border-secondary border-opacity-25" style="font-size: 0.8rem;">
+    <div class="container text-secondary">
+      <span>Life Line Diagnostics Pathology LIMS &copy; 2026. NABL Certified Standards.</span>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

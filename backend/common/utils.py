@@ -1,0 +1,1 @@
+from common.services.id_generator import generate_business_id

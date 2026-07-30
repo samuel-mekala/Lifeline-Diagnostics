@@ -1,0 +1,18 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f7fa;
+    margin: 40px;
+}
+
+header {
+    color: #0066cc;
+}
+
+h2 {
+    color: #333;
+}
+
+footer {
+    color: gray;
+    font-size: 14px;
+}
