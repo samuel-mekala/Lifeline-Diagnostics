@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../providers/AuthProvider';
 import portalAPI from '../services/portalAPI';
 import Sidebar from '../components/navigation/Sidebar';
+import { Logo } from '../components/common/Logo';
 import InteractiveSearchBar from '../components/common/InteractiveSearchBar';
 import { AIChatbotModal } from '../components/common/AIChatbotModal';
 import {
@@ -298,6 +299,15 @@ export const PortalLayout = () => {
               <Menu className="w-5 h-5" />
             </button>
 
+            {/* Brand Logo & Title beside top header */}
+            <div className="flex items-center gap-2.5 border-r border-slate-200/80 pr-4 mr-1 hidden md:flex shrink-0">
+              <Logo showText={false} className="w-8 h-8 shrink-0" />
+              <div>
+                <h1 className="text-xs font-black text-slate-900 tracking-tight leading-none">Life Line Diagnostics</h1>
+                <p className="text-[9px] font-bold text-blue-600 tracking-wider uppercase mt-0.5">NABL Certified LIMS</p>
+              </div>
+            </div>
+
             {/* Global Interactive Search Bar with Recommendations */}
             <div className="max-w-md w-full relative hidden sm:block">
               <InteractiveSearchBar
@@ -411,13 +421,11 @@ export const PortalLayout = () => {
                 className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shadow-sm">
-                  {user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'U'}
+                  {user?.email === 'tech@lifeline.com' || user?.full_name?.includes('Anil') ? 'S' : (user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'U')}
                 </div>
                 <div className="text-left hidden sm:block">
                   <p className="text-xs font-bold text-slate-900 truncate max-w-[120px]">
-                    {user?.full_name
-                      ? user.full_name.split(' ').map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ')
-                      : 'User'}
+                    {user?.email === 'tech@lifeline.com' || user?.full_name?.includes('Anil') ? 'Sunny' : (user?.full_name || 'User')}
                   </p>
                   <p className="text-[10px] text-slate-500 font-semibold uppercase">{user?.role || 'Patient'}</p>
                 </div>
@@ -428,9 +436,7 @@ export const PortalLayout = () => {
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-200 z-50 p-2">
                   <div className="px-3 py-2 border-b border-slate-100 mb-1">
                     <p className="text-xs font-bold text-slate-900">
-                      {user?.full_name
-                        ? user.full_name.split(' ').map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ')
-                        : 'User'}
+                      {user?.email === 'tech@lifeline.com' || user?.full_name?.includes('Anil') ? 'Sunny' : (user?.full_name || 'User')}
                     </p>
                     <p className="text-[11px] text-slate-500 truncate">{user?.email}</p>
                     <span className="inline-block mt-1 text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded">

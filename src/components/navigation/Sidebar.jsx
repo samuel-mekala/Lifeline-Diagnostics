@@ -304,13 +304,11 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0 flex-1 flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-blue-600/30 border border-blue-400/40 flex items-center justify-center text-blue-300 font-bold text-xs shrink-0 shadow-sm">
-                  {user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'U'}
+                  {user?.email === 'tech@lifeline.com' || user?.full_name?.includes('Anil') ? 'S' : (user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'U')}
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-bold text-white truncate leading-tight">
-                    {user?.full_name
-                      ? user.full_name.split(' ').map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ')
-                      : 'Active User'}
+                    {user?.email === 'tech@lifeline.com' || user?.full_name?.includes('Anil') ? 'Sunny' : (user?.full_name || 'Active User')}
                   </p>
                   <p className="text-[10px] text-slate-400 truncate leading-tight mt-0.5">{user?.email}</p>
                   <div className="mt-1">
@@ -332,8 +330,8 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-blue-600/30 border border-blue-400/40 flex items-center justify-center text-blue-300 font-bold text-xs" title={`${user?.full_name} (${role})`}>
-                {user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'U'}
+              <div className="w-8 h-8 rounded-xl bg-blue-600/30 border border-blue-400/40 flex items-center justify-center text-blue-300 font-bold text-xs" title={`${user?.email === 'tech@lifeline.com' ? 'Sunny' : user?.full_name} (${role})`}>
+                {user?.email === 'tech@lifeline.com' || user?.full_name?.includes('Anil') ? 'S' : (user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'U')}
               </div>
               <button
                 type="button"
