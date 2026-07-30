@@ -8,39 +8,43 @@ import {
   CalendarPlus,
   LifeBuoy,
   PhoneCall,
-  TestTube,
-  Package as PackageIcon,
-  ShieldAlert,
-  ArrowRight,
+  Mail,
+  Building2,
+  CheckCircle2,
 } from 'lucide-react';
 
 const TEST_DATABASE = [
-  { keywords: ['cbc', 'blood count', 'hemoglobin'], name: 'Complete Blood Picture (CBC)', price: '₹300 (Walk-In) / ₹450 (Home) / ₹600 (Doc Ref)', prep: 'No fasting required. Specimen: EDTA Blood.' },
-  { keywords: ['esr', 'erythrocyte'], name: 'Erythrocyte Sedimentation Rate (ESR)', price: '₹100 (Walk-In) / ₹150 (Home) / ₹200 (Doc Ref)', prep: 'No special preparation needed. Specimen: Blood.' },
-  { keywords: ['hba1c', 'glycated', 'sugar average'], name: 'Glycated Hemoglobin (HbA1c)', price: '₹500 (Walk-In) / ₹750 (Home) / ₹1000 (Doc Ref)', prep: 'Random or fasting sample accepted. Specimen: Blood.' },
-  { keywords: ['calcium', 'serum calcium'], name: 'Serum Calcium Test', price: '₹500 (Walk-In) / ₹750 (Home) / ₹1000 (Doc Ref)', prep: 'Overnight fasting recommended. Specimen: Serum.' },
-  { keywords: ['testosterone', 'hormone'], name: 'Total Testosterone Test', price: '₹1500 (Walk-In) / ₹2250 (Home) / ₹3000 (Doc Ref)', prep: 'Morning sample preferred (07:00 AM – 10:00 AM). Specimen: Serum.' },
-  { keywords: ['b12', 'vitamin b12', 'cobalamin'], name: 'Vitamin B12 Assay', price: '₹900 (Walk-In) / ₹1350 (Home) / ₹1800 (Doc Ref)', prep: '10-12 hours overnight fasting required. Specimen: Serum.' },
-  { keywords: ['vitamin d', 'd3', 'vitamin d3'], name: 'Vitamin D3 Total (25-OH)', price: '₹1000 (Walk-In) / ₹1500 (Home) / ₹2000 (Doc Ref)', prep: 'No special fasting required. Specimen: Serum.' },
-  { keywords: ['iron', 'iron profile', 'ferritin'], name: 'Iron Profile (Fe, TIBC, % Sat)', price: '₹800 (Walk-In) / ₹1200 (Home) / ₹1600 (Doc Ref)', prep: '12 hours fasting required. Specimen: Serum.' },
-  { keywords: ['kidney', 'kft', 'creatinine', 'urea'], name: 'Kidney Function Mini Profile (KFT)', price: '₹800 (Walk-In) / ₹1200 (Home) / ₹1600 (Doc Ref)', prep: '8-10 hours fasting recommended. Specimen: Serum.' },
-  { keywords: ['lipid', 'cholesterol', 'triglycerides'], name: 'Lipid Profile Complete', price: '₹500 (Walk-In) / ₹750 (Home) / ₹1000 (Doc Ref)', prep: '10-12 hours strict overnight fasting. Specimen: Serum.' },
-  { keywords: ['liver', 'lft', 'sgot', 'sgpt', 'bilirubin'], name: 'Liver Function Test (LFT)', price: '₹500 (Walk-In) / ₹750 (Home) / ₹1000 (Doc Ref)', prep: 'Overnight 10-12 hours fasting required. Specimen: Serum.' },
-  { keywords: ['cue', 'urine', 'urine exam'], name: 'Complete Urine Examination (CUE)', price: '₹200 (Walk-In) / ₹300 (Home) / ₹400 (Doc Ref)', prep: 'First morning mid-stream urine sample. Specimen: Urine.' },
-  { keywords: ['thyroid', 'tsh', 't3', 't4'], name: 'Thyroid Profile I (T3, T4, TSH)', price: '₹500 (Walk-In) / ₹750 (Home) / ₹1000 (Doc Ref)', prep: '8-10 hours fasting recommended. Specimen: Serum.' },
-  { keywords: ['fbs', 'fasting sugar', 'fasting blood sugar'], name: 'Fasting Blood Sugar (FBS)', price: '₹50 (Walk-In) / ₹75 (Home) / ₹100 (Doc Ref)', prep: 'Strict 8-10 hours overnight fasting. Specimen: Blood.' },
-  { keywords: ['ppbs', 'post prandial', 'post prandial blood sugar'], name: 'Post Prandial Blood Sugar (PPBS)', price: '₹50 (Walk-In) / ₹75 (Home) / ₹100 (Doc Ref)', prep: 'Sample drawn exactly 2 hours after breakfast. Specimen: Blood.' },
+  { keywords: ['cbc', 'blood count', 'hemoglobin'], name: 'Complete Blood Picture (CBC)', price: '₹300 (Walk-In) / ₹450 (Home)' },
+  { keywords: ['esr', 'erythrocyte'], name: 'Erythrocyte Sedimentation Rate (ESR)', price: '₹100 (Walk-In) / ₹150 (Home)' },
+  { keywords: ['hba1c', 'glycated', 'sugar average', 'diabetes'], name: 'Glycated Hemoglobin (HbA1c)', price: '₹500 (Walk-In) / ₹750 (Home)' },
+  { keywords: ['calcium', 'serum calcium'], name: 'Serum Calcium Test', price: '₹500 (Walk-In) / ₹750 (Home)' },
+  { keywords: ['testosterone', 'hormone'], name: 'Total Testosterone Test', price: '₹1500 (Walk-In) / ₹2250 (Home)' },
+  { keywords: ['b12', 'vitamin b12', 'cobalamin'], name: 'Vitamin B12 Assay', price: '₹900 (Walk-In) / ₹1350 (Home)' },
+  { keywords: ['vitamin d', 'd3', 'vitamin d3'], name: 'Vitamin D3 Total (25-OH)', price: '₹1000 (Walk-In) / ₹1500 (Home)' },
+  { keywords: ['iron', 'iron profile', 'ferritin'], name: 'Iron Profile (Fe, TIBC, % Sat)', price: '₹800 (Walk-In) / ₹1200 (Home)' },
+  { keywords: ['kidney', 'kft', 'creatinine', 'urea'], name: 'Kidney Function Mini Profile (KFT)', price: '₹800 (Walk-In) / ₹1200 (Home)' },
+  { keywords: ['lipid', 'cholesterol', 'triglycerides'], name: 'Lipid Profile Complete', price: '₹500 (Walk-In) / ₹750 (Home)' },
+  { keywords: ['liver', 'lft', 'sgot', 'sgpt', 'bilirubin'], name: 'Liver Function Test (LFT)', price: '₹500 (Walk-In) / ₹750 (Home)' },
+  { keywords: ['cue', 'urine', 'urine exam'], name: 'Complete Urine Examination (CUE)', price: '₹200 (Walk-In) / ₹300 (Home)' },
+  { keywords: ['thyroid', 'tsh', 't3', 't4'], name: 'Thyroid Profile I (T3, T4, TSH)', price: '₹500 (Walk-In) / ₹750 (Home)' },
+  { keywords: ['fbs', 'fasting sugar', 'fasting blood sugar'], name: 'Fasting Blood Sugar (FBS)', price: '₹50 (Walk-In) / ₹75 (Home)' },
+  { keywords: ['ppbs', 'post prandial', 'post prandial blood sugar'], name: 'Post Prandial Blood Sugar (PPBS)', price: '₹50 (Walk-In) / ₹75 (Home)' },
 ];
 
 const PACKAGE_DATABASE = [
-  { keywords: ['ayush 2', 'ayush-2', 'full body', 'ayush 2 full body'], name: 'Ayush-2 Full Body Checkup (10 Tests)', price: '₹750 (Walk-In) / ₹1125 (Home)', tests: ['CBC', 'FBS', 'Lipid Profile', 'KFT Mini', 'LFT', 'Serum Calcium', 'CUE', 'ESR'] },
-  { keywords: ['ayush 3', 'ayush-3', 'master health', 'ayush 3 master'], name: 'Ayush-3 Comprehensive Master Health (13 Tests)', price: '₹1500 (Walk-In) / ₹2250 (Home)', tests: ['CBC', 'HbA1c', 'Thyroid Profile I', 'Vitamin D3', 'Vitamin B12', 'Lipid Complete', 'KFT', 'LFT', 'Iron Profile'] },
-  { keywords: ['cardiac', 'cardiac package', 'metabolic'], name: 'Cardiac & Metabolic Care Package (6 Tests)', price: '₹999 (Walk-In) / ₹1499 (Home)', tests: ['Lipid Profile Complete', 'HbA1c', 'FBS', 'PPBS', 'Serum Calcium', 'KFT'] },
+  { keywords: ['ayush 2', 'ayush-2', 'full body', 'ayush 2 full body'], name: 'Ayush-2 Full Body Checkup (10 Tests)', price: '₹750 (Walk-In) / ₹1125 (Home)' },
+  { keywords: ['ayush 3', 'ayush-3', 'master health', 'ayush 3 master'], name: 'Ayush-3 Comprehensive Master Health (13 Tests)', price: '₹1500 (Walk-In) / ₹2250 (Home)' },
+  { keywords: ['cardiac', 'cardiac package', 'metabolic'], name: 'Cardiac & Metabolic Care Package (6 Tests)', price: '₹999 (Walk-In) / ₹1499 (Home)' },
 ];
 
-const NON_BOOKING_KEYWORDS = [
-  'doctor', 'diagnosis', 'symptom', 'cure', 'medicine', 'prescription',
-  'treatment', 'fever', 'pain', 'disease', 'illness', 'cancer', 'infection', 'treat'
+const BOOKING_KEYWORDS = [
+  'book', 'appointment', 'schedule', 'home', 'visit', 'pickup', 'test', 'package', 'price',
+  'cost', 'cbc', 'hba1c', 'thyroid', 'lipid', 'lft', 'kft', 'urine', 'blood', 'ayush',
+  'checkup', 'fbs', 'ppbs', 'esr', 'vitamin', 'calcium', 'iron', 'testosterone', 'slot', 'date'
+];
+
+const TICKET_YES_KEYWORDS = [
+  'yes', 'yeah', 'yep', 'ticket', 'support', 'raise', 'help', 'contact', 'sure', 'ok', 'okay'
 ];
 
 export const AIChatbotModal = ({ isOpen, onClose }) => {
@@ -51,10 +55,11 @@ export const AIChatbotModal = ({ isOpen, onClose }) => {
     {
       sender: 'bot',
       type: 'greeting',
-      text: '👋 Hello! Welcome to LifeLong Diagnostics. I am your AI Booking Assistant. I can help you search all 15 lab tests, explore 3 preventive health packages, and schedule Home Collection or Lab Visits.',
+      text: '👋 Hello! Welcome to LifeLong Diagnostics. I am your AI Booking Assistant.\n\nI can help you search lab tests, explore health packages, and book appointments for Home Collection or Lab Visits.',
     },
   ]);
   const [input, setInput] = useState('');
+  const [waitingForTicketConfirmation, setWaitingForTicketConfirmation] = useState(false);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -71,18 +76,17 @@ export const AIChatbotModal = ({ isOpen, onClose }) => {
     setMessages((prev) => [...prev, userMsg]);
     if (!textToSend) setInput('');
 
-    // 1. Check for non-booking query (medical advice, diagnosis, treatment)
-    const isMedicalQuery = NON_BOOKING_KEYWORDS.some((kw) => lower.includes(kw));
-
     setTimeout(() => {
-      if (isMedicalQuery) {
+      // 1. If previously asked about raising a support ticket and user says YES/TICKET
+      if (waitingForTicketConfirmation && TICKET_YES_KEYWORDS.some((kw) => lower.includes(kw))) {
+        setWaitingForTicketConfirmation(false);
         setMessages((prev) => [
           ...prev,
           {
             sender: 'bot',
-            type: 'out_of_scope',
-            text: 'I am your Test Booking Assistant and specialize in helping you find and schedule diagnostic lab tests and health checkup packages. For medical diagnosis or clinical treatment, please consult a registered medical practitioner.',
-            showActionButtons: true,
+            type: 'raise_ticket_help',
+            text: '🎫 **Support Ticket & Contact Assistance**\n\nYou can raise a support ticket directly on our Support Page, or contact our organization desk:\n\n📞 **Phone**: +91 98490 12345 / 1800-123-4567\n✉️ **Email**: support@lifelinediagnostics.com\n🏢 **Main Hub**: MG Road, Vijayawada, AP',
+            showSupportTicketButton: true,
           },
         ]);
         return;
@@ -99,7 +103,7 @@ export const AIChatbotModal = ({ isOpen, onClose }) => {
           {
             sender: 'bot',
             type: 'pkg_info',
-            text: `📦 **${matchedPkg.name}**\n\n**Price:** ${matchedPkg.price}\n\n**Includes:** ${matchedPkg.tests.join(', ')}`,
+            text: `📦 **${matchedPkg.name}**\n\n**Price:** ${matchedPkg.price}\n\nI can help you book an appointment for this package right now!`,
             showBookButton: true,
           },
         ]);
@@ -117,50 +121,38 @@ export const AIChatbotModal = ({ isOpen, onClose }) => {
           {
             sender: 'bot',
             type: 'test_info',
-            text: `🧪 **${matchedTest.name}**\n\n**Price Catalogs:** ${matchedTest.price}\n\n**Preparation:** ${matchedTest.prep}`,
-            test: matchedTest,
+            text: `🧪 **${matchedTest.name}**\n\n**Price:** ${matchedTest.price}\n\nI can assist you in booking an appointment for this test immediately!`,
             showBookButton: true,
           },
         ]);
         return;
       }
 
-      // 4. Check home collection inquiry
-      if (lower.includes('home') || lower.includes('visit') || lower.includes('pickup') || lower.includes('how to book')) {
+      // 4. Check appointment booking keywords
+      const isBooking = BOOKING_KEYWORDS.some((kw) => lower.includes(kw));
+
+      if (isBooking) {
         setMessages((prev) => [
           ...prev,
           {
             sender: 'bot',
-            type: 'home_info',
-            text: '🏠 **Home Sample Collection Process:**\n\n1. Select your test or package.\n2. Choose **Home Collection** at step 2.\n3. Select your saved address or add a new address.\n4. Pick your date & time slot.\n\nOur phlebotomist arrives with sterile vacutainer kits.',
+            type: 'booking_guidance',
+            text: '📅 **Appointment Booking Assistance**\n\nI can help you book your diagnostic appointment in 3 easy steps:\n1. Choose your test or package.\n2. Select Home Collection or Lab Visit.\n3. Pick your preferred date & time slot.\n\nClick below to open the booking page!',
             showBookButton: true,
           },
         ]);
         return;
       }
 
-      // 5. Check general health packages request
-      if (lower.includes('package') || lower.includes('full body') || lower.includes('checkup') || lower.includes('health package')) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            sender: 'bot',
-            type: 'all_packages',
-            text: '📦 **All 3 Preventive Health Checkup Packages:**\n\n1. **Ayush-2 Full Body Checkup (10 Tests)** — ₹750\n2. **Ayush-3 Master Health Checkup (13 Tests)** — ₹1,500\n3. **Cardiac & Metabolic Care Package (6 Tests)** — ₹999',
-            showBookButton: true,
-          },
-        ]);
-        return;
-      }
-
-      // Default response
+      // 5. Strict Guardrail for Non-Booking Queries (e.g. "what is this", "who created you", general questions)
+      setWaitingForTicketConfirmation(true);
       setMessages((prev) => [
         ...prev,
         {
           sender: 'bot',
-          type: 'general_help',
-          text: 'I can assist you with searching for diagnostic tests (CBC, HbA1c, Thyroid, Vit D3/B12, KFT, LFT, Lipid, Testosterone), health packages (Ayush-2, Ayush-3, Cardiac), or scheduling Home Collection.',
-          showActionButtons: true,
+          type: 'out_of_scope_guardrail',
+          text: 'I am strictly specialized in helping you search tests and book diagnostic appointments. I am unable to assist with general questions outside appointment booking.\n\nWould you like me to help you raise a support ticket on our Support page, or contact our organization?',
+          showSupportOptions: true,
         },
       ]);
     }, 300);
@@ -176,10 +168,10 @@ export const AIChatbotModal = ({ isOpen, onClose }) => {
           </div>
           <div>
             <h3 className="font-extrabold text-sm text-white flex items-center gap-1.5">
-              <span>LifeLong Test & Package AI</span>
+              <span>LifeLong Booking AI</span>
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
             </h3>
-            <p className="text-[10px] text-blue-300 font-semibold">15 Tests • 3 Health Packages • Instant Booking</p>
+            <p className="text-[10px] text-blue-300 font-semibold">Appointment & Test Booking Assistant</p>
           </div>
         </div>
 
@@ -214,38 +206,52 @@ export const AIChatbotModal = ({ isOpen, onClose }) => {
                     onClose();
                     navigate('/portal/appointments/book');
                   }}
-                  className="w-full py-2 px-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer mt-1"
+                  className="w-full py-2.5 px-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer mt-2"
                 >
                   <CalendarPlus className="w-4 h-4" />
-                  <span>Book Test / Package Now</span>
+                  <span>📅 Book Appointment Now</span>
                 </button>
               )}
 
-              {/* Non-Booking / Out of Scope Action Buttons */}
-              {m.showActionButtons && (
+              {/* Guardrail Support Options */}
+              {m.showSupportOptions && (
                 <div className="pt-2 border-t border-slate-700/60 space-y-2">
-                  <p className="text-[10px] text-slate-400 font-semibold">How would you like to connect with our care desk?</p>
-
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={() => {
                         onClose();
                         navigate('/portal/support');
                       }}
-                      className="py-1.5 px-2.5 bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 border border-blue-500/40 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                      className="py-2 px-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-[11px] font-extrabold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                     >
                       <LifeBuoy className="w-3.5 h-3.5" />
-                      <span>Raise Ticket</span>
+                      <span>Yes, Raise Ticket</span>
                     </button>
 
-                    <a
-                      href="tel:+919876543210"
-                      className="py-1.5 px-2.5 bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 border border-emerald-500/40 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors text-center text-decoration-none"
+                    <button
+                      onClick={() => handleSend('Tell me organization contact details')}
+                      className="py-2 px-3 bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 border border-emerald-500/40 rounded-xl text-[11px] font-extrabold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                     >
                       <PhoneCall className="w-3.5 h-3.5" />
-                      <span>Call Lab</span>
-                    </a>
+                      <span>Contact Org</span>
+                    </button>
                   </div>
+                </div>
+              )}
+
+              {/* Support Ticket Page Direct Button */}
+              {m.showSupportTicketButton && (
+                <div className="pt-2 border-t border-slate-700/60 space-y-2">
+                  <button
+                    onClick={() => {
+                      onClose();
+                      navigate('/portal/support');
+                    }}
+                    className="w-full py-2.5 px-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  >
+                    <LifeBuoy className="w-4 h-4" />
+                    <span>🎫 Go to Support Page to Raise Ticket</span>
+                  </button>
                 </div>
               )}
             </div>
@@ -254,8 +260,14 @@ export const AIChatbotModal = ({ isOpen, onClose }) => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Clean Quick Action Chips */}
+      {/* Quick Chips */}
       <div className="p-2.5 bg-slate-900 border-t border-slate-800 flex gap-1.5 overflow-x-auto text-[10px] custom-scrollbar">
+        <button
+          onClick={() => handleSend('I want to book an appointment')}
+          className="bg-blue-600 hover:bg-blue-500 text-white font-extrabold px-3 py-1.5 rounded-full whitespace-nowrap cursor-pointer shadow-sm"
+        >
+          📅 Book Appointment
+        </button>
         <button
           onClick={() => handleSend('Ayush-2 Full Body Checkup Package')}
           className="bg-slate-800 hover:bg-slate-700 text-blue-300 font-bold px-3 py-1.5 rounded-full whitespace-nowrap border border-slate-700 cursor-pointer"
@@ -269,19 +281,7 @@ export const AIChatbotModal = ({ isOpen, onClose }) => {
           CBC Test
         </button>
         <button
-          onClick={() => handleSend('HbA1c Diabetes Test')}
-          className="bg-slate-800 hover:bg-slate-700 text-blue-300 font-bold px-3 py-1.5 rounded-full whitespace-nowrap border border-slate-700 cursor-pointer"
-        >
-          HbA1c Test
-        </button>
-        <button
-          onClick={() => handleSend('Vitamin D3 and B12 Tests')}
-          className="bg-slate-800 hover:bg-slate-700 text-blue-300 font-bold px-3 py-1.5 rounded-full whitespace-nowrap border border-slate-700 cursor-pointer"
-        >
-          Vit D3 & B12
-        </button>
-        <button
-          onClick={() => handleSend('How do I book Home Collection?')}
+          onClick={() => handleSend('Home Sample Collection')}
           className="bg-slate-800 hover:bg-slate-700 text-blue-300 font-bold px-3 py-1.5 rounded-full whitespace-nowrap border border-slate-700 cursor-pointer"
         >
           Home Pickup
@@ -295,7 +295,7 @@ export const AIChatbotModal = ({ isOpen, onClose }) => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-          placeholder="Ask AI about 15 tests, 3 packages, or booking..."
+          placeholder="Ask AI to help book lab tests & appointments..."
           className="flex-1 bg-slate-800 text-white text-xs px-3.5 py-2.5 rounded-xl border border-slate-700 focus:outline-none focus:border-blue-500"
         />
         <button
