@@ -31,8 +31,7 @@ export const PortalLayout = () => {
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [isChatbotOpen, setIsChatbotOpen] = useState(true);
-
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
 
 
 

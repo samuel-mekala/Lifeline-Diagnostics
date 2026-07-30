@@ -15,8 +15,6 @@ import {
   Droplet,
   Check,
   Filter,
-  Home,
-  UserCheck,
 } from 'lucide-react';
 
 export default function TestCatalogPage() {
@@ -64,7 +62,6 @@ export default function TestCatalogPage() {
     return matchesSearch && matchesCategory;
   });
 
-
   const handleBookTest = (test) => {
     navigate('/portal/appointments/book', { state: { preselectedTest: test } });
   };
@@ -86,7 +83,7 @@ export default function TestCatalogPage() {
           </div>
           <h1 className="text-2xl font-black mt-2">Laboratory Test Catalog & Clinical Directory</h1>
           <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
-            Explore sample requirements, fasting guidelines, turnaround times, and pricing. Book tests with home sample pickup or walk-in appointment.
+            Explore sample requirements, turnaround times, and 3-tier price catalogs. Book tests with home sample pickup or walk-in appointment.
           </p>
         </div>
 
@@ -94,23 +91,23 @@ export default function TestCatalogPage() {
         <div className="bg-slate-800/80 p-1 rounded-2xl border border-slate-700/80 flex items-center gap-1 text-xs font-bold shrink-0">
           <button
             onClick={() => setActiveTab('INDIVIDUAL_TESTS')}
-            className={`px-4 py-2 rounded-xl transition flex items-center gap-1.5 ${
+            className={`px-4 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'INDIVIDUAL_TESTS'
                 ? 'bg-blue-600 text-white shadow-md'
                 : 'text-slate-300 hover:text-white'
             }`}
           >
-            <TestTube className="w-4 h-4" /> Individual Tests ({CATALOG_TESTS.length})
+            <TestTube className="w-4 h-4" /> Individual Tests ({tests.length})
           </button>
           <button
             onClick={() => setActiveTab('HEALTH_PACKAGES')}
-            className={`px-4 py-2 rounded-xl transition flex items-center gap-1.5 ${
+            className={`px-4 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'HEALTH_PACKAGES'
                 ? 'bg-blue-600 text-white shadow-md'
                 : 'text-slate-300 hover:text-white'
             }`}
           >
-            <Package className="w-4 h-4" /> Preventive Packages ({CATALOG_PACKAGES.length})
+            <Package className="w-4 h-4" /> Health Packages ({packages.length})
           </button>
         </div>
       </div>
@@ -123,23 +120,34 @@ export default function TestCatalogPage() {
           onChange={setSearchQuery}
           filterTags={categories}
           activeTag={selectedCategory}
-          onSelectTag={setSelectedCategory}
+          onTagSelect={setSelectedCategory}
           resultCount={filteredTests.length}
         />
       )}
 
-      {/* View Content: Individual Tests Catalog */}
-      {activeTab === 'INDIVIDUAL_TESTS' && (
+      {/* Loading Skeleton */}
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {[1, 2, 3].map((n) => (
+            <div key={n} className="bg-white p-5 rounded-2xl border border-slate-200 animate-pulse space-y-3">
+              <div className="h-4 bg-slate-200 rounded w-1/2"></div>
+              <div className="h-8 bg-slate-100 rounded"></div>
+              <div className="h-12 bg-slate-200 rounded"></div>
+            </div>
+          ))}
+        </div>
+      ) : activeTab === 'INDIVIDUAL_TESTS' ? (
+        /* View Content: Individual Tests Catalog */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredTests.map((test) => (
             <div
-              key={test.id}
+              key={test.test_id || test.id}
               className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm hover:shadow-md hover:border-blue-300 transition-all space-y-4 flex flex-col justify-between"
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded">
-                    {test.id}
+                    {test.test_id || test.id}
                   </span>
                   <span className="text-[10px] font-extrabold bg-purple-50 text-purple-700 px-2 py-0.5 rounded border border-purple-200">
                     {test.category}
@@ -151,21 +159,14 @@ export default function TestCatalogPage() {
                   <div className="flex items-center gap-3 text-xs text-slate-500 mt-2">
                     <span className="flex items-center gap-1 text-[11px] font-semibold">
                       <Droplet className="w-3.5 h-3.5 text-rose-500" />
-                      {test.sample_type}
+                      {test.sample_type || 'Blood'}
                     </span>
                     <span>•</span>
                     <span className="flex items-center gap-1 text-[11px] font-semibold text-slate-600">
                       <Clock className="w-3.5 h-3.5 text-blue-500" />
-                      {test.turnaround}
+                      Same Day Report
                     </span>
                   </div>
-                </div>
-
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-[11px] space-y-1">
-                  <div className="font-bold text-slate-700 flex items-center gap-1">
-                    <Info className="w-3.5 h-3.5 text-amber-500" /> Preparation Instructions:
-                  </div>
-                  <p className="text-slate-600 font-medium">{test.preparation}</p>
                 </div>
               </div>
 
@@ -198,97 +199,68 @@ export default function TestCatalogPage() {
             </div>
           ))}
         </div>
-      )}
-
-      {/* View Content: Health Packages Catalog */}
-      {activeTab === 'HEALTH_PACKAGES' && (
+      ) : (
+        /* View Content: Health Packages Catalog */
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {(packages.length > 0 ? packages : CATALOG_PACKAGES).map((pkg) => {
-            const walkIn = pkg.walk_in_price || pkg.price || 750;
-            const homePrice = pkg.home_collection_price || Math.round(walkIn * 1.5);
-            const doctorPrice = pkg.doctor_referral_price || Math.round(walkIn * 2.0);
-
-            return (
-              <div
-                key={pkg.id || pkg.package_id}
-                className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-sm hover:shadow-lg transition-all space-y-5 flex flex-col justify-between"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-emerald-200">
-                      {pkg.test_count || pkg.included_test_count || (pkg.tests ? pkg.tests.length : 10)} Tests Included
-                    </span>
-                    {pkg.popular && (
-                      <span className="bg-amber-100 text-amber-800 text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                        <Sparkles className="w-3 h-3 text-amber-600" /> MOST POPULAR
-                      </span>
-                    )}
-                  </div>
-
-                  <h3 className="text-base font-extrabold text-slate-900">{pkg.name}</h3>
-                  <p className="text-xs text-slate-500 leading-relaxed">{pkg.description}</p>
-
-                  {pkg.tests && pkg.tests.length > 0 ? (
-                    <div className="p-3 bg-blue-50/60 rounded-2xl border border-blue-100 text-xs space-y-2">
-                      <div className="font-bold text-blue-900 text-[11px] uppercase tracking-wider">Included Test Parameters:</div>
-                      <div className="grid grid-cols-2 gap-1 text-[11px] text-slate-700 font-medium max-h-24 overflow-y-auto custom-scrollbar">
-                        {pkg.tests.map((tName, i) => (
-                          <span key={i} className="flex items-center gap-1 truncate">
-                            <Check className="w-3 h-3 text-emerald-600 shrink-0" /> {tName}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="p-3 bg-blue-50/60 rounded-2xl border border-blue-100 text-xs space-y-2">
-                      <div className="font-bold text-blue-900 text-[11px] uppercase tracking-wider">Key Included Diagnostics:</div>
-                      <div className="grid grid-cols-2 gap-1.5 text-[11px] text-slate-700 font-medium">
-                        <span className="flex items-center gap-1">
-                          <Check className="w-3 h-3 text-emerald-600" /> CBC Profile
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Check className="w-3 h-3 text-emerald-600" /> Fasting Sugar
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Check className="w-3 h-3 text-emerald-600" /> Lipid Balance
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Check className="w-3 h-3 text-emerald-600" /> Kidney & Liver
-                        </span>
-                      </div>
-                    </div>
-                  )}
+          {packages.map((pkg) => (
+            <div
+              key={pkg.package_id || pkg.id}
+              className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-sm hover:shadow-lg transition-all space-y-5 flex flex-col justify-between"
+            >
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-emerald-200">
+                    {pkg.test_count || (pkg.tests ? pkg.tests.length : 10)} Tests Included
+                  </span>
+                  <span className="bg-amber-100 text-amber-800 text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-amber-600" /> POPULAR
+                  </span>
                 </div>
 
-                <div className="pt-4 border-t border-slate-100 space-y-3">
-                  <div className="grid grid-cols-3 gap-1.5 text-center">
-                    <div className="bg-slate-50 p-2 rounded-xl border border-slate-200/60">
-                      <span className="text-[9px] font-bold text-slate-500 uppercase block">Walk-In</span>
-                      <span className="text-xs font-black text-slate-900">₹{walkIn}</span>
-                    </div>
+                <h3 className="text-base font-extrabold text-slate-900">{pkg.name}</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">{pkg.description}</p>
 
-                    <div className="bg-blue-50 p-2 rounded-xl border border-blue-200/60">
-                      <span className="text-[9px] font-bold text-blue-700 uppercase block">Home (1.5x)</span>
-                      <span className="text-xs font-black text-blue-900">₹{homePrice}</span>
-                    </div>
-
-                    <div className="bg-purple-50 p-2 rounded-xl border border-purple-200/60">
-                      <span className="text-[9px] font-bold text-purple-700 uppercase block">Doc Ref (2.0x)</span>
-                      <span className="text-xs font-black text-purple-900">₹{doctorPrice}</span>
+                {pkg.tests && pkg.tests.length > 0 && (
+                  <div className="p-3 bg-blue-50/60 rounded-2xl border border-blue-100 text-xs space-y-2">
+                    <div className="font-bold text-blue-900 text-[11px] uppercase tracking-wider">Key Included Diagnostics:</div>
+                    <div className="grid grid-cols-1 gap-1 text-[11px] text-slate-700 font-medium">
+                      {pkg.tests.slice(0, 4).map((tName, i) => (
+                        <span key={i} className="flex items-center gap-1">
+                          <Check className="w-3 h-3 text-emerald-600 shrink-0" /> {tName}
+                        </span>
+                      ))}
                     </div>
                   </div>
-
-                  <button
-                    onClick={() => handleBookPackage(pkg)}
-                    className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl shadow-md transition cursor-pointer flex items-center justify-center gap-2"
-                  >
-                    <CalendarPlus className="w-4 h-4" />
-                    <span>Book Package</span>
-                  </button>
-                </div>
+                )}
               </div>
-            );
-          })}
+
+              <div className="pt-4 border-t border-slate-100 space-y-3">
+                <div className="grid grid-cols-3 gap-1.5 text-center">
+                  <div className="bg-slate-50 p-2 rounded-xl border border-slate-200/60">
+                    <span className="text-[9px] font-bold text-slate-500 uppercase block">Walk-In</span>
+                    <span className="text-xs font-black text-slate-900">₹{pkg.walk_in_price || 0}</span>
+                  </div>
+
+                  <div className="bg-blue-50 p-2 rounded-xl border border-blue-200/60">
+                    <span className="text-[9px] font-bold text-blue-700 uppercase block">Home</span>
+                    <span className="text-xs font-black text-blue-900">₹{pkg.home_collection_price || Math.round((pkg.walk_in_price || 0) * 1.5)}</span>
+                  </div>
+
+                  <div className="bg-purple-50 p-2 rounded-xl border border-purple-200/60">
+                    <span className="text-[9px] font-bold text-purple-700 uppercase block">Doc Ref</span>
+                    <span className="text-xs font-black text-purple-900">₹{pkg.doctor_referral_price || Math.round((pkg.walk_in_price || 0) * 2.0)}</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => handleBookPackage(pkg)}
+                  className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl shadow-md transition cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <CalendarPlus className="w-4 h-4" /> Book Package Now
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>
