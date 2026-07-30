@@ -62,6 +62,7 @@ export const PatientDashboardPage = () => {
   const nextAppointment = upcomingAppointments[0] || null;
 
   const readyReports = reports.filter((r) => r.status === 'APPROVED');
+  const pendingReports = reports.filter((r) => r.status !== 'APPROVED');
 
   const unpaidInvoices = invoices.filter((i) => i.status === 'UNPAID' || i.balance_due > 0);
   const totalOutstandingBalance = unpaidInvoices.reduce((sum, inv) => sum + Number(inv.balance_due || 0), 0);
