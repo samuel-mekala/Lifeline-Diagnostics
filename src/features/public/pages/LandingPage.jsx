@@ -186,9 +186,9 @@ export default function LandingPage() {
       {/* Top Emergency & Accreditation Utility Bar */}
       <div className="bg-slate-950 text-slate-300 text-xs py-2 px-4 sm:px-8 border-b border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2">
         <div className="flex items-center gap-4 flex-wrap justify-center sm:justify-start">
-          <a href="tel:+918662478900" className="flex items-center gap-1.5 font-semibold text-blue-400 hover:underline">
+          <a href="tel:+919603348519" className="flex items-center gap-1.5 font-semibold text-blue-400 hover:underline">
             <Phone className="w-3.5 h-3.5" />
-            <span>24/7 Phlebotomy Helpline: +91 866 247 8900</span>
+            <span>24/7 Phlebotomy Helpline: +91 96033 48519</span>
           </a>
           <span className="hidden md:inline text-slate-700">|</span>
           <span className="hidden md:flex items-center gap-1.5 text-emerald-400 font-bold">
@@ -856,7 +856,7 @@ export default function LandingPage() {
           <div>
             <h4 className="font-extrabold text-white uppercase text-xs tracking-wider mb-4">Support & Helpline</h4>
             <p className="text-xs text-slate-300 font-bold leading-relaxed">Puspha Hotel Rd, opp. to Assure hospital, New Giri Puram, Kasturibaipet, Vijayawada, Andhra Pradesh 520002</p>
-            <p className="text-xs text-slate-400 mt-2 font-mono font-bold">Phone: +91 866 247 8900</p>
+            <p className="text-xs text-slate-400 mt-2 font-mono font-bold">Phone: +91 96033 48519</p>
           </div>
         </div>
 

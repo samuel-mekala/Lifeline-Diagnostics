@@ -85,7 +85,7 @@ export const AIChatbotModal = ({ isOpen, onClose }) => {
           {
             sender: 'bot',
             type: 'raise_ticket_help',
-            text: '🎫 **Support Ticket & Contact Assistance**\n\nYou can raise a support ticket directly on our Support Page, or contact our organization desk:\n\n📞 **Phone**: +91 98490 12345 / 1800-123-4567\n✉️ **Email**: support@lifelinediagnostics.com\n🏢 **Main Hub**: MG Road, Vijayawada, AP',
+            text: '🎫 **Support Ticket & Contact Assistance**\n\nYou can raise a support ticket directly on our Support Page, or contact our organization desk:\n\n📞 **Phone**: +91 96033 48519\n✉️ **Email**: support@lifelinediagnostics.com\n🏢 **Main Hub**: MG Road, Vijayawada, AP',
             showSupportTicketButton: true,
           },
         ]);

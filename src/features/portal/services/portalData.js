@@ -71,7 +71,7 @@ export const BRANCHES = [
     name: 'Life Line Diagnostics - Vijayawada Main Branch',
     code: 'VJW-MAIN',
     address: 'Puspha Hotel Rd, opp. to Assure hospital, New Giri Puram, Kasturibaipet, Vijayawada, Andhra Pradesh 520002.',
-    phone: '+91 866 247 8900',
+    phone: '+91 96033 48519',
     operating_hours: 'Mon-Sat: 06:00 AM - 09:30 PM (Sun: 07:00 AM - 02:00 PM)',
     accreditation: 'NABL Accredited & ISO 9001:2015 Certified',
   },

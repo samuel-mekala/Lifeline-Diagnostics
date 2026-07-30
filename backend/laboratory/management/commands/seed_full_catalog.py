@@ -152,7 +152,7 @@ class Command(BaseCommand):
                             "full_name": acc["full_name"],
                             "date_of_birth": datetime.date(1990, 6, 15),
                             "gender": "M",
-                            "phone": "+91 98765 43210",
+                            "phone": "+91 96033 48519",
                             "email": acc["email"],
                             "address": "Vijayawada, Andhra Pradesh",
                         },
