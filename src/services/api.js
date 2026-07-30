@@ -30,8 +30,11 @@ api.interceptors.response.use(
   (res) => res,
   async (error) => {
     const original = error.config;
-    if (error.response?.status === 401 && !original._retry) {
+    const isAuthError = error.response?.status === 401 || (original.url?.includes('token/refresh') && error.response?.status >= 400);
+
+    if (isAuthError && !original._retry) {
       original._retry = true;
+
 
       if (isRefreshing) {
         return new Promise((resolve, reject) => {

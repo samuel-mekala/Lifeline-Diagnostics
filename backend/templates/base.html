@@ -3,103 +3,132 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Life Line Diagnostics | NABL Accredited Pathology LIMS{% endblock %}</title>
+  <title>{% block title %}Life Line Diagnostics | NABL Accredited LIMS REST Backend{% endblock %}</title>
   
   <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --bg-main: #020617;
-      --card-bg: #0f172a;
-      --card-border: rgba(255, 255, 255, 0.08);
-      --primary-blue: #2563eb;
-      --emerald-accent: #10b981;
-      --cyan-accent: #06b6d4;
+      --bg-dark: #030712;
+      --card-bg: #0b1329;
+      --border-light: rgba(255, 255, 255, 0.08);
+      --primary-gradient: linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #1e40af 100%);
+      --emerald-glow: rgba(16, 185, 129, 0.18);
+      --cyan-glow: rgba(6, 182, 212, 0.18);
     }
 
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      background-color: var(--bg-main);
-      color: #f8fafc;
+      background-color: var(--bg-dark);
+      color: #f1f5f9;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
 
-    .navbar-custom {
-      background-color: #020617;
+    .navbar-cyber {
+      background: rgba(3, 7, 18, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
     }
 
-    .card-dark-glass {
-      background: #0f172a;
+    .glass-card {
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.9) 0%, rgba(11, 19, 41, 0.95) 100%);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 1rem;
-      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+      border-radius: 1.25rem;
+      box-shadow: 0 12px 40px -10px rgba(0, 0, 0, 0.6);
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
-    .card-dark-glass:hover {
-      border-color: rgba(37, 99, 235, 0.4);
-    }
-
-    .text-emerald {
-      color: #10b981 !important;
-    }
-
-    .bg-emerald-glow {
-      background-color: rgba(16, 185, 129, 0.15);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      color: #34d399;
+    .glass-card:hover {
+      border-color: rgba(56, 189, 248, 0.35);
+      box-shadow: 0 16px 50px -10px rgba(37, 99, 235, 0.25);
     }
 
     .btn-gradient-blue {
-      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-      color: #ffffff;
+      background: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #1d4ed8 100%);
+      color: #ffffff !important;
       border: none;
-      box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.39);
-      transition: all 0.2s ease;
+      box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4);
+      font-weight: 800;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .btn-gradient-blue:hover {
-      background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
-      color: #ffffff;
-      transform: translateY(-1px);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(37, 99, 235, 0.6);
+      color: #ffffff !important;
     }
 
-    .btn-dark-glass {
+    .btn-glass-secondary {
       background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      color: #f8fafc;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #e2e8f0 !important;
+      backdrop-filter: blur(8px);
       transition: all 0.2s ease;
     }
 
-    .btn-dark-glass:hover {
-      background: rgba(255, 255, 255, 0.1);
-      color: #ffffff;
-      border-color: rgba(255, 255, 255, 0.25);
+    .btn-glass-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.3);
+      color: #ffffff !important;
+      transform: translateY(-1px);
+    }
+
+    .badge-pulse {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 9999px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #10b981;
+      box-shadow: 0 0 10px #10b981;
+      animation: pulseAnimation 1.8s infinite;
+    }
+
+    @keyframes pulseAnimation {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
     }
 
     .font-mono {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-family: 'JetBrains Mono', monospace;
     }
+
+    .text-cyan { color: #38bdf8 !important; }
+    .text-emerald { color: #34d399 !important; }
+    .text-purple { color: #c084fc !important; }
+    .text-amber { color: #fbbf24 !important; }
+    .text-rose { color: #fb7185 !important; }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
 <body class="d-flex flex-column min-vh-100">
 
   <!-- Top High-Tech Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top py-2.5">
+  <nav class="navbar navbar-expand-lg navbar-dark navbar-cyber sticky-top py-2.5">
     <div class="container-fluid px-4">
       <!-- Official Emblem Logo -->
       <a class="navbar-brand d-flex align-items-center gap-3 text-decoration-none" href="/">
-        <!-- Official Emblem SVG Badge -->
-        <div style="width: 46px; height: 46px; flex-shrink: 0;" class="drop-shadow">
+        <!-- Official Emblem Badge -->
+        <div style="width: 48px; height: 48px; flex-shrink: 0;" class="drop-shadow">
           <svg viewBox="0 0 200 200" style="width: 100%; height: 100%;" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="100" cy="100" r="92" fill="#1E56A0" stroke="#10316B" stroke-width="4" />
             <circle cx="100" cy="100" r="74" fill="#FFFFFF" />
@@ -131,8 +160,11 @@
         </div>
 
         <div class="d-flex flex-column justify-content-center">
-          <span class="fs-4 fw-black text-white lh-1 tracking-tight" style="letter-spacing: -0.02em;">Life Line Diagnostics</span>
-          <span class="text-emerald font-extrabold uppercase tracking-wider" style="font-size: 0.68rem; margin-top: 3px; letter-spacing: 0.08em;">
+          <div class="d-flex align-items-center gap-2">
+            <span class="fs-4 font-black text-white lh-1 tracking-tight">Life Line Diagnostics</span>
+            <span class="badge bg-primary bg-opacity-25 text-cyan border border-info border-opacity-25 font-mono" style="font-size: 0.65rem;">API BACKEND v6.0</span>
+          </div>
+          <span class="text-emerald font-extrabold uppercase tracking-wider" style="font-size: 0.68rem; margin-top: 4px; letter-spacing: 0.08em;">
             PATH LABS INDIA &middot; ISO 9001:2008 &middot; NABL CERTIFIED
           </span>
         </div>
@@ -140,20 +172,26 @@
 
       <!-- Right Header Actions -->
       <div class="ms-auto d-flex align-items-center gap-3">
-        <a href="http://localhost:3000" target="_blank" class="btn btn-gradient-blue btn-sm fw-bold px-3.5 py-2 rounded-3 text-xs d-flex align-items-center gap-2">
+        <div class="badge-pulse" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399;">
+          <span class="pulse-dot"></span>
+          <span>REST API ONLINE</span>
+        </div>
+
+        <a href="http://localhost:3000" target="_blank" class="btn btn-gradient-blue btn-sm font-black px-4 py-2 rounded-3 text-xs d-flex align-items-center gap-2">
           <i class="bi bi-box-arrow-up-right"></i>
-          <span>Launch React App (Port 3000)</span>
+          <span>Launch React Web App (Port 3000)</span>
         </a>
-        <a href="/admin/" target="_blank" class="btn btn-dark-glass btn-sm fw-bold px-3 py-2 rounded-3 text-xs d-flex align-items-center gap-2">
+
+        <a href="/admin/" target="_blank" class="btn btn-glass-secondary btn-sm font-bold px-3.5 py-2 rounded-3 text-xs d-flex align-items-center gap-2">
           <i class="bi bi-shield-lock"></i>
-          <span>Django Admin</span>
+          <span>Django Admin (/admin/)</span>
         </a>
       </div>
     </div>
   </nav>
 
   <!-- Main Content Body -->
-  <main class="flex-grow-1 p-3 p-md-4">
+  <main class="flex-grow-1 p-3 p-md-4 container-fluid">
     {% if messages %}
       <div class="no-print">
         {% for message in messages %}
@@ -169,11 +207,18 @@
   </main>
 
   <!-- High-Tech Dark Footer -->
-  <footer class="py-3 text-center border-top border-secondary border-opacity-25 mt-auto" style="background-color: #020617; font-size: 0.78rem;">
-    <div class="container text-slate-400">
-      <span class="text-slate-400" style="color: #94a3b8;">
-        Life Line Diagnostics Pathology LIMS &copy; 2026 &middot; NABL Certified Standards &middot; Powered by Django REST Framework & Vite React
-      </span>
+  <footer class="py-3.5 text-center border-top border-white border-opacity-10 mt-auto" style="background-color: #030712; font-size: 0.78rem;">
+    <div class="container-fluid px-4 d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 text-slate-400">
+      <div>
+        <span class="text-white font-bold">Life Line Diagnostics LIMS</span> &copy; 2026 &middot; NABL Accredited & ISO 9001:2008 Certified
+      </div>
+      <div class="d-flex items-center gap-3 font-mono text-xs text-slate-400">
+        <span class="text-cyan"><i class="bi bi-database me-1"></i>MySQL 9.7</span>
+        <span>&middot;</span>
+        <span class="text-emerald"><i class="bi bi-cpu me-1"></i>Django REST Framework</span>
+        <span>&middot;</span>
+        <span class="text-purple"><i class="bi bi-lightning-charge me-1"></i>Vite React Frontend</span>
+      </div>
     </div>
   </footer>
 

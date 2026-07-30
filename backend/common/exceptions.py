@@ -44,6 +44,19 @@ def _error_message(data):
 
 
 def custom_exception_handler(exception, context):
+    from accounts.models import User
+    if isinstance(exception, User.DoesNotExist):
+        return Response(
+            {
+                "success": False,
+                "error": {
+                    "type": "authentication_failed",
+                    "message": "Token is invalid or user no longer exists.",
+                },
+            },
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
+
     response = exception_handler(exception, context)
 
     if response is None:
@@ -61,6 +74,7 @@ def custom_exception_handler(exception, context):
             },
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
 
     response.data = {
         "success": False,
