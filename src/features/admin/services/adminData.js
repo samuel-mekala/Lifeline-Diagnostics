@@ -29,13 +29,13 @@ const DEFAULT_BRANCHES = [
 const DEFAULT_STAFF = [
   {
     id: 'STF-001',
-    full_name: 'Dr. Sunita Rao',
+    full_name: 'Dr. Mallika Boyapati',
     role: 'PATHOLOGIST',
     designation: 'Chief Pathologist & Lab Director',
     qualification: 'MD (Pathology), DNB',
     mobile: '+91 98490 11223',
-    email: 'dr.sunita@lifelinediagnostics.com',
-    assigned_branches: ['HYD-MAIN', 'HYD-BJRH'],
+    email: 'dr.mallika@lifelinediagnostics.com',
+    assigned_branches: ['VJW-MAIN'],
     status: 'ACTIVE',
   },
   {

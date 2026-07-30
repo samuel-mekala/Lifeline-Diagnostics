@@ -1,27 +1,89 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../providers/AuthProvider';
-import { User, Phone, Mail, MapPin, Calendar, Heart, ShieldAlert, Award, Edit, CheckCircle2, UserCheck, AlertCircle } from 'lucide-react';
+import portalAPI from '../../../services/portalAPI';
+import {
+  User,
+  Phone,
+  Mail,
+  MapPin,
+  Calendar,
+  Heart,
+  ShieldAlert,
+  Award,
+  Edit,
+  CheckCircle2,
+  UserCheck,
+  AlertCircle,
+  Building2,
+} from 'lucide-react';
+
+const capitalizeName = (str) => {
+  if (!str) return 'Patient';
+  return str
+    .split(' ')
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ');
+};
 
 export const PatientProfilePage = () => {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [addresses, setAddresses] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [formData, setFormData] = useState({
-    full_name: user?.full_name || 'Rahul Sharma',
-    phone: user?.phone || '+91 98765 43210',
-    email: user?.email || 'patient@lifeline.com',
-    age: user?.age || 34,
-    gender: user?.gender || 'Male',
-    blood_group: user?.blood_group || 'O+',
-    address: user?.address || 'Flat 402, Greenfield Heights, Road No 12, Banjara Hills, Hyderabad',
-    emergency_contact_name: user?.emergency_contact_name || 'Anjali Sharma (Wife)',
-    emergency_contact_phone: user?.emergency_contact_phone || '+91 98765 00000',
-    allergies: 'Penicillin (Mild rash)',
-    chronic_conditions: 'Mild Hypertension (Under Medication)',
+    full_name: '',
+    phone: '',
+    email: '',
+    age: '30',
+    gender: 'Male',
+    blood_group: 'O+',
+    address: 'Loading address...',
+    emergency_contact_name: 'Not Specified',
+    emergency_contact_phone: 'Not Specified',
+    allergies: 'None Reported',
+    chronic_conditions: 'None Reported',
   });
 
-  const patientId = user?.patient_id || 'PAT-009842';
+  useEffect(() => {
+    const loadProfileData = async () => {
+      setLoading(true);
+      try {
+        const [prof, addrs] = await Promise.all([
+          portalAPI.getProfile().catch(() => null),
+          portalAPI.getAddresses().catch(() => []),
+        ]);
+
+        const primaryAddr = Array.isArray(addrs) && addrs.length > 0 ? addrs[0].full_address : 'No residential address saved yet';
+
+        setAddresses(Array.isArray(addrs) ? addrs : []);
+
+        setFormData({
+          full_name: user?.full_name || prof?.full_name || 'Patient',
+          phone: user?.phone || prof?.phone || prof?.patient?.phone || 'Not provided',
+          email: user?.email || prof?.email || '',
+          age: user?.age || prof?.age || '30',
+          gender: user?.gender || prof?.gender || 'Male',
+          blood_group: user?.blood_group || prof?.blood_group || 'O+',
+          address: primaryAddr,
+          emergency_contact_name: user?.emergency_contact_name || prof?.emergency_contact_name || 'Not Specified',
+          emergency_contact_phone: user?.emergency_contact_phone || prof?.emergency_contact_phone || 'Not Specified',
+          allergies: user?.allergies || prof?.allergies || 'None Reported',
+          chronic_conditions: user?.chronic_conditions || prof?.chronic_conditions || 'None Reported',
+        });
+      } catch (err) {
+        console.error('Failed to load profile:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) loadProfileData();
+  }, [user]);
+
+  const patientId = user?.patient_id || 'PAT-000001';
 
   const handleSave = (e) => {
     e.preventDefault();
@@ -37,13 +99,15 @@ export const PatientProfilePage = () => {
         <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <div className="flex items-center gap-5">
             <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 border-2 border-white/20 flex items-center justify-center text-white text-2xl font-black shadow-lg">
-              {formData.full_name.charAt(0).toUpperCase()}
+              {formData.full_name ? formData.full_name.charAt(0).toUpperCase() : 'P'}
             </div>
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-extrabold text-white tracking-tight">{formData.full_name}</h1>
+                <h1 className="text-2xl font-extrabold text-white tracking-tight">
+                  {capitalizeName(formData.full_name)}
+                </h1>
                 <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold px-2.5 py-0.5 rounded-full">
-                  Verified Patient
+                  Verified Patient Profile
                 </span>
               </div>
               <p className="text-xs text-slate-300 mt-1 flex items-center gap-2 font-mono">
@@ -66,7 +130,7 @@ export const PatientProfilePage = () => {
             onClick={() => setIsEditing(!isEditing)}
             className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl text-xs font-bold text-white transition flex items-center gap-2 cursor-pointer"
           >
-            <Edit className="w-4 h-4" /> Edit Medical Profile
+            <Edit className="w-4 h-4" /> Edit Profile
           </button>
         </div>
       </div>
@@ -74,7 +138,7 @@ export const PatientProfilePage = () => {
       {saveSuccess && (
         <div className="bg-emerald-50 border border-emerald-300 p-4 rounded-xl flex items-center gap-3 text-emerald-800 text-xs font-semibold">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-          <span>Patient profile details successfully updated and synchronized across Life Line Diagnostic nodes.</span>
+          <span>Patient profile details updated successfully.</span>
         </div>
       )}
 
@@ -108,16 +172,16 @@ export const PatientProfilePage = () => {
               </div>
 
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <span className="text-slate-400 font-medium block">Registered Hub</span>
+                <span className="text-slate-400 font-medium block">Registered Lab Hub</span>
                 <span className="font-bold text-slate-800 flex items-center gap-1.5 mt-0.5">
-                  <Award className="w-3.5 h-3.5 text-slate-400" /> Main Branch - Hyderabad
+                  <Building2 className="w-3.5 h-3.5 text-slate-400" /> Life Line Diagnostics — Vijayawada
                 </span>
               </div>
 
               <div className="sm:col-span-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <span className="text-slate-400 font-medium block">Residential Address (For Sample Pickups)</span>
+                <span className="text-slate-400 font-medium block">Primary Residential Address (For Sample Pickups)</span>
                 <span className="font-semibold text-slate-800 flex items-start gap-1.5 mt-1">
-                  <MapPin className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" /> {formData.address}
+                  <MapPin className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" /> {formData.address}
                 </span>
               </div>
             </div>

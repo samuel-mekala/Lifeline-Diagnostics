@@ -709,16 +709,16 @@ export const BookAppointmentPage = () => {
                               setSelectedAddressId(addr.id);
                               setAddress(addr.address);
                             }}
-                            className={`p-3 rounded-xl border cursor-pointer text-xs flex items-start justify-between transition-all ${
+                            className={`p-3.5 rounded-xl border cursor-pointer text-xs flex items-start justify-between transition-all ${
                               selectedAddressId === addr.id
-                                ? 'border-blue-600 bg-blue-50/70 ring-2 ring-blue-500 font-medium'
+                                ? 'border-2 border-blue-600 bg-blue-50/60 font-semibold shadow-sm'
                                 : 'border-slate-200 bg-slate-50 hover:bg-slate-100'
                             }`}
                           >
-                            <div className="flex items-start gap-2">
+                            <div className="flex items-start gap-2.5">
                               <MapPin className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
                               <div>
-                                <span className="font-bold text-slate-900 bg-slate-200 px-1.5 py-0.5 rounded text-[10px] uppercase">
+                                <span className="font-bold text-slate-900 bg-slate-200 px-2 py-0.5 rounded text-[10px] uppercase tracking-wide">
                                   {addr.label}
                                 </span>
                                 <p className="text-slate-700 mt-1">{addr.address}</p>
@@ -805,13 +805,22 @@ export const BookAppointmentPage = () => {
       {/* STEP 3: PAYMENT & REVIEW */}
       {step === 3 && (
         <form onSubmit={handleFinalBooking} className="space-y-6">
+          {error && (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3 text-xs text-red-700 font-medium">
+              <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-bold">Booking Error:</span> {error}
+              </div>
+            </div>
+          )}
+
           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h2 className="text-sm font-bold text-slate-900">Review Booking & Choose Payment Mode</h2>
               <button
                 type="button"
                 onClick={() => setStep(2)}
-                className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" /> Back to Schedule
               </button>
@@ -854,7 +863,7 @@ export const BookAppointmentPage = () => {
                   onClick={() => setPaymentPreference('PAY_NOW')}
                   className={`p-4 rounded-xl border text-left flex items-start gap-3 transition-all cursor-pointer ${
                     paymentPreference === 'PAY_NOW'
-                      ? 'border-emerald-600 bg-emerald-50/60 ring-2 ring-emerald-600'
+                      ? 'border-2 border-emerald-600 bg-emerald-50/40 shadow-sm'
                       : 'border-slate-200 bg-slate-50 hover:bg-slate-100'
                   }`}
                 >
@@ -874,7 +883,7 @@ export const BookAppointmentPage = () => {
                   onClick={() => setPaymentPreference('PAY_LATER')}
                   className={`p-4 rounded-xl border text-left flex items-start gap-3 transition-all cursor-pointer ${
                     paymentPreference === 'PAY_LATER'
-                      ? 'border-blue-600 bg-blue-50/60 ring-2 ring-blue-600'
+                      ? 'border-2 border-blue-600 bg-blue-50/40 shadow-sm'
                       : 'border-slate-200 bg-slate-50 hover:bg-slate-100'
                   }`}
                 >
@@ -889,6 +898,32 @@ export const BookAppointmentPage = () => {
                   </div>
                 </button>
               </div>
+
+              {/* Sub-options when Pay Online Now is selected */}
+              {paymentPreference === 'PAY_NOW' && (
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 mt-3">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-700">
+                    Select Online Payment Gateway Option
+                  </p>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { id: 'UPI', label: 'UPI (GPay/PhonePe)', icon: '⚡' },
+                      { id: 'CARD', label: 'Debit/Credit Card', icon: '💳' },
+                      { id: 'NETBANKING', label: 'NetBanking', icon: '🏦' },
+                    ].map((mode) => (
+                      <button
+                        key={mode.id}
+                        type="button"
+                        onClick={() => setNotes(`Paid via ${mode.id}`)}
+                        className="bg-white hover:bg-blue-50 text-slate-800 border border-slate-200 hover:border-blue-400 p-3 rounded-xl text-xs font-bold text-center transition-all cursor-pointer flex flex-col items-center gap-1.5 shadow-sm"
+                      >
+                        <span className="text-base">{mode.icon}</span>
+                        <span className="text-[11px] text-slate-900 font-bold">{mode.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

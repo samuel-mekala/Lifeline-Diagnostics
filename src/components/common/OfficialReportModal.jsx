@@ -11,8 +11,8 @@ export const OfficialReportModal = ({ isOpen, onClose, reportData, patientInfo }
     window.print();
   };
 
-  const patientName = patientInfo?.full_name || reportData.patient_name || 'Mr. Rahul Sharma';
-  const patientId = patientInfo?.patient_id || reportData.patient_id || 'PAT-009842';
+  const patientName = patientInfo?.full_name || reportData.patient_name || 'Patient';
+  const patientId = patientInfo?.patient_id || reportData.patient_id || 'PAT-001';
   const ageGender = `${patientInfo?.age || reportData.patient_age || 34} Year(s) / ${patientInfo?.gender || reportData.patient_gender || 'Male'}`;
   const sampleId = reportData.sample_id || '24507517';
   const sampleType = reportData.sample_type || 'SERUM';

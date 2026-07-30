@@ -59,7 +59,7 @@ export const MyInvoicesPage = () => {
     (i.visit_id || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const patientId = user?.patient_id || '';
+  const patientId = user?.patient_id || invoices[0]?.patient_id || 'PAT000002';
 
   return (
     <div className="space-y-6">

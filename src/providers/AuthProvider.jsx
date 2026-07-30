@@ -98,9 +98,19 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('lifeline_user_profile', JSON.stringify(userObj));
       return { success: true, user: userObj, redirect: getDashboardPath(userObj.role) };
     } catch (err) {
-      const detail = err.response?.data?.detail
-        || err.response?.data?.error
-        || 'Invalid email or password. Please try again.';
+      const errData = err.response?.data;
+      let detail = 'Invalid email or password. Please try again.';
+      if (typeof errData?.detail === 'string') {
+        detail = errData.detail;
+      } else if (typeof errData?.error === 'string') {
+        detail = errData.error;
+      } else if (typeof errData?.error?.message === 'string') {
+        detail = errData.error.message;
+      } else if (typeof errData?.message === 'string') {
+        detail = errData.message;
+      } else if (typeof err?.message === 'string') {
+        detail = err.message;
+      }
       throw new Error(detail);
     }
   };

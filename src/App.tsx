@@ -46,6 +46,12 @@ import PatientProfilePage from './features/portal/pages/PatientProfilePage';
 
 // Operations Pages for Task 3 & Task 4
 import OperationsDashboardPage from './features/dashboard/pages/OperationsDashboardPage';
+import OnlineBookingsPage from './features/operations/pages/OnlineBookingsPage';
+import WalkInRegistrationPage from './features/operations/pages/WalkInRegistrationPage';
+import PatientDirectoryPage from './features/operations/pages/PatientDirectoryPage';
+import LabVisitsBillingPage from './features/operations/pages/LabVisitsBillingPage';
+import AllInvoicesPage from './features/operations/pages/AllInvoicesPage';
+import AllReportsPage from './features/operations/pages/AllReportsPage';
 import ReceptionDeskPage from './features/operations/pages/ReceptionDeskPage';
 import TechnicianWorkstationPage from './features/operations/pages/TechnicianWorkstationPage';
 import PathologistApprovalPage from './features/operations/pages/PathologistApprovalPage';
@@ -117,9 +123,13 @@ export default function App() {
             }
           >
             <Route path="dashboard" element={<OperationsDashboardPage />} />
-            <Route path="patients" element={<ReceptionDeskPage />} />
-            <Route path="visits" element={<ReceptionDeskPage />} />
-            <Route path="reception" element={<Navigate to="patients" replace />} />
+            <Route path="online-bookings" element={<OnlineBookingsPage />} />
+            <Route path="walkin-registration" element={<WalkInRegistrationPage />} />
+            <Route path="patients" element={<PatientDirectoryPage />} />
+            <Route path="visits" element={<LabVisitsBillingPage />} />
+            <Route path="all-invoices" element={<AllInvoicesPage />} />
+            <Route path="all-reports" element={<AllReportsPage />} />
+            <Route path="reception" element={<ReceptionDeskPage />} />
             <Route path="samples" element={<TechnicianWorkstationPage mode="samples" />} />
             <Route path="results" element={<TechnicianWorkstationPage mode="results" />} />
             <Route path="workstation" element={<Navigate to="samples" replace />} />

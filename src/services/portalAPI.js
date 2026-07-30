@@ -78,6 +78,103 @@ const portalAPI = {
     const { data } = await api.get('/api/portal/catalog/packages/');
     return data;
   },
+
+  // ── Staff Operations ──────────────────────────────────────────────────
+  getStaffAppointments: async () => {
+    const { data } = await api.get('/api/portal/staff-appointments/');
+    return data;
+  },
+
+  getStaffPatients: async () => {
+    const { data } = await api.get('/api/portal/staff-patients/');
+    return data;
+  },
+
+  updateStaffAppointment: async (appointmentId, updateFields) => {
+    const { data } = await api.patch(`/api/portal/staff-appointments/${appointmentId}/update/`, updateFields);
+    return data;
+  },
+
+  registerWalkInVisit: async (payload) => {
+    const { data } = await api.post('/api/portal/staff-walkin-register/', payload);
+    return data;
+  },
+
+  getStaffAllInvoices: async () => {
+    const { data } = await api.get('/api/portal/staff-all-invoices/');
+    return data;
+  },
+
+  getStaffAllReports: async () => {
+    const { data } = await api.get('/api/portal/staff-all-reports/');
+    return data;
+  },
+
+  // ── Staff Workflow Operations ──────────────────────────────────────────
+
+  collectSample: async (appointmentId) => {
+    const { data } = await api.post('/api/portal/staff-collect-sample/', {
+      appointment_id: appointmentId,
+    });
+    return data;
+  },
+
+  markTested: async (appointmentId) => {
+    const { data } = await api.post('/api/portal/staff-mark-tested/', {
+      appointment_id: appointmentId,
+    });
+    return data;
+  },
+
+  getTestParameters: async (appointmentId) => {
+    const { data } = await api.get(`/api/portal/staff-test-parameters/${appointmentId}/`);
+    return data;
+  },
+
+  submitResults: async (appointmentId, results) => {
+    const { data } = await api.post('/api/portal/staff-submit-results/', {
+      appointment_id: appointmentId,
+      results,
+    });
+    return data;
+  },
+
+  approveRejectResult: async (appointmentId, action, rejectionNotes = '') => {
+    const { data } = await api.post('/api/portal/staff-approve-reject/', {
+      appointment_id: appointmentId,
+      action,
+      rejection_notes: rejectionNotes,
+    });
+    return data;
+  },
+
+  collectPayment: async (appointmentId, paymentMethod = 'CASH') => {
+    const { data } = await api.post('/api/portal/staff-collect-payment/', {
+      appointment_id: appointmentId,
+      payment_method: paymentMethod,
+    });
+    return data;
+  },
+
+  getResultValues: async (appointmentId) => {
+    const { data } = await api.get(`/api/portal/staff-result-values/${appointmentId}/`);
+    return data;
+  },
+
+  downloadReportPdf: async (visitId, filename = 'diagnostic_report.pdf') => {
+    const response = await api.get(`/reports/${visitId}/download/`, {
+      responseType: 'blob',
+    });
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  },
 };
 
 export { getErrorMessage };

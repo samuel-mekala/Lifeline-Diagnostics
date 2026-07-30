@@ -433,7 +433,7 @@ export const OperationsDataStore = {
   },
 
   // Pathologist / Owner Approves Test Report
-  approveReport: (visitId, pathologistNotes = '', reviewerName = 'Dr. Sunita Rao (Pathologist / Owner)') => {
+  approveReport: (visitId, pathologistNotes = '', reviewerName = 'Dr. Mallika Boyapati (Pathologist / Owner)') => {
     const visits = OperationsDataStore.getVisits();
     const results = OperationsDataStore.getResults();
 
@@ -465,7 +465,7 @@ export const OperationsDataStore = {
   },
 
   // Pathologist / Owner Rejects Entered Values -> Redirects to Technician for Re-entry
-  rejectReport: (visitId, rejectionNotes = '', reviewerName = 'Dr. Sunita Rao (Pathologist / Owner)') => {
+  rejectReport: (visitId, rejectionNotes = '', reviewerName = 'Dr. Mallika Boyapati (Pathologist / Owner)') => {
     const visits = OperationsDataStore.getVisits();
     const results = OperationsDataStore.getResults();
 

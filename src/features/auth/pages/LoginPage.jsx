@@ -209,13 +209,14 @@ export const LoginPage = () => {
               </button>
             </form>
 
-            <div className="pt-4 border-t border-slate-100 text-center text-xs space-y-2">
+            <div className="pt-4 border-t border-slate-100 text-center text-xs space-y-3">
               <p className="text-slate-600 font-medium">
                 New patient at Life Line Diagnostics?{' '}
                 <Link to="/register" className="font-bold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1">
                   Register Patient Account <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </p>
+
             </div>
           </div>
         </div>

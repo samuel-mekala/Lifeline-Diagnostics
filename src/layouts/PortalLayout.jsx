@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../providers/AuthProvider';
+import portalAPI from '../services/portalAPI';
 import Sidebar from '../components/navigation/Sidebar';
 import InteractiveSearchBar from '../components/common/InteractiveSearchBar';
 import { AIChatbotModal } from '../components/common/AIChatbotModal';
@@ -47,9 +48,197 @@ export const PortalLayout = () => {
 
 
 
-  // Notifications list (starts empty for clean user session)
+  // Notifications list with real-time workflow sync
   const [notifications, setNotifications] = useState([]);
 
+  useEffect(() => {
+    if (!user) return;
+
+    const syncWorkflowNotifications = async () => {
+      try {
+        let aptList = [];
+        if (user.role === 'PATIENT') {
+          aptList = await portalAPI.getAppointments().catch(() => []);
+        } else {
+          aptList = await portalAPI.getStaffAppointments().catch(() => []);
+        }
+
+        if (!Array.isArray(aptList)) return;
+
+        const generated = [];
+
+        aptList.forEach((apt) => {
+          const status = apt.status;
+          const isHome = apt.collection_type === 'HOME' || apt.location?.toLowerCase().includes('home');
+          const patName = apt.patient_name || 'Patient';
+          const invId = apt.invoice_id || apt.visit_id || `INV-${apt.id.slice(0, 6)}`;
+          const barcode = apt.sample_id || apt.barcode_id || 'Not Drawn Yet';
+
+          if (user.role === 'PATIENT') {
+            if (status === 'PENDING' || status === 'ACCEPTED') {
+              generated.push({
+                id: `pat-pending-${apt.id}`,
+                type: 'info',
+                title: 'Appointment Scheduled & Waiting',
+                message: `Your appointment (${invId}) is confirmed. Phlebotomist will arrive for sample pickup.`,
+                time: 'Waiting for Phlebotomist',
+                unread: true,
+              });
+            } else if (status === 'VISITED') {
+              generated.push({
+                id: `pat-visited-${apt.id}`,
+                type: 'info',
+                title: 'Phlebotomist Arrived',
+                message: `Phlebotomist has arrived for sample pickup (${invId}). Specimen collection in progress.`,
+                time: 'In Progress',
+                unread: true,
+              });
+            } else if (status === 'SAMPLE_COLLECTED') {
+              generated.push({
+                id: `pat-sample-${apt.id}`,
+                type: 'info',
+                title: 'Sample Collected & Barcoded',
+                message: `Your sample tube (${barcode}) has been collected and dispatched to laboratory automated analyzer.`,
+                time: 'Sample Barcoded',
+                unread: true,
+              });
+            } else if (status === 'TESTED' || status === 'UNDER_REVIEW') {
+              generated.push({
+                id: `pat-review-${apt.id}`,
+                type: 'info',
+                title: 'Test Completed — Under Review',
+                message: `Laboratory testing complete for ${invId}. Currently undergoing Pathologist clinical verification.`,
+                time: 'Awaiting Sign-off',
+                unread: true,
+              });
+            } else if (status === 'APPROVED' || status === 'COMPLETED') {
+              generated.push({
+                id: `pat-approved-${apt.id}`,
+                type: 'success',
+                title: '🎉 Diagnostic Report Ready!',
+                message: `Your signed NABL report (${invId}) has been approved by Dr. Mallika Boyapati (MD) and published. Download PDF now!`,
+                time: 'Completed',
+                unread: true,
+              });
+            } else if (status === 'REJECTED') {
+              generated.push({
+                id: `pat-rejected-${apt.id}`,
+                type: 'warning',
+                title: 'Report Under Re-examination',
+                message: `Your report (${invId}) is undergoing parameter re-verification by laboratory technicians.`,
+                time: 'Under Re-examination',
+                unread: true,
+              });
+            }
+          } else if (user.role === 'LAB_TECHNICIAN' || user.role === 'PHLEBOTOMIST') {
+            if (status === 'ACCEPTED' && isHome) {
+              generated.push({
+                id: `tech-acc-${apt.id}`,
+                type: 'info',
+                title: 'Action Waiting: Home Visit Pickup',
+                message: `Home pickup for ${patName} (${invId}) is waiting for phlebotomist visit confirmation.`,
+                time: 'Waiting for Visit',
+                unread: true,
+              });
+            } else if (status === 'VISITED' || (status === 'ACCEPTED' && !isHome)) {
+              generated.push({
+                id: `tech-vis-${apt.id}`,
+                type: 'info',
+                title: 'Action Waiting: Collect Sample Tube',
+                message: `Patient ${patName} (${invId}) ready for Sample Collection & Barcode generation.`,
+                time: 'Ready for Collection',
+                unread: true,
+              });
+            } else if (status === 'SAMPLE_COLLECTED') {
+              generated.push({
+                id: `tech-smp-${apt.id}`,
+                type: 'info',
+                title: 'Action Waiting: Run Analyzer',
+                message: `Sample ${barcode} for ${patName} ready to run on automated analyzer.`,
+                time: 'Ready for Analyzer',
+                unread: true,
+              });
+            } else if (status === 'TESTED') {
+              generated.push({
+                id: `tech-tst-${apt.id}`,
+                type: 'info',
+                title: 'Action Waiting: Input Parameter Values',
+                message: `Analyzer run finished for ${patName}. Please input report parameter values & submit for approval.`,
+                time: 'Pending Input',
+                unread: true,
+              });
+            } else if (status === 'REJECTED') {
+              generated.push({
+                id: `tech-rej-${apt.id}`,
+                type: 'warning',
+                title: '⚠️ Action Required: Re-entry Requested!',
+                message: `Pathologist returned report for ${patName}. Notes: "${apt.pathologist_notes || apt.remarks || 'Re-check parameters.'}"`,
+                time: 'Urgent Re-entry',
+                unread: true,
+              });
+            } else if (status === 'APPROVED' || status === 'COMPLETED') {
+              generated.push({
+                id: `tech-app-${apt.id}`,
+                type: 'success',
+                title: 'Task Completed: Report Approved',
+                message: `Report for ${patName} (${invId}) approved by Pathologist & published to Patient Portal.`,
+                time: 'Task Completed',
+                unread: false,
+              });
+            }
+          } else if (user.role === 'PATHOLOGIST') {
+            if (status === 'UNDER_REVIEW' || status === 'TESTED') {
+              generated.push({
+                id: `path-rev-${apt.id}`,
+                type: 'info',
+                title: '🩺 Action Waiting: Clinical Verification',
+                message: `Test results for ${patName} (${invId}) awaiting your clinical inspection & digital sign-off.`,
+                time: 'Awaiting Sign-off',
+                unread: true,
+              });
+            } else if (status === 'APPROVED' || status === 'COMPLETED') {
+              generated.push({
+                id: `path-app-${apt.id}`,
+                type: 'success',
+                title: 'Task Completed: Report Verified & Signed',
+                message: `You approved and signed NABL report for ${patName} (${invId}).`,
+                time: 'Task Completed',
+                unread: false,
+              });
+            }
+          } else {
+            if (status === 'APPROVED' || status === 'COMPLETED') {
+              generated.push({
+                id: `admin-app-${apt.id}`,
+                type: 'success',
+                title: 'Task Completed: Report Published',
+                message: `Visit ${invId} for ${patName} completed & published.`,
+                time: 'Completed',
+                unread: false,
+              });
+            } else {
+              generated.push({
+                id: `admin-wait-${apt.id}`,
+                type: 'info',
+                title: `Task Status: ${status}`,
+                message: `Patient ${patName} (${invId}) is currently in stage ${status}.`,
+                time: 'In Pipeline',
+                unread: true,
+              });
+            }
+          }
+        });
+
+        setNotifications(generated);
+      } catch (e) {
+        console.error('Notification sync error:', e);
+      }
+    };
+
+    syncWorkflowNotifications();
+    const interval = setInterval(syncWorkflowNotifications, 6000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   const unreadCount = notifications.filter((n) => n.unread).length;
 

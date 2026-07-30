@@ -39,13 +39,19 @@ def home(request):
 
 
 class LifelineTokenObtainPairView(TokenObtainPairView):
+    permission_classes = [AllowAny]
     serializer_class = LifelineTokenObtainPairSerializer
 
     def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-        if response.status_code == status.HTTP_200_OK:
-            UserManagementService.record_login(email=request.data.get("email", ""))
-        return response
+        print("LOGIN PAYLOAD RECEIVED:", request.data)
+        try:
+            response = super().post(request, *args, **kwargs)
+            if response.status_code == status.HTTP_200_OK:
+                UserManagementService.record_login(email=request.data.get("email", ""))
+            return response
+        except Exception as e:
+            print("LOGIN FAILURE REASON:", str(e))
+            raise
 
 
 class PublicPatientAPIView(APIView):

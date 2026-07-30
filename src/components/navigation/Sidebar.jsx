@@ -9,6 +9,8 @@ import {
   CalendarCheck,
   FileText,
   Receipt,
+  Globe,
+  UserPlus,
   HelpCircle,
   User,
   Users,
@@ -53,22 +55,52 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
       roles: ['RECEPTIONIST', 'LAB_TECHNICIAN', 'PATHOLOGIST', 'BRANCH_MANAGER', 'ADMIN', 'OWNER'],
     },
     {
-      title: 'Patients & Registration',
+      title: 'Online Bookings & Home Visits',
+      path: '/operations/online-bookings',
+      icon: Globe,
+      roles: ['RECEPTIONIST', 'BRANCH_MANAGER', 'ADMIN', 'OWNER', 'LAB_TECHNICIAN'],
+    },
+    {
+      title: 'Walk-In Registration',
+      path: '/operations/walkin-registration',
+      icon: UserPlus,
+      roles: ['RECEPTIONIST', 'BRANCH_MANAGER', 'ADMIN', 'OWNER'],
+    },
+    {
+      title: 'Patients & Directory',
       path: '/operations/patients',
       icon: Users,
       roles: ['RECEPTIONIST', 'BRANCH_MANAGER', 'ADMIN', 'OWNER', 'LAB_TECHNICIAN'],
     },
     {
-      title: 'Lab Visits & Billing',
+      title: 'Lab Visits & Desk Invoices',
       path: '/operations/visits',
       icon: ClipboardList,
       roles: ['RECEPTIONIST', 'BRANCH_MANAGER', 'ADMIN', 'OWNER', 'LAB_TECHNICIAN'],
     },
     {
+      title: 'All Invoices Repository',
+      path: '/operations/all-invoices',
+      icon: Receipt,
+      roles: ['RECEPTIONIST', 'BRANCH_MANAGER', 'ADMIN', 'OWNER', 'PATHOLOGIST', 'LAB_TECHNICIAN'],
+    },
+    {
+      title: 'All Reports Repository',
+      path: '/operations/all-reports',
+      icon: FileText,
+      roles: ['RECEPTIONIST', 'BRANCH_MANAGER', 'ADMIN', 'OWNER', 'PATHOLOGIST', 'LAB_TECHNICIAN'],
+    },
+    {
+      title: 'Reception Command Hub',
+      path: '/operations/reception',
+      icon: Building2,
+      roles: ['RECEPTIONIST', 'BRANCH_MANAGER', 'ADMIN', 'OWNER'],
+    },
+    {
       title: 'Sample Collection',
       path: '/operations/samples',
       icon: TestTube,
-      roles: ['LAB_TECHNICIAN', 'RECEPTIONIST', 'BRANCH_MANAGER', 'ADMIN', 'OWNER'],
+      roles: ['LAB_TECHNICIAN', 'BRANCH_MANAGER', 'ADMIN', 'OWNER'],
     },
     {
       title: 'Result Entry & Tracking',
@@ -204,24 +236,18 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
           )}
         </div>
 
-        {/* Branch Scope Selector (Operations Users) */}
+        {/* Single Laboratory Branch (Vijayawada Hub) */}
         {!isCollapsed && role !== 'PATIENT' && (
           <div className="p-3 bg-slate-950/60 border-b border-slate-800/80">
-            <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 mb-1.5">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 mb-1">
               <span className="flex items-center gap-1.5">
-                <Building2 className="w-3.5 h-3.5 text-blue-400" /> Active Branch Scope
+                <Building2 className="w-3.5 h-3.5 text-emerald-400" /> Active Diagnostic Hub
               </span>
             </div>
-            <select
-              value={activeBranch}
-              onChange={(e) => setActiveBranch(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-200 py-1.5 px-2.5 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
-            >
-              <option value="Main Branch - Hyderabad">Main Branch - Hyderabad</option>
-              <option value="Banjara Hills Branch">Banjara Hills Branch</option>
-              <option value="Hitec City Collection Centre">Hitec City Centre</option>
-              <option value="Global Operations - All Branches">Global Scope (All Branches)</option>
-            </select>
+            <div className="w-full bg-slate-800/90 border border-slate-700/80 rounded-xl text-xs font-bold text-white py-2 px-3 flex items-center justify-between">
+              <span className="truncate text-slate-200">Life Line Diagnostics — Vijayawada Hub</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0 ml-1"></span>
+            </div>
           </div>
         )}
 

@@ -10,7 +10,6 @@ const DEFAULT_SUGGESTIONS = [
   { label: 'HbA1c Glycated Hemoglobin', category: 'Biochemistry', tag: 'Diabetes' },
   { label: 'Kidney Function Test (KFT)', category: 'Biochemistry', tag: 'Renal' },
   { label: 'Liver Function Test (LFT)', category: 'Biochemistry', tag: 'Hepatic' },
-  { label: 'Vitamin D3 & B12', category: 'Immunology', tag: 'Vitamins' },
 ];
 
 export default function InteractiveSearchBar({
@@ -29,10 +28,15 @@ export default function InteractiveSearchBar({
   const [isFocused, setIsFocused] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
+  // Normalize text for flexible matching (handles uppercase, lowercase, hyphens, e.g. inv000002 vs INV-000002)
+  const normalize = (str) => (str || '').toLowerCase().replace(/[-_\s]/g, '');
+
+  const queryNorm = normalize(value);
+
   // Filter recommendations based on user input
   const filteredSuggestions = suggestions.filter((item) => {
     const text = typeof item === 'string' ? item : item.label || '';
-    return text.toLowerCase().includes(value.toLowerCase());
+    return normalize(text).includes(queryNorm);
   });
 
   // Close dropdown on outside click
@@ -56,7 +60,7 @@ export default function InteractiveSearchBar({
       {/* Main Interactive Input Container */}
       <div
         className={`relative flex items-center bg-white rounded-2xl border transition-all duration-200 ${
-          isFocused || showDropdown
+          isFocused
             ? 'border-blue-600 ring-4 ring-blue-500/10 shadow-lg shadow-blue-500/5'
             : 'border-slate-200 shadow-sm hover:border-slate-300'
         }`}
@@ -82,7 +86,7 @@ export default function InteractiveSearchBar({
           className="w-full bg-transparent px-3 py-3 text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none"
         />
 
-        {/* Right Action Tools: Clear Button, Match Count, Shortcut Key */}
+        {/* Right Action Tools: Clear Button, Match Count */}
         <div className="pr-3 flex items-center gap-2 shrink-0">
           {resultCount !== null && value.trim().length > 0 && (
             <span className="text-[10px] font-black bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
@@ -98,7 +102,7 @@ export default function InteractiveSearchBar({
                 onChange('');
                 setShowDropdown(false);
               }}
-              className="p-1 hover:bg-slate-100 text-slate-400 hover:text-slate-600 rounded-lg transition"
+              className="p-1 hover:bg-slate-100 text-slate-400 hover:text-slate-600 rounded-lg transition cursor-pointer"
               title="Clear search"
             >
               <X className="w-3.5 h-3.5" />
@@ -107,9 +111,9 @@ export default function InteractiveSearchBar({
         </div>
       </div>
 
-      {/* Interactive Recommendations Autocomplete Dropdown */}
+      {/* Interactive Recommendations Autocomplete Dropdown (ONLY if matches exist) */}
       <AnimatePresence>
-        {showDropdown && (
+        {showDropdown && filteredSuggestions.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: -8, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -120,51 +124,45 @@ export default function InteractiveSearchBar({
             <div className="flex items-center justify-between px-2 pb-2 border-b border-slate-100">
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1">
                 <Sparkles className="w-3 h-3 text-blue-600" />
-                {value.trim() ? 'Recommended Matches' : 'Popular Search Suggestions'}
+                {value.trim() ? 'Recommended Search Matches' : 'Popular Search Suggestions'}
               </span>
               <span className="text-[10px] text-slate-400">Click to fill</span>
             </div>
 
-            {filteredSuggestions.length > 0 ? (
-              <div className="space-y-1">
-                {filteredSuggestions.slice(0, 6).map((item, idx) => {
-                  const label = typeof item === 'string' ? item : item.label;
-                  const category = typeof item === 'object' ? item.category : null;
-                  const tag = typeof item === 'object' ? item.tag : null;
+            <div className="space-y-1">
+              {filteredSuggestions.slice(0, 6).map((item, idx) => {
+                const label = typeof item === 'string' ? item : item.label;
+                const category = typeof item === 'object' ? item.category : null;
+                const tag = typeof item === 'object' ? item.tag : null;
 
-                  return (
-                    <motion.button
-                      key={idx}
-                      whileHover={{ x: 3, backgroundColor: 'rgba(239, 246, 255, 0.8)' }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => handleSelectRecommendation(label)}
-                      className="w-full text-left px-3 py-2 rounded-xl flex items-center justify-between group transition text-xs"
-                    >
-                      <div className="flex items-center gap-2">
-                        <TrendingUp className="w-3.5 h-3.5 text-blue-500 opacity-60 group-hover:opacity-100" />
-                        <span className="font-bold text-slate-800 group-hover:text-blue-900">{label}</span>
-                      </div>
+                return (
+                  <motion.button
+                    key={idx}
+                    whileHover={{ x: 3, backgroundColor: 'rgba(239, 246, 255, 0.8)' }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => handleSelectRecommendation(label)}
+                    className="w-full text-left px-3 py-2 rounded-xl flex items-center justify-between group transition text-xs cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="w-3.5 h-3.5 text-blue-500 opacity-60 group-hover:opacity-100" />
+                      <span className="font-bold text-slate-800 group-hover:text-blue-900">{label}</span>
+                    </div>
 
-                      <div className="flex items-center gap-2">
-                        {category && (
-                          <span className="text-[10px] text-slate-400 group-hover:text-blue-700">{category}</span>
-                        )}
-                        {tag && (
-                          <span className="text-[9px] font-extrabold bg-blue-50 text-blue-600 px-2 py-0.5 rounded border border-blue-100">
-                            {tag}
-                          </span>
-                        )}
-                        <ArrowUpRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-blue-600 transition" />
-                      </div>
-                    </motion.button>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="p-4 text-center text-xs text-slate-400 font-medium">
-                No matching suggestions found for "{value}"
-              </div>
-            )}
+                    <div className="flex items-center gap-2">
+                      {category && (
+                        <span className="text-[10px] text-slate-400 group-hover:text-blue-700">{category}</span>
+                      )}
+                      {tag && (
+                        <span className="text-[9px] font-extrabold bg-blue-50 text-blue-600 px-2 py-0.5 rounded border border-blue-100">
+                          {tag}
+                        </span>
+                      )}
+                      <ArrowUpRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-blue-600 transition" />
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -207,4 +205,3 @@ export default function InteractiveSearchBar({
     </div>
   );
 }
-

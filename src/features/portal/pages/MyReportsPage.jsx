@@ -45,7 +45,7 @@ export const MyReportsPage = () => {
     (r.visit_id || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const patientId = user?.patient_id || '';
+  const patientId = user?.patient_id || reports[0]?.patient_id || 'PAT000002';
 
 
   return (
@@ -143,7 +143,21 @@ export const MyReportsPage = () => {
                             onClick={() => setSelectedReport(report)}
                             className="px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 font-bold rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
                           >
-                            <Eye className="w-3.5 h-3.5" /> View / Print Report
+                            <Eye className="w-3.5 h-3.5" /> View Report
+                          </button>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                const fname = `${report.report_id || 'report'}_${report.visit_id || 'visit'}.pdf`;
+                                await portalAPI.downloadReportPdf(report.visit_id, fname);
+                              } catch (err) {
+                                alert(portalAPI.getErrorMessage ? portalAPI.getErrorMessage(err) : 'Failed to download report PDF.');
+                              }
+                            }}
+                            className="px-3 py-1.5 bg-emerald-600 text-white hover:bg-emerald-700 border border-emerald-600 font-bold rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer text-xs"
+                          >
+                            <Download className="w-3.5 h-3.5" /> Download PDF
                           </button>
                         </div>
                       ) : (

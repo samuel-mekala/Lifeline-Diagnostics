@@ -92,7 +92,7 @@ export const PatientDashboardPage = () => {
               <span className="text-[10px] font-bold bg-emerald-500 text-slate-950 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                 Patient Self-Service Portal
               </span>
-              <span className="text-xs text-blue-200">Ref: {user?.patient_id || 'PAT-009842'}</span>
+              <span className="text-xs text-blue-200">Ref: {user?.patient_id || 'PAT-000001'}</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
               Good day, {capitalizeName(user?.full_name)}

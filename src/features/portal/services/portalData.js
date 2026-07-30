@@ -30,7 +30,7 @@ export const CATALOG_TESTS = [
 // Master Health Packages
 export const CATALOG_PACKAGES = [
   {
-    id: 'PKG-001',
+    id: 'PKG-000001',
     name: 'Ayush-2 Full Body Checkup',
     price: 750,
     original_price: 1800,
@@ -41,7 +41,7 @@ export const CATALOG_PACKAGES = [
     test_ids: ['TES-001', 'TES-002', 'TES-003', 'TES-004', 'TES-008', 'TES-009', 'TES-010', 'TES-011', 'TES-012', 'TES-013'],
   },
   {
-    id: 'PKG-002',
+    id: 'PKG-000002',
     name: 'Ayush-3 Comprehensive Master Health',
     price: 1500,
     original_price: 3500,
@@ -52,7 +52,7 @@ export const CATALOG_PACKAGES = [
     test_ids: ['TES-001', 'TES-002', 'TES-003', 'TES-004', 'TES-005', 'TES-006', 'TES-007', 'TES-008', 'TES-009', 'TES-010', 'TES-011', 'TES-012', 'TES-013'],
   },
   {
-    id: 'PKG-003',
+    id: 'PKG-000003',
     name: 'Cardiac & Metabolic Care Package',
     price: 999,
     original_price: 2200,
@@ -200,7 +200,7 @@ const DEFAULT_REPORTS = [
     status: 'GENERATED',
     payment_status: 'PAID', // Unlocked because invoice is paid!
     generated_at: '2026-07-25T16:00:00Z',
-    pathologist_name: 'Dr. Sunita Rao (MD, Path)',
+    pathologist_name: 'Dr. Mallika Boyapati (MD, Path)',
     verification_token: 'ver_tok_903822_cbc',
     parameters: [
       { name: 'Hemoglobin (Hb)', result: '14.5', unit: 'g/dL', reference_range: '13.5 - 17.5', flag: 'NORMAL' },
@@ -221,7 +221,7 @@ const DEFAULT_REPORTS = [
     status: 'GENERATED',
     payment_status: 'UNPAID', // LOCKED! Release blocked until invoice paid
     generated_at: '2026-07-29T09:00:00Z',
-    pathologist_name: 'Dr. Sunita Rao (MD, Path)',
+    pathologist_name: 'Dr. Mallika Boyapati (MD, Path)',
     verification_token: 'ver_tok_905102_tsh',
     parameters: [
       { name: 'Total Triiodothyronine (T3)', result: '115.0', unit: 'ng/dL', reference_range: '80.0 - 200.0', flag: 'NORMAL' },

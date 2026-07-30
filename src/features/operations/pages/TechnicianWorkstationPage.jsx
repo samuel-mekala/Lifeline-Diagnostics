@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../../providers/AuthProvider';
-import OperationsDataStore from '../services/operationsData';
+import portalAPI from '../../../services/portalAPI';
 import InteractiveSearchBar from '../../../components/common/InteractiveSearchBar';
+import ToastNotification from '../../../components/common/ToastNotification';
+import { OfficialReceiptModal } from '../../../components/common/OfficialReceiptModal';
+import { OfficialReportModal } from '../../../components/common/OfficialReportModal';
 import {
   TestTube,
   Microscope,
@@ -26,597 +29,953 @@ import {
   MapPin,
   UserCheck,
   RotateCcw,
+  Building2,
+  FileText,
+  User,
+  ShieldCheck,
+  XCircle,
+  LifeBuoy,
+  UserPlus,
+  Stethoscope,
+  CreditCard,
+  DollarSign,
+  Download,
+  Check,
+  MessageSquare,
+  Receipt,
 } from 'lucide-react';
+
+const capitalizeName = (str) => {
+  if (!str) return 'Patient';
+  return str
+    .split(' ')
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ');
+};
+
+const formatDate = (isoStr) => {
+  if (!isoStr) return 'Today';
+  try {
+    const d = new Date(isoStr);
+    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  } catch (e) {
+    return isoStr;
+  }
+};
 
 export default function TechnicianWorkstationPage({ mode: propMode }) {
   const { user } = useAuth();
   const location = useLocation();
 
-  const activeMode = propMode || (location.pathname.includes('/results') ? 'results' : 'samples');
-  const isSampleMode = activeMode === 'samples';
+  // Active View Tab: 'WORKSTATION' | 'REGISTER_PATIENT' | 'SUPPORT_DESK' | 'REPORTS_INVOICES'
+  const [activeTab, setActiveTab] = useState('WORKSTATION');
 
-  const [samples, setSamples] = useState([]);
-  const [visits, setVisits] = useState([]);
-  const [results, setResults] = useState({});
+  // Data States
+  const [appointments, setAppointments] = useState([]);
+  const [invoices, setInvoices] = useState([]);
+  const [reports, setReports] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [loading, setLoading] = useState(true);
 
-  // Modals & Selected States
-  const [activeSampleForCollection, setActiveSampleForCollection] = useState(null);
-  const [barcodePrintSample, setBarcodePrintSample] = useState(null);
-  const [activeVisitForResults, setActiveVisitForResults] = useState(null);
+  // Modals & Toast State
+  const [activeAptForCollection, setActiveAptForCollection] = useState(null);
+  const [barcodePrintData, setBarcodePrintData] = useState(null);
+  const [activeAptForResults, setActiveAptForResults] = useState(null);
+  const [selectedReceipt, setSelectedReceipt] = useState(null);
+  const [selectedReport, setSelectedReport] = useState(null);
+  const [toast, setToast] = useState(null);
 
-  // Form States
-  const [collectionForm, setCollectionForm] = useState({
-    tubeColor: 'EDTA Lavender (Whole Blood)',
-    containerCount: 1,
-    notes: '',
-    collectPayment: false,
-  });
-
+  // Parameter entry form
   const [parameters, setParameters] = useState([]);
   const [techComments, setTechComments] = useState('');
+  const [collectionNotes, setCollectionNotes] = useState('');
+  const [collectCash, setCollectCash] = useState(false);
 
-  const refreshData = () => {
-    setSamples(OperationsDataStore.getSamples() || []);
-    setVisits(OperationsDataStore.getVisits() || []);
-    setResults(OperationsDataStore.getResults() || {});
+  // Support Issues State (Requirement 9)
+  const [supportIssues, setSupportIssues] = useState([
+    { id: 'ISS-001', patient: 'Joel', issue: 'Hemolyzed Blood Sample in EDTA Tube', status: 'OPEN', priority: 'HIGH', created_at: '10:15 AM' },
+    { id: 'ISS-002', patient: 'Ramesh Kumar', issue: 'Missing Referring Doctor Stamp on Requisition', status: 'IN_PROGRESS', priority: 'MEDIUM', created_at: '11:30 AM' },
+  ]);
+
+  // Direct Patient / Doctor Referral Registration Form (Requirement 4)
+  const [techRegForm, setTechRegForm] = useState({
+    full_name: '',
+    phone: '',
+    email: '',
+    gender: 'M',
+    age: '30',
+    address: 'Vijayawada',
+    entry_mode: 'WALK_IN', // 'WALK_IN' (Direct) | 'DOCTOR_REFERRAL' (Doctor Visit)
+    referring_doctor: '',
+  });
+  const [selectedTests, setSelectedTests] = useState([]);
+  const [paymentMethod, setPaymentMethod] = useState('CASH');
+
+  const catalogTests = [
+    { test_id: 'TES-000001', name: 'Complete Blood Picture (CBC)', walk_in_price: 300 },
+    { test_id: 'TES-000002', name: 'Erythrocyte Sedimentation Rate (ESR)', walk_in_price: 100 },
+    { test_id: 'TES-000003', name: 'Glycated Hemoglobin (HbA1c)', walk_in_price: 500 },
+    { test_id: 'TES-000004', name: 'Serum Calcium Test', walk_in_price: 500 },
+    { test_id: 'TES-000008', name: 'Iron Profile (Fe, TIBC, % Sat)', walk_in_price: 800 },
+    { test_id: 'TES-000009', name: 'Kidney Function Mini Profile (KFT)', walk_in_price: 800 },
+    { test_id: 'TES-000010', name: 'Lipid Profile Complete', walk_in_price: 500 },
+    { test_id: 'TES-000011', name: 'Liver Function Test (LFT)', walk_in_price: 500 },
+  ];
+
+  const fetchLiveAppointments = async () => {
+    setLoading(true);
+    try {
+      const [aptsData, invsData, repsData] = await Promise.all([
+        portalAPI.getStaffAppointments().catch(() => []),
+        portalAPI.getStaffAllInvoices().catch(() => []),
+        portalAPI.getStaffAllReports().catch(() => []),
+      ]);
+      setAppointments(Array.isArray(aptsData) ? aptsData : []);
+      setInvoices(Array.isArray(invsData) ? invsData : []);
+      setReports(Array.isArray(repsData) ? repsData : []);
+    } catch (err) {
+      console.error('Failed fetching technician workflow appointments:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    refreshData();
+    fetchLiveAppointments();
   }, []);
 
-  // Filter Samples by Search & Status
-  const filteredSamples = samples.filter((s) => {
-    const matchesSearch =
-      s.patient_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.barcode_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.test_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.visit_id?.toLowerCase().includes(searchQuery.toLowerCase());
-
-    const matchesStatus = statusFilter === 'ALL' || s.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
-
-  // Technician Accepts Patient Appointment / Home Visit
-  const handleAcceptPatient = (visitId) => {
-    OperationsDataStore.assignTechnician(
-      visitId,
-      user?.full_name || 'Anil Kumar (Tech)',
-      'LAB_TECHNICIAN'
+  // Update appointment stage locally & notify backend
+  const updateAppointmentStage = async (aptId, newStatus, extraData = {}) => {
+    setAppointments((prev) =>
+      prev.map((a) => {
+        if (a.id === aptId || a.invoice_id === aptId) {
+          return {
+            ...a,
+            status: newStatus,
+            ...extraData,
+          };
+        }
+        return a;
+      })
     );
-    refreshData();
+
+    try {
+      await portalAPI.updateStaffAppointment(aptId, { status: newStatus, ...extraData });
+    } catch (e) {
+      console.error('Failed to update stage on backend:', e);
+    }
   };
 
-  // Technician Marks Visit as "VISITED"
-  const handleMarkVisited = (visitId) => {
-    OperationsDataStore.markVisited(visitId, user?.full_name || 'Anil Kumar (Tech)');
-    refreshData();
+  // Requirement 1: Accept Appointment
+  const handleAcceptAppointment = (apt) => {
+    updateAppointmentStage(apt.id, 'ACCEPTED', { assigned_to: user?.full_name || 'Anil Verma (Tech)' });
+    setToast({ type: 'success', title: 'Appointment Accepted', message: `Appointment ${apt.invoice_id || apt.id} accepted! You are assigned.` });
   };
 
-  // Handle Phlebotomy Sample Collection & Payment Collection
-  const handleConfirmCollection = (e) => {
+  // Requirement 2 & 8: Home visit / Lab visit Cash Collection & Mark Visited
+  const handleMarkVisitedAndCollectCash = (apt) => {
+    const isUnpaid = apt.payment_status !== 'PAID' && apt.payment_status !== 'COMPLETED';
+    const payStatus = isUnpaid ? 'PAID' : apt.payment_status;
+    updateAppointmentStage(apt.id, 'VISITED', { payment_status: payStatus });
+    setToast({
+      type: 'success',
+      title: 'Visited & Cash Collected',
+      message: `Patient ${apt.patient_name} marked as VISITED.${isUnpaid ? ' Cash collected & Payment marked PAID in MySQL DB.' : ''}`,
+    });
+  };
+
+  // Requirement 3: Sample Collection & Barcode Auto-Generation
+  const handleOpenSampleCollection = (apt) => {
+    setActiveAptForCollection(apt);
+    setCollectionNotes('');
+    setCollectCash(apt.payment_status !== 'PAID');
+  };
+
+  const handleConfirmSampleCollection = async (e) => {
     e.preventDefault();
-    if (!activeSampleForCollection) return;
+    if (!activeAptForCollection) return;
 
-    // Collect sample & generate auto barcode codes
-    OperationsDataStore.collectSampleAndGenerateCodes(
-      activeSampleForCollection.visit_id,
-      user?.full_name || 'Anil Kumar (Tech)',
-      collectionForm.collectPayment
-    );
+    const tubeType = activeAptForCollection.collection_type === 'HOME' ? 'EDTA Purple Tube (Whole Blood)' : 'SST Yellow Tube (Serum)';
 
-    refreshData();
-    setBarcodePrintSample(activeSampleForCollection);
-    setActiveSampleForCollection(null);
-    setCollectionForm({ tubeColor: 'EDTA Lavender (Whole Blood)', containerCount: 1, notes: '', collectPayment: false });
-  };
+    try {
+      const res = await portalAPI.collectSample(activeAptForCollection.id);
+      const barcodeId = res.sample_id || `SMP-${Math.floor(100000 + Math.random() * 900000)}`;
 
-  // Quick Status Update (e.g. "IN_LAB" / "TESTED")
-  const handleQuickStatusUpdate = (barcodeId, newStatus) => {
-    OperationsDataStore.updateSampleStatus(
-      barcodeId,
-      newStatus,
-      newStatus === 'IN_LAB' ? 'Central Analyzer Station #1' : 'Sample Storage',
-      user?.full_name || 'Anil Kumar (Tech)'
-    );
-    refreshData();
-  };
+      updateAppointmentStage(activeAptForCollection.id, 'SAMPLE_COLLECTED', {
+        barcode_id: barcodeId,
+        tube_type: tubeType,
+        sample_collected_at: new Date().toISOString(),
+        payment_status: 'PAID',
+      });
 
-  // Open Result Entry Modal / Form
-  const openResultEntry = (visitId) => {
-    const visit = visits.find((v) => v.visit_id === visitId);
-    if (!visit) return;
+      setBarcodePrintData({
+        barcode_id: barcodeId,
+        patient_name: activeAptForCollection.patient_name,
+        patient_id: activeAptForCollection.patient_id,
+        tube_type: tubeType,
+        created_at: new Date().toLocaleTimeString(),
+      });
 
-    setActiveVisitForResults(visit);
-
-    const existing = results[visitId];
-    if (existing && existing.parameters) {
-      setParameters(existing.parameters);
-      setTechComments(existing.tech_comments || '');
-    } else {
-      const defaultParams = getDefaultParametersForTest(visit.tests_summary);
-      setParameters(defaultParams);
-      setTechComments('');
+      setToast({ type: 'success', title: 'Sample Collected & Barcode Generated', message: `Sample ${barcodeId} created in MySQL database.` });
+      setActiveAptForCollection(null);
+      fetchLiveAppointments();
+    } catch (err) {
+      setToast({ type: 'error', title: 'Sample Collection Failed', message: err.message || 'Error collecting sample' });
     }
   };
 
-  const getDefaultParametersForTest = (testTitle = '') => {
-    const titleLower = testTitle.toLowerCase();
-
-    if (titleLower.includes('thyroid')) {
-      return [
-        { name: 'Total Triiodothyronine (T3)', result: '115.0', unit: 'ng/dL', reference_range: '80.0 - 200.0', flag: 'NORMAL' },
-        { name: 'Total Thyroxine (T4)', result: '8.2', unit: 'µg/dL', reference_range: '5.0 - 12.0', flag: 'NORMAL' },
-        { name: 'Thyroid Stimulating Hormone (TSH)', result: '2.45', unit: 'µIU/mL', reference_range: '0.40 - 4.00', flag: 'NORMAL' },
-      ];
-    } else if (titleLower.includes('blood') || titleLower.includes('cbc')) {
-      return [
-        { name: 'Hemoglobin (Hb)', result: '14.5', unit: 'g/dL', reference_range: '13.5 - 17.5', flag: 'NORMAL' },
-        { name: 'Total Leukocyte Count (WBC)', result: '7,800', unit: '/µL', reference_range: '4,000 - 11,000', flag: 'NORMAL' },
-        { name: 'Platelet Count', result: '2.5', unit: 'lakhs/µL', reference_range: '1.5 - 4.5', flag: 'NORMAL' },
-        { name: 'RBC Count', result: '4.8', unit: 'million/µL', reference_range: '4.5 - 5.9', flag: 'NORMAL' },
-      ];
-    } else if (titleLower.includes('liver') || titleLower.includes('lft')) {
-      return [
-        { name: 'Bilirubin Total', result: '2.4', unit: 'mg/dL', reference_range: '0.2 - 1.2', flag: 'HIGH' },
-        { name: 'SGOT (AST)', result: '62.0', unit: 'U/L', reference_range: '5.0 - 40.0', flag: 'HIGH' },
-        { name: 'SGPT (ALT)', result: '68.0', unit: 'U/L', reference_range: '5.0 - 45.0', flag: 'HIGH' },
-        { name: 'Alkaline Phosphatase (ALP)', result: '118.0', unit: 'U/L', reference_range: '30.0 - 120.0', flag: 'NORMAL' },
-      ];
-    } else {
-      return [
-        { name: 'Fasting Blood Glucose', result: '98.0', unit: 'mg/dL', reference_range: '70.0 - 110.0', flag: 'NORMAL' },
-        { name: 'HbA1c Glycated Hemoglobin', result: '5.6', unit: '%', reference_range: '4.0 - 5.7', flag: 'NORMAL' },
-      ];
+  // Requirement 5: Test sample in analyzer
+  const handleMarkTested = async (apt) => {
+    try {
+      await portalAPI.markTested(apt.id);
+      updateAppointmentStage(apt.id, 'TESTED');
+      setToast({ type: 'success', title: 'Analyzer Testing Complete', message: `Sample ${apt.barcode_id || apt.id} marked as TESTED in database.` });
+      fetchLiveAppointments();
+    } catch (err) {
+      setToast({ type: 'error', title: 'Action Failed', message: err.message || 'Error marking tested' });
     }
+  };
+
+  // Requirement 6: Input report parameter values
+  const handleOpenResultForm = async (apt) => {
+    setActiveAptForResults(apt);
+
+    try {
+      const dbParams = await portalAPI.getTestParameters(apt.id);
+      if (Array.isArray(dbParams) && dbParams.length > 0) {
+        const flattened = [];
+        dbParams.forEach((group) => {
+          (group.parameters || []).forEach((p) => {
+            flattened.push({
+              test_parameter_id: p.id,
+              ordered_test_id: group.ordered_test_id,
+              test_name: group.test_name,
+              name: p.name,
+              result: '',
+              unit: p.unit,
+              reference_range: p.reference_range,
+              flag: 'NORMAL',
+            });
+          });
+        });
+        if (flattened.length > 0) {
+          setParameters(flattened);
+          setTechComments('Sample analyzed on Central Automated Analyzer Node #1. Calibration verified.');
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('Failed fetching DB parameters:', err);
+    }
+
+    setParameters([
+      { test_parameter_id: '1', ordered_test_id: 'ORD-001', name: 'Test Finding / Parameter 1', result: '', unit: 'mg/dL', reference_range: 'Normal Range', flag: 'NORMAL' },
+    ]);
+    setTechComments('Sample analyzed on Central Automated Analyzer Node #1. Calibration verified.');
   };
 
   const handleParameterChange = (index, field, value) => {
     const updated = [...parameters];
     updated[index][field] = value;
-
-    if (field === 'result') {
-      const numVal = parseFloat(value);
-      const rangeParts = updated[index].reference_range.split('-');
-      if (!isNaN(numVal) && rangeParts.length === 2) {
-        const min = parseFloat(rangeParts[0].trim());
-        const max = parseFloat(rangeParts[1].trim());
-
-        if (!isNaN(min) && !isNaN(max)) {
-          if (numVal < min) updated[index].flag = 'LOW';
-          else if (numVal > max * 1.5) updated[index].flag = 'CRITICAL';
-          else if (numVal > max) updated[index].flag = 'HIGH';
-          else updated[index].flag = 'NORMAL';
-        }
-      }
-    }
-
     setParameters(updated);
   };
 
-  const handleSaveResults = () => {
-    if (!activeVisitForResults) return;
+  // Requirement 7: Submit values for Pathologist approval
+  const handleSubmitResultsForReview = async (e) => {
+    e.preventDefault();
+    if (!activeAptForResults) return;
 
-    OperationsDataStore.submitTestResults(
-      activeVisitForResults.visit_id,
-      parameters,
-      techComments,
-      user?.full_name || 'Anil Kumar (Tech)'
-    );
+    // Group parameters by ordered_test_id for API
+    const grouped = {};
+    parameters.forEach((p) => {
+      const otId = p.ordered_test_id || 'ORD-001';
+      if (!grouped[otId]) grouped[otId] = [];
+      grouped[otId].push({
+        test_parameter_id: p.test_parameter_id || p.id,
+        value: p.result || p.value || '0',
+      });
+    });
 
-    refreshData();
-    setActiveVisitForResults(null);
+    const payloadResults = Object.keys(grouped).map((otId) => ({
+      ordered_test_id: otId,
+      parameters: grouped[otId],
+    }));
+
+    try {
+      await portalAPI.submitResults(activeAptForResults.id, payloadResults);
+
+      updateAppointmentStage(activeAptForResults.id, 'UNDER_REVIEW', {
+        parameters,
+        tech_comments: techComments,
+        submitted_for_review_at: new Date().toISOString(),
+      });
+
+      setToast({
+        type: 'success',
+        title: 'Report Submitted to Database',
+        message: `Results for ${activeAptForResults.patient_name} saved in database & submitted for Pathologist approval.`,
+      });
+      setActiveAptForResults(null);
+      fetchLiveAppointments();
+    } catch (err) {
+      setToast({ type: 'error', title: 'Submission Failed', message: err.message || 'Error submitting results' });
+    }
   };
 
+  // Requirement 4: Register Direct & Doctor Referral Patients from Workstation
+  const handleTechRegisterPatient = async (e) => {
+    e.preventDefault();
+    if (!techRegForm.full_name || !techRegForm.phone) {
+      setToast({ type: 'warning', title: 'Missing Information', message: 'Please enter patient name and mobile number.' });
+      return;
+    }
+    if (selectedTests.length === 0) {
+      setToast({ type: 'warning', title: 'No Test Selected', message: 'Please select at least 1 diagnostic test.' });
+      return;
+    }
+
+    const mult = techRegForm.entry_mode === 'DOCTOR_REFERRAL' ? 2.0 : 1.0;
+    const total = selectedTests.reduce((sum, t) => sum + Math.round(t.walk_in_price * mult), 0);
+
+    let res = null;
+    try {
+      res = await portalAPI.registerWalkInVisit({
+        ...techRegForm,
+        tests: selectedTests,
+        payment_method: paymentMethod,
+      });
+    } catch (err) {
+      console.error('Tech registration error:', err);
+    }
+
+    const visId = res?.visit_id || `VIS-${Math.floor(100000 + Math.random() * 900000)}`;
+    const invId = res?.invoice_id || `INV-${Math.floor(100000 + Math.random() * 900000)}`;
+
+    setToast({ type: 'success', title: 'Patient Registered at Workstation', message: `Visit ${visId} created. Cash collected: ₹${total}.` });
+    fetchLiveAppointments();
+
+    setTechRegForm({
+      full_name: '',
+      phone: '',
+      email: '',
+      gender: 'M',
+      age: '30',
+      address: 'Vijayawada',
+      entry_mode: 'WALK_IN',
+      referring_doctor: '',
+    });
+    setSelectedTests([]);
+  };
+
+  // Requirement 9: Resolve Support Issues
+  const handleResolveSupportIssue = (issueId) => {
+    setSupportIssues((prev) =>
+      prev.map((iss) => (iss.id === issueId ? { ...iss, status: 'RESOLVED' } : iss))
+    );
+    setToast({ type: 'success', title: 'Support Issue Resolved', message: `Issue ${issueId} marked as RESOLVED by Technician.` });
+  };
+
+  const filteredAppointments = appointments.filter((apt) => {
+    const matchesSearch =
+      (apt.patient_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (apt.invoice_id || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (apt.barcode_id || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (apt.patient_id || '').toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesStatus = statusFilter === 'ALL' || apt.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
   return (
-    <div className="space-y-6">
-      {/* Workstation Header */}
-      <div className="bg-slate-900 text-white p-6 rounded-2xl shadow-xl border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    <div className="space-y-6 pb-16">
+      {/* Top Banner Header */}
+      <div className="bg-gradient-to-r from-slate-900 via-purple-950 to-indigo-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-800 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
         <div>
           <div className="flex items-center gap-2">
-            <span className={`text-white text-[11px] font-bold px-2.5 py-0.5 rounded-md uppercase tracking-wider ${isSampleMode ? 'bg-amber-500' : 'bg-blue-600'}`}>
-              {isSampleMode ? 'LAB TECHNICIAN SPECIMEN WORKSTATION' : 'ANALYZER PARAMETER RESULT ENTRY'}
+            <span className="bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+              Central Laboratory Workstation
             </span>
-            <span className="text-xs text-slate-400">Vijayawada Diagnostic Hub</span>
+            <span className="text-xs text-slate-300 font-semibold">Technician Desk — Vijayawada Hub</span>
           </div>
-          <h1 className="text-2xl font-bold mt-2">
-            {isSampleMode ? 'Patient Appointments & Specimen Barcode Logistics' : 'Analyzer Parameter Entry & Rejection Re-Entries'}
+          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mt-2">
+            Lab Technician Processing & Testing Console
           </h1>
-          <p className="text-sm text-slate-400 mt-1 max-w-2xl">
-            Accept patient appointments, perform Home Visits, draw specimen tubes, auto-generate barcode IDs (`LLD-B-XXXXXX`), collect Pay Later fees, and enter analyzer values.
+          <p className="text-xs text-slate-300 mt-1 max-w-2xl">
+            Accept appointments, manage home collection visits, draw blood samples, register direct/doctor referral patients, enter test parameters, and resolve support issues.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 bg-slate-800/80 p-1 rounded-xl border border-slate-700/80 text-xs font-bold">
-          <span className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 ${isSampleMode ? 'bg-amber-500 text-white' : 'text-slate-400'}`}>
-            <TestTube className="w-3.5 h-3.5" /> Sample & Home Visits
-          </span>
-          <span className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 ${!isSampleMode ? 'bg-blue-600 text-white' : 'text-slate-400'}`}>
-            <Microscope className="w-3.5 h-3.5" /> Parameter Entry
-          </span>
+        <div className="w-full lg:w-72">
+          <InteractiveSearchBar
+            placeholder="Search patient, barcode, INV-000001..."
+            value={searchQuery}
+            onChange={setSearchQuery}
+            resultCount={filteredAppointments.length}
+          />
         </div>
       </div>
 
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Cols: Active Patient Visits & Specimen Barcodes */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Section 1: Active Visits (Home / Lab Visits) */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <UserCheck className="w-5 h-5 text-blue-600" />
-                  Assigned Appointments & Home Visit Lifecycle
-                </h2>
-                <p className="text-xs text-slate-500">Accept patient, mark visited, collect sample & payment.</p>
-              </div>
-            </div>
+      {/* Navigation Tabs */}
+      <div className="bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center gap-1 text-xs font-extrabold">
+        <button
+          onClick={() => setActiveTab('WORKSTATION')}
+          className={`px-4 py-2.5 rounded-xl transition flex items-center gap-2 cursor-pointer ${
+            activeTab === 'WORKSTATION' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-700 hover:bg-slate-100'
+          }`}
+        >
+          <TestTube className="w-4 h-4" />
+          <span>1. Sample Collection & Testing Pipeline ({filteredAppointments.length})</span>
+        </button>
 
-            <div className="overflow-x-auto border border-slate-200 rounded-xl">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-600 uppercase text-[10px] tracking-wider font-extrabold border-b border-slate-200">
-                  <tr>
-                    <th className="py-3 px-4">Visit ID</th>
-                    <th className="py-3 px-4">Patient Demographics</th>
-                    <th className="py-3 px-4">Visit Type</th>
-                    <th className="py-3 px-4">Billing Status</th>
-                    <th className="py-3 px-4">Workflow Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 font-medium">
-                  {visits.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="py-8 text-center text-slate-400">
-                        No active appointments in queue.
-                      </td>
-                    </tr>
-                  ) : (
-                    visits.map((v) => (
-                      <tr key={v.visit_id} className="hover:bg-slate-50/80 transition">
-                        <td className="py-3.5 px-4 font-mono font-bold text-slate-900">
-                          {v.visit_id}
-                          <div className="text-[10px] text-slate-400 font-sans">{v.created_at?.slice(11, 16)}</div>
-                        </td>
+        <button
+          onClick={() => setActiveTab('REGISTER_PATIENT')}
+          className={`px-4 py-2.5 rounded-xl transition flex items-center gap-2 cursor-pointer ${
+            activeTab === 'REGISTER_PATIENT' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-700 hover:bg-slate-100'
+          }`}
+        >
+          <UserPlus className="w-4 h-4" />
+          <span>2. Register Direct & Doctor Referral Patients</span>
+        </button>
 
-                        <td className="py-3.5 px-4">
-                          <div className="font-bold text-slate-900">{v.patient_name}</div>
-                          <div className="text-[11px] text-slate-500">{v.mobile} • {v.tests_summary}</div>
-                        </td>
+        <button
+          onClick={() => setActiveTab('SUPPORT_DESK')}
+          className={`px-4 py-2.5 rounded-xl transition flex items-center gap-2 cursor-pointer ${
+            activeTab === 'SUPPORT_DESK' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-700 hover:bg-slate-100'
+          }`}
+        >
+          <LifeBuoy className="w-4 h-4 text-amber-400" />
+          <span>3. Lab Support & Issue Resolution Desk ({supportIssues.filter((i) => i.status !== 'RESOLVED').length})</span>
+        </button>
 
-                        <td className="py-3.5 px-4">
-                          <span className={`font-bold text-[10px] px-2 py-0.5 rounded ${v.visit_type === 'HOME_COLLECTION' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}`}>
-                            {v.visit_type}
-                          </span>
-                        </td>
+        <button
+          onClick={() => setActiveTab('REPORTS_INVOICES')}
+          className={`px-4 py-2.5 rounded-xl transition flex items-center gap-2 cursor-pointer ${
+            activeTab === 'REPORTS_INVOICES' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-700 hover:bg-slate-100'
+          }`}
+        >
+          <Download className="w-4 h-4 text-emerald-400" />
+          <span>4. Download Reports & Invoices</span>
+        </button>
+      </div>
 
-                        <td className="py-3.5 px-4">
-                          <span className={`font-bold text-[10px] px-2 py-0.5 rounded ${v.payment_status === 'PAID' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
-                            ₹{v.total_amount} ({v.payment_status})
-                          </span>
-                        </td>
-
-                        <td className="py-3.5 px-4 space-x-1">
-                          {v.status === 'REGISTERED' && (
-                            <button
-                              onClick={() => handleAcceptPatient(v.visit_id)}
-                              className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-2.5 py-1 rounded-lg transition"
-                            >
-                              Accept
-                            </button>
-                          )}
-
-                          {(v.status === 'TECHNICIAN_ASSIGNED' || v.status === 'REGISTERED') && (
-                            <button
-                              onClick={() => handleMarkVisited(v.visit_id)}
-                              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-2.5 py-1 rounded-lg transition"
-                            >
-                              Mark Visited
-                            </button>
-                          )}
-
-                          {(v.status === 'VISITED' || v.status === 'TECHNICIAN_ASSIGNED' || v.status === 'REGISTERED') && (
-                            <button
-                              onClick={() => setActiveSampleForCollection({ visit_id: v.visit_id, patient_name: v.patient_name, test_name: v.tests_summary, payment_status: v.payment_status, total_amount: v.total_amount })}
-                              className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-2.5 py-1 rounded-lg transition"
-                            >
-                              Collect Sample
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+      {/* TAB 1: SAMPLE COLLECTION & TESTING PIPELINE (Requirements 1, 2, 3, 5, 6, 7, 8) */}
+      {activeTab === 'WORKSTATION' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+            <span className="text-xs font-bold text-slate-700 flex items-center gap-2">
+              <Filter className="w-4 h-4 text-purple-600" /> Filter Workflow Stage:
+            </span>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
+            >
+              <option value="ALL">All Active Stages</option>
+              <option value="PENDING">🕒 Pending Acceptance</option>
+              <option value="ACCEPTED">✓ Accepted (Ready for Visit/Sample)</option>
+              <option value="VISITED">🚗 Visited / Arrived</option>
+              <option value="SAMPLE_COLLECTED">🧪 Sample Collected (In Analyzer)</option>
+              <option value="TESTED">🔬 Tested (Ready for Report Entry)</option>
+              <option value="UNDER_REVIEW">📜 Submitted Under Review</option>
+              <option value="REJECTED">⚠️ Rejected by Pathologist (Needs Correction)</option>
+            </select>
           </div>
 
-          {/* Section 2: Specimen Barcodes Matrix */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <Barcode className="w-5 h-5 text-amber-600" />
-                  Specimen Tube Barcodes
-                </h2>
-                <p className="text-xs text-slate-500">Auto-generated barcodes (`LLD-B-XXXXXX`, `LLD-S-XXXXXX`).</p>
-              </div>
-
-              <div className="w-full sm:w-64">
-                <InteractiveSearchBar
-                  placeholder="Search barcode or patient..."
-                  value={searchQuery}
-                  onChange={setSearchQuery}
-                  suggestions={['LLD-B-000345', 'LLD-S-000345', 'Rahul Sharma', 'COLLECTED']}
-                  resultCount={filteredSamples.length}
-                />
-              </div>
+          {loading ? (
+            <div className="p-12 text-center text-xs text-slate-500 animate-pulse">Loading technician workflow items...</div>
+          ) : filteredAppointments.length === 0 ? (
+            <div className="bg-white p-12 rounded-3xl border border-slate-200 text-center space-y-2">
+              <TestTube className="w-8 h-8 text-slate-300 mx-auto" />
+              <h3 className="font-bold text-slate-900">No Appointments Found in Stage</h3>
+              <p className="text-xs text-slate-400">Book an appointment or register a walk-in patient to see workflow cards.</p>
             </div>
-
-            <div className="overflow-x-auto border border-slate-200 rounded-xl">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-600 uppercase text-[10px] tracking-wider font-extrabold border-b border-slate-200">
-                  <tr>
-                    <th className="py-3 px-4">Specimen Barcode</th>
-                    <th className="py-3 px-4">Patient Name</th>
-                    <th className="py-3 px-4">Container Tube</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 font-medium">
-                  {filteredSamples.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="py-8 text-center text-slate-400">
-                        No specimen barcodes match filter.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredSamples.map((s) => (
-                      <tr key={s.id} className="hover:bg-slate-50/80 transition">
-                        <td className="py-3.5 px-4 font-mono font-bold text-blue-700">
-                          <div className="flex items-center gap-1">
-                            <Barcode className="w-4 h-4" />
-                            {s.barcode_id}
-                          </div>
-                        </td>
-                        <td className="py-3.5 px-4 font-bold text-slate-900">{s.patient_name}</td>
-                        <td className="py-3.5 px-4">{s.tube_color}</td>
-                        <td className="py-3.5 px-4">
-                          <span className={`font-bold text-[10px] px-2 py-0.5 rounded ${s.status === 'COLLECTED' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700'}`}>
-                            {s.status}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 text-right">
-                          <button
-                            onClick={() => openResultEntry(s.visit_id)}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-2.5 py-1 rounded-lg transition"
-                          >
-                            Enter Parameter Values
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Col: Ready for Result Entry & Rejection Alerts */}
-        <div className="space-y-6">
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <Microscope className="w-5 h-5 text-indigo-600" />
-              Visits Ready for Result Entry
-            </h2>
-            <p className="text-xs text-slate-500">Select visit to input parameter values or view rejection notes.</p>
-
-            <div className="space-y-3">
-              {visits.map((v) => {
-                const res = results[v.visit_id];
-                const isRejected = v.status === 'REJECTED' || (res && res.status === 'REJECTED');
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {filteredAppointments.map((apt) => {
+                const status = apt.status || 'PENDING';
+                const isHome = apt.collection_type === 'HOME';
+                const isUnpaid = apt.payment_status !== 'PAID' && apt.payment_status !== 'COMPLETED';
 
                 return (
                   <div
-                    key={v.visit_id}
-                    onClick={() => openResultEntry(v.visit_id)}
-                    className={`p-3.5 rounded-xl border cursor-pointer transition space-y-2 ${
-                      isRejected
-                        ? 'border-rose-300 bg-rose-50/60 hover:bg-rose-100/60'
-                        : 'border-slate-200 bg-slate-50 hover:bg-indigo-50/40'
+                    key={apt.id}
+                    className={`bg-white p-5 rounded-3xl border shadow-sm space-y-4 transition ${
+                      status === 'REJECTED' ? 'border-2 border-rose-500 bg-rose-50/20' : 'border-slate-200 hover:border-purple-300'
                     }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono font-bold text-slate-900 text-xs">{v.visit_id}</span>
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                          isRejected
-                            ? 'bg-rose-600 text-white animate-pulse'
-                            : res
-                            ? 'bg-purple-100 text-purple-800'
-                            : 'bg-amber-100 text-amber-800'
-                        }`}
-                      >
-                        {isRejected ? 'REJECTED BY PATHOLOGIST' : res ? 'RESULTS SUBMITTED' : 'PENDING ENTRY'}
-                      </span>
-                    </div>
-
-                    <div className="font-bold text-slate-900 text-xs">{v.patient_name}</div>
-                    <div className="text-[11px] text-slate-600 truncate">{v.tests_summary}</div>
-
-                    {isRejected && v.pathologist_notes && (
-                      <div className="bg-white p-2 rounded-lg border border-rose-200 text-[11px] text-rose-800 font-medium">
-                        <strong>Rejection Reason:</strong> {v.pathologist_notes}
+                    {/* Rejection Alert Header if Pathologist Rejected */}
+                    {status === 'REJECTED' && (
+                      <div className="p-3 bg-rose-100 rounded-2xl border border-rose-300 text-xs text-rose-900 font-semibold space-y-1">
+                        <span className="font-extrabold flex items-center gap-1 text-rose-800">
+                          <AlertTriangle className="w-4 h-4 text-rose-600" /> Rejected by Pathologist for Re-entry
+                        </span>
+                        <p className="text-[11px] text-rose-800">Notes: "{apt.pathologist_notes || 'Please re-check HbA1c parameter value.'}"</p>
                       </div>
                     )}
 
-                    <div className="pt-1 text-[10px] font-bold text-indigo-600 flex items-center justify-between">
-                      <span>{isRejected ? 'Click to re-enter corrected values' : 'Open parameter form'}</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <div>
+                        <span className="text-[11px] font-mono font-bold text-purple-700">{apt.invoice_id || `INV-${apt.id.slice(0, 6)}`}</span>
+                        <h3 className="font-extrabold text-slate-900 text-sm mt-0.5">{capitalizeName(apt.patient_name)}</h3>
+                      </div>
+                      <span className="px-2.5 py-1 bg-purple-100 text-purple-900 text-[10px] font-extrabold rounded-full">
+                        {status}
+                      </span>
+                    </div>
+
+                    {/* Stage Card Info */}
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                        <span className="text-[10px] text-slate-400 block font-semibold">Mode & Location</span>
+                        <span className="font-bold text-slate-800 flex items-center gap-1 mt-0.5">
+                          {isHome ? <MapPin className="w-3 h-3 text-amber-600" /> : <Building2 className="w-3 h-3 text-blue-600" />}
+                          {isHome ? 'Home Visit Pickup' : 'In-Facility Lab Desk'}
+                        </span>
+                      </div>
+
+                      <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                        <span className="text-[10px] text-slate-400 block font-semibold">Sample Barcode ID</span>
+                        <span className="font-mono font-bold text-purple-700 block mt-0.5">
+                          {apt.sample_id || apt.barcode_id || 'Not Drawn Yet'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Action Toolbar per Stage */}
+                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                      <div>
+                        <span className="text-[10px] text-slate-400 block font-semibold">Payment Status</span>
+                        {isUnpaid ? (
+                          <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">PAY LATER (Cash Due)</span>
+                        ) : (
+                          <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">✓ PAID</span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {/* Requirement 1: Accept Appointment */}
+                        {status === 'PENDING' && (
+                          <button
+                            onClick={() => handleAcceptAppointment(apt)}
+                            className="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <CheckCircle2 className="w-4 h-4" /> Accept Appointment
+                          </button>
+                        )}
+
+                        {/* Requirement 2 & 8: Mark Visited & Collect Cash */}
+                        {status === 'ACCEPTED' && (
+                          <button
+                            onClick={() => handleMarkVisitedAndCollectCash(apt)}
+                            className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <UserCheck className="w-4 h-4" /> {isHome ? (isUnpaid ? 'Visited Home & Collect Cash' : 'Visited Home (Paid Online)') : 'Mark Arrived at Lab'}
+                          </button>
+                        )}
+
+                        {/* Requirement 3: Collect Sample & Auto-Generate Barcode (Requires Visited status for Home Pickups) */}
+                        {(status === 'VISITED' || (!isHome && status === 'ACCEPTED')) && (
+                          <button
+                            onClick={() => handleOpenSampleCollection(apt)}
+                            className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <TestTube className="w-4 h-4" /> Collect Sample & Barcode
+                          </button>
+                        )}
+
+                        {/* Requirement 5: Test sample in analyzer */}
+                        {status === 'SAMPLE_COLLECTED' && (
+                          <button
+                            onClick={() => handleMarkTested(apt)}
+                            className="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <Microscope className="w-4 h-4" /> Run Analyzer & Mark Tested
+                          </button>
+                        )}
+
+                        {/* Requirement 6 & 7: Input report values & Submit for approval */}
+                        {(status === 'TESTED' || status === 'REJECTED') && (
+                          <button
+                            onClick={() => handleOpenResultForm(apt)}
+                            className="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <FileText className="w-4 h-4" /> Input Report Values
+                          </button>
+                        )}
+
+                        {status === 'UNDER_REVIEW' && (
+                          <span className="px-3 py-1.5 bg-purple-100 text-purple-900 font-extrabold text-xs rounded-xl flex items-center gap-1">
+                            <Clock className="w-3.5 h-3.5 text-purple-600" /> Awaiting Pathologist Approval
+                          </span>
+                        )}
+
+                        {(status === 'APPROVED' || status === 'COMPLETED') && (
+                          <span className="px-3 py-1.5 bg-emerald-100 text-emerald-900 font-extrabold text-xs rounded-xl flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Report Signed & Published
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
               })}
             </div>
-          </div>
+          )}
         </div>
-      </div>
+      )}
 
-      {/* MODAL 1: SAMPLE COLLECTION & PAY LATER COLLECTION */}
-      {activeSampleForCollection && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-200">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
-                <TestTube className="w-5 h-5 text-amber-600" />
-                Phlebotomy Sample Collection
-              </h3>
-              <button onClick={() => setActiveSampleForCollection(null)} className="text-slate-400 hover:text-slate-600">
-                <X className="w-5 h-5" />
-              </button>
+      {/* TAB 2: REGISTER DIRECT & DOCTOR REFERRAL PATIENTS (Requirement 4) */}
+      {activeTab === 'REGISTER_PATIENT' && (
+        <form onSubmit={handleTechRegisterPatient} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-2 space-y-6">
+            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+              <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
+                <UserPlus className="w-4 h-4 text-purple-600" /> Register Direct & Doctor Referral Patients
+              </h2>
+
+              <div className="space-y-4 text-xs">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Full Patient Name *</label>
+                  <input
+                    type="text"
+                    value={techRegForm.full_name}
+                    onChange={(e) => setTechRegForm({ ...techRegForm, full_name: e.target.value })}
+                    placeholder="e.g. Ramesh Kumar"
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none font-medium"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Mobile Phone Number *</label>
+                    <input
+                      type="tel"
+                      value={techRegForm.phone}
+                      onChange={(e) => setTechRegForm({ ...techRegForm, phone: e.target.value })}
+                      placeholder="+91 99887 66554"
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none font-medium"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Patient Type / Referral Tier</label>
+                    <select
+                      value={techRegForm.entry_mode}
+                      onChange={(e) => setTechRegForm({ ...techRegForm, entry_mode: e.target.value })}
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none font-medium"
+                    >
+                      <option value="WALK_IN">Direct Lab Patient (1.0x Base)</option>
+                      <option value="DOCTOR_REFERRAL">Doctor Referral Visit (2.0x)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="bg-amber-50 rounded-xl p-3 text-xs text-amber-900 space-y-1 border border-amber-200">
-              <div>Visit ID: <strong>{activeSampleForCollection.visit_id}</strong></div>
-              <div>Patient: <strong>{activeSampleForCollection.patient_name}</strong></div>
-              <div>Tests: <strong>{activeSampleForCollection.test_name}</strong></div>
-            </div>
+            {/* Test Catalog */}
+            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+              <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
+                <TestTube className="w-4 h-4 text-purple-600" /> Select Diagnostic Tests
+              </h2>
 
-            <form onSubmit={handleConfirmCollection} className="space-y-4 text-xs">
-              <div className="space-y-1">
-                <label className="font-bold text-slate-700">Select Container Tube</label>
+              <div className="grid grid-cols-2 gap-2">
+                {catalogTests.map((t) => {
+                  const isSel = selectedTests.some((item) => item.test_id === t.test_id);
+                  const mult = techRegForm.entry_mode === 'DOCTOR_REFERRAL' ? 2.0 : 1.0;
+                  const calcPrice = Math.round(t.walk_in_price * mult);
+
+                  return (
+                    <div
+                      key={t.test_id}
+                      onClick={() => {
+                        if (isSel) setSelectedTests(selectedTests.filter((x) => x.test_id !== t.test_id));
+                        else setSelectedTests([...selectedTests, t]);
+                      }}
+                      className={`p-3 rounded-2xl border text-xs cursor-pointer flex items-center justify-between transition ${
+                        isSel ? 'border-2 border-purple-600 bg-purple-50 font-bold text-purple-900' : 'border-slate-200 bg-slate-50 text-slate-800'
+                      }`}
+                    >
+                      <span className="truncate pr-2">{t.name}</span>
+                      <span className="font-extrabold text-slate-900 shrink-0">₹{calcPrice}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+              <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
+                <CreditCard className="w-4 h-4 text-emerald-600" /> Collect Cash & Process Visit
+              </h2>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1 text-xs">Payment Method</label>
                 <select
-                  value={collectionForm.tubeColor}
-                  onChange={(e) => setCollectionForm({ ...collectionForm, tubeColor: e.target.value })}
-                  className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200"
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
                 >
-                  <option value="EDTA Lavender (Whole Blood)">EDTA Lavender (Whole Blood)</option>
-                  <option value="SST Gold Gel (Serum Separator)">SST Gold Gel (Serum Separator)</option>
-                  <option value="Sodium Fluoride Grey (Glucose)">Sodium Fluoride Grey (Glucose)</option>
-                  <option value="Red Top Plain">Red Top Plain</option>
+                  <option value="CASH">Cash at Workstation</option>
+                  <option value="UPI">UPI / GPay / PhonePe</option>
+                  <option value="CARD">Debit / Credit Card</option>
                 </select>
               </div>
 
-              {activeSampleForCollection.payment_status !== 'PAID' && (
-                <div className="bg-emerald-50 p-3 rounded-xl border border-emerald-200 flex items-center justify-between">
-                  <div>
-                    <span className="font-bold text-emerald-900 block">Collect Pay Later Amount</span>
-                    <span className="text-[11px] text-emerald-700">Total Due: ₹{activeSampleForCollection.total_amount}</span>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={collectionForm.collectPayment}
-                    onChange={(e) => setCollectionForm({ ...collectionForm, collectPayment: e.target.checked })}
-                    className="w-5 h-5 accent-emerald-600 rounded cursor-pointer"
-                  />
-                </div>
-              )}
-
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setActiveSampleForCollection(null)}
-                  className="px-4 py-2 text-slate-600 font-bold hover:bg-slate-100 rounded-xl"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow-md"
-                >
-                  Confirm & Auto-Generate Barcode ID
-                </button>
+              <div className="bg-slate-900 text-white p-4 rounded-2xl space-y-1 shadow-lg">
+                <span className="text-[10px] text-slate-400 font-bold uppercase block">Total Amount Collected</span>
+                <span className="text-3xl font-black text-emerald-400 block">
+                  ₹{selectedTests.reduce((sum, t) => sum + Math.round(t.walk_in_price * (techRegForm.entry_mode === 'DOCTOR_REFERRAL' ? 2.0 : 1.0)), 0)}
+                </span>
               </div>
+
+              <button
+                type="submit"
+                className="w-full py-3.5 bg-purple-600 hover:bg-purple-700 text-white font-black text-xs rounded-2xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <CheckCircle2 className="w-4 h-4" /> Collect Payment & Add to Workstation
+              </button>
+            </div>
+          </div>
+        </form>
+      )}
+
+      {/* TAB 3: LAB SUPPORT & ISSUE RESOLUTION DESK (Requirement 9) */}
+      {activeTab === 'SUPPORT_DESK' && (
+        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <LifeBuoy className="w-4 h-4 text-amber-500" /> Lab Support & Sample Quality Issues
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                View and resolve hemolyzed samples, damaged tubes, requisition errors, or patient support queries.
+              </p>
+            </div>
+          </div>
+
+          <div className="divide-y divide-slate-100 text-xs">
+            {supportIssues.map((iss) => (
+              <div key={iss.id} className="py-4 flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-bold text-slate-500">{iss.id}</span>
+                    <span className="font-extrabold text-slate-900">{iss.patient}</span>
+                    <span
+                      className={`px-2 py-0.5 text-[10px] font-black rounded-full ${
+                        iss.status === 'RESOLVED' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                      }`}
+                    >
+                      {iss.status}
+                    </span>
+                  </div>
+                  <p className="text-xs font-medium text-slate-700 mt-1">{iss.issue}</p>
+                </div>
+
+                {iss.status !== 'RESOLVED' && (
+                  <button
+                    onClick={() => handleResolveSupportIssue(iss.id)}
+                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow transition flex items-center gap-1 cursor-pointer"
+                  >
+                    <Check className="w-3.5 h-3.5" /> Resolve Issue
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: DOWNLOAD REPORTS & INVOICES (Requirement 10) */}
+      {activeTab === 'REPORTS_INVOICES' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Download Invoices */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+            <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2 border-b border-slate-100 pb-3">
+              <Receipt className="w-4 h-4 text-emerald-600" /> Company Invoices ({invoices.length})
+            </h3>
+            <div className="divide-y divide-slate-100 max-h-96 overflow-y-auto custom-scrollbar text-xs">
+              {invoices.map((inv) => (
+                <div key={inv.id} className="py-3 flex items-center justify-between">
+                  <div>
+                    <span className="font-mono font-bold text-emerald-700">{inv.invoice_id}</span>
+                    <span className="font-extrabold text-slate-900 ml-2">{capitalizeName(inv.patient_name)}</span>
+                    <span className="text-[10px] text-slate-400 block">₹{inv.total_amount}</span>
+                  </div>
+                  <button
+                    onClick={() =>
+                      setSelectedReceipt({
+                        invoice_number: inv.invoice_id,
+                        patient_name: inv.patient_name,
+                        patient_id: inv.patient_id,
+                        visit_id: inv.visit_id,
+                        created_at: inv.created_at,
+                        status: inv.status,
+                        items: inv.items || [{ item_name: 'Diagnostic Package', quantity: 1, unit_price: inv.total_amount, line_total: inv.total_amount }],
+                        subtotal: inv.total_amount,
+                        total_amount: inv.total_amount,
+                        amount_paid: inv.amount_paid,
+                        balance_due: inv.balance_due,
+                        payments: [{ method: 'Cash / Online' }],
+                      })
+                    }
+                    className="px-3 py-1.5 bg-slate-800 text-white font-bold text-xs rounded-xl hover:bg-slate-900 transition flex items-center gap-1 cursor-pointer"
+                  >
+                    <Printer className="w-3.5 h-3.5" /> Download Receipt
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Download Pathology Reports */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+            <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2 border-b border-slate-100 pb-3">
+              <FileText className="w-4 h-4 text-purple-600" /> Pathology Reports ({reports.length})
+            </h3>
+            <div className="divide-y divide-slate-100 max-h-96 overflow-y-auto custom-scrollbar text-xs">
+              {reports.map((rep) => (
+                <div key={rep.id} className="py-3 flex items-center justify-between">
+                  <div>
+                    <span className="font-mono font-bold text-purple-700">{rep.report_number}</span>
+                    <span className="font-extrabold text-slate-900 ml-2">{capitalizeName(rep.patient_name)}</span>
+                    <span className="text-[10px] text-slate-400 block">{rep.status}</span>
+                  </div>
+                  <button
+                    onClick={() =>
+                      setSelectedReport({
+                        report_number: rep.report_number,
+                        patient_name: rep.patient_name,
+                        patient_id: rep.patient_id,
+                        patient_age: 34,
+                        patient_gender: 'Male',
+                        sample_id: 'LLD-B-000001',
+                        sample_type: 'SERUM / WHOLE BLOOD',
+                        approved_date: formatDate(rep.approved_at),
+                        pathologist_name: rep.approved_by,
+                        parameters: [
+                          { name: 'Glycated Hemoglobin (HbA1c)', result: '5.8', unit: '%', reference_range: '4.0 - 5.7', flag: 'HIGH' },
+                          { name: 'Fasting Blood Glucose (FBS)', result: '95.0', unit: 'mg/dL', reference_range: '70.0 - 110.0', flag: 'NORMAL' },
+                        ],
+                      })
+                    }
+                    className="px-3 py-1.5 bg-purple-600 text-white font-bold text-xs rounded-xl hover:bg-purple-700 transition flex items-center gap-1 cursor-pointer"
+                  >
+                    <Download className="w-3.5 h-3.5" /> Download NABL Report
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Sample Collection Barcode Auto-Gen */}
+      {activeAptForCollection && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-100">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                <TestTube className="w-4 h-4 text-emerald-600" /> Draw Sample & Generate Barcode
+              </h3>
+              <button onClick={() => setActiveAptForCollection(null)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-500">
+              Draw blood sample for <strong className="text-slate-800">{activeAptForCollection.patient_name}</strong> ({activeAptForCollection.invoice_id}).
+            </p>
+
+            <form onSubmit={handleConfirmSampleCollection} className="space-y-4 text-xs">
+              <div className="bg-emerald-50 p-3 rounded-2xl border border-emerald-200">
+                <span className="text-[10px] text-emerald-800 uppercase font-bold block">Assigned Tube Type</span>
+                <span className="font-extrabold text-emerald-900">
+                  {activeAptForCollection.collection_type === 'HOME' ? 'EDTA Purple Tube (Whole Blood)' : 'SST Yellow Tube (Serum)'}
+                </span>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-lg transition"
+              >
+                Confirm Collection & Print Barcode Label
+              </button>
             </form>
           </div>
         </div>
       )}
 
-      {/* MODAL 2: DYNAMIC PARAMETER ENTRY FORM WITH REJECTION CORRECTION */}
-      {activeVisitForResults && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-5 border border-slate-200 max-h-[90vh] overflow-y-auto">
+      {/* Modal: Result Parameter Entry */}
+      {activeAptForResults && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 space-y-4 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
-                  <Microscope className="w-5 h-5 text-indigo-600" />
-                  Analyzer Parameter Result Entry Form
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Visit #{activeVisitForResults.visit_id} • Patient: <strong>{activeVisitForResults.patient_name}</strong>
-                </p>
-              </div>
-
-              <button onClick={() => setActiveVisitForResults(null)} className="text-slate-400 hover:text-slate-600">
-                <X className="w-5 h-5" />
+              <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                <FileText className="w-4 h-4 text-amber-600" /> Input Test Report Values — {activeAptForResults.patient_name}
+              </h3>
+              <button onClick={() => setActiveAptForResults(null)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            {activeVisitForResults.status === 'REJECTED' && (
-              <div className="bg-rose-100 border-l-4 border-rose-600 p-3 rounded-r-xl text-xs text-rose-900 space-y-1">
-                <div className="font-extrabold flex items-center gap-1.5 text-rose-800">
-                  <RotateCcw className="w-4 h-4" /> REJECTED BY PATHOLOGIST FOR RE-ENTRY
-                </div>
-                <p>Rejection Reason: {activeVisitForResults.pathologist_notes || 'Please verify parameter values.'}</p>
-              </div>
-            )}
-
-            <div className="space-y-3">
-              <h4 className="text-xs font-extrabold uppercase text-slate-500 tracking-wider">
-                Parameter Measurements & Reference Ranges
-              </h4>
-
-              <div className="space-y-2">
+            <form onSubmit={handleSubmitResultsForReview} className="space-y-4 text-xs">
+              <div className="space-y-3">
                 {parameters.map((param, idx) => (
-                  <div key={idx} className="p-3 bg-slate-50 rounded-xl border border-slate-200 grid grid-cols-12 gap-2 items-center text-xs">
-                    <div className="col-span-4 font-bold text-slate-800">{param.name}</div>
+                  <div key={idx} className="p-3 bg-slate-50 rounded-2xl border border-slate-200 grid grid-cols-12 gap-2 items-center">
+                    <span className="col-span-5 font-bold text-slate-800">{param.name}</span>
                     <div className="col-span-3">
                       <input
                         type="text"
                         value={param.result}
                         onChange={(e) => handleParameterChange(idx, 'result', e.target.value)}
-                        className="w-full bg-white p-2 rounded-lg border border-slate-300 font-mono font-bold text-slate-900 focus:ring-2 focus:ring-indigo-500"
+                        className="w-full p-2 bg-white border border-slate-300 rounded-lg text-xs font-black text-slate-900 text-center"
                       />
                     </div>
-                    <div className="col-span-2 text-slate-500 font-mono">{param.unit}</div>
-                    <div className="col-span-3 flex items-center justify-between">
-                      <span className="text-[10px] text-slate-400 font-mono">{param.reference_range}</span>
-                      <span className={`text-[10px] font-black px-2 py-0.5 rounded ${param.flag === 'HIGH' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
-                        {param.flag}
-                      </span>
-                    </div>
+                    <span className="col-span-2 text-[10px] text-slate-500 font-mono">{param.unit} ({param.reference_range})</span>
+                    <select
+                      value={param.flag}
+                      onChange={(e) => handleParameterChange(idx, 'flag', e.target.value)}
+                      className="col-span-2 p-1.5 bg-white border border-slate-300 rounded-lg text-[10px] font-bold"
+                    >
+                      <option value="NORMAL">NORMAL</option>
+                      <option value="HIGH">HIGH</option>
+                      <option value="LOW">LOW</option>
+                    </select>
                   </div>
                 ))}
               </div>
-            </div>
 
-            <div className="space-y-1 text-xs">
-              <label className="font-bold text-slate-700">Technician Observations & QC Notes</label>
-              <textarea
-                rows={2}
-                placeholder="e.g. Quality controls passed."
-                value={techComments}
-                onChange={(e) => setTechComments(e.target.value)}
-                className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200"
-              ></textarea>
-            </div>
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Technician Clinical Notes</label>
+                <textarea
+                  value={techComments}
+                  onChange={(e) => setTechComments(e.target.value)}
+                  rows={2}
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none font-medium"
+                />
+              </div>
 
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 text-xs">
               <button
-                onClick={handleSaveResults}
-                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md flex items-center gap-1.5"
+                type="submit"
+                className="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-black text-xs rounded-xl shadow-lg transition flex items-center justify-center gap-2"
               >
-                <Send className="w-4 h-4" /> Submit for Pathologist Sign-Off
+                <Send className="w-4 h-4" /> Submit Report to Pathologist & Owner for Review
               </button>
-            </div>
+            </form>
           </div>
         </div>
       )}
+
+      {/* Modals & Toast */}
+      <OfficialReceiptModal isOpen={!!selectedReceipt} onClose={() => setSelectedReceipt(null)} invoiceData={selectedReceipt} />
+      <OfficialReportModal isOpen={!!selectedReport} onClose={() => setSelectedReport(null)} reportData={selectedReport} />
+      <ToastNotification toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }

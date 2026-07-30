@@ -37,7 +37,7 @@ export default function EmployeeWorkAnalysisPage() {
   const employeeData = [
     {
       id: 'STF-001',
-      name: 'Dr. Sunita Rao',
+      name: 'Dr. Mallika Boyapati',
       role: 'PATHOLOGIST',
       branch: 'VJW-MAIN',
       reports_reviewed: 142,
@@ -104,7 +104,7 @@ export default function EmployeeWorkAnalysisPage() {
 
   // Chart 2: Turnaround Speed vs Efficiency Rating
   const chartEfficiencyData = [
-    { name: 'Dr. Sunita Rao', Efficiency: 98, SpeedMins: 8 },
+    { name: 'Dr. Mallika Boyapati', Efficiency: 98, SpeedMins: 8 },
     { name: 'Anil Kumar', Efficiency: 96, SpeedMins: 18 },
     { name: 'Meena Kumari', Efficiency: 95, SpeedMins: 5 },
     { name: 'Rajesh Varma', Efficiency: 92, SpeedMins: 22 },

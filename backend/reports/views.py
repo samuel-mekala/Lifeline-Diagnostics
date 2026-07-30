@@ -28,14 +28,29 @@ class ReportListAPIView(APIView):
         return Response(ReportSerializer(reports, many=True).data)
 
 
+from rest_framework.permissions import IsAuthenticated
+
+
 class DownloadReportAPIView(APIView):
-    permission_classes = [PathologistPermission]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, visit_id):
-        try:
-            visit = VisitService.get_visit(visit_id=visit_id)
-        except Visit.DoesNotExist as exc:
-            raise NotFound("Visit not found.") from exc
+        import uuid as uuid_mod
+        visit = Visit.objects.filter(visit_id=visit_id).first()
+        if not visit:
+            try:
+                val = uuid_mod.UUID(visit_id)
+                from visits.models import Appointment
+                apt = Appointment.objects.filter(id=val).select_related("visit").first()
+                if apt and apt.visit:
+                    visit = apt.visit
+                else:
+                    visit = Visit.objects.filter(id=val).first()
+            except (ValueError, TypeError):
+                pass
+
+        if not visit:
+            return Response({"error": "Visit or appointment not found."}, status=status.HTTP_404_NOT_FOUND)
 
         try:
             report_data = ReportService.get_report_data(

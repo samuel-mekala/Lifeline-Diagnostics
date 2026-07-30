@@ -46,7 +46,7 @@ export default function BranchManagementPage() {
     designation: '',
     qualification: '',
     mobile: '',
-    assigned_branches: ['HYD-MAIN'],
+    assigned_branches: ['VJW-MAIN'],
   });
 
   // Form State for Branch Edit/Create

@@ -9,8 +9,8 @@ export const OfficialReceiptModal = ({ isOpen, onClose, invoiceData, patientInfo
     window.print();
   };
 
-  const patientName = invoiceData.patient_name || patientInfo?.full_name || 'Mr. Rahul Sharma';
-  const patientId = invoiceData.patient_id || patientInfo?.patient_id || 'PAT-009842';
+  const patientName = invoiceData.patient_name || patientInfo?.full_name || 'Patient';
+  const patientId = invoiceData.patient_id || patientInfo?.patient_id || 'PAT-001';
   const invoiceNum = invoiceData.invoice_number || invoiceData.id || 'INV-2026-0041';
   const visitId = invoiceData.visit_id || 'VIS-904101';
   const dateStr = invoiceData.created_at ? new Date(invoiceData.created_at).toLocaleString() : '2026-07-28 10:30 AM';
