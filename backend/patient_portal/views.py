@@ -463,9 +463,11 @@ class PortalTestCatalogAPIView(APIView):
         for t in tests:
             price = None
             home_price = None
+            doctor_price = None
             try:
                 price = float(t.pricing.walk_in_price)
                 home_price = float(t.pricing.home_collection_price)
+                doctor_price = float(t.pricing.doctor_referral_price)
             except Exception:
                 pass
             result.append({
@@ -475,6 +477,7 @@ class PortalTestCatalogAPIView(APIView):
                 "sample_type": t.sample_type,
                 "walk_in_price": price,
                 "home_collection_price": home_price,
+                "doctor_referral_price": doctor_price,
             })
         return Response(result)
 
@@ -488,9 +491,11 @@ class PortalPackageCatalogAPIView(APIView):
         for p in packages:
             price = None
             home_price = None
+            doctor_price = None
             try:
                 price = float(p.pricing.walk_in_price)
                 home_price = float(p.pricing.home_collection_price)
+                doctor_price = float(p.pricing.doctor_referral_price)
             except Exception:
                 pass
             tests_in_pkg = [pt.laboratory_test.name for pt in p.package_tests.all()]
@@ -500,10 +505,12 @@ class PortalPackageCatalogAPIView(APIView):
                 "description": p.description,
                 "walk_in_price": price,
                 "home_collection_price": home_price,
+                "doctor_referral_price": doctor_price,
                 "test_count": len(tests_in_pkg),
                 "tests": tests_in_pkg,
             })
         return Response(result)
+
 
 
 # ─────────────────────────────────────────────

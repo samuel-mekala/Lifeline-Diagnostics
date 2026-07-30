@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CATALOG_TESTS, CATALOG_PACKAGES } from '../services/portalData';
+import portalAPI from '../../../services/portalAPI';
 import InteractiveSearchBar from '../../../components/common/InteractiveSearchBar';
 import {
   TestTube,
@@ -15,13 +15,37 @@ import {
   Droplet,
   Check,
   Filter,
+  Home,
+  UserCheck,
 } from 'lucide-react';
 
 export default function TestCatalogPage() {
   const navigate = useNavigate();
+  const [tests, setTests] = useState([]);
+  const [packages, setPackages] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [activeTab, setActiveTab] = useState('INDIVIDUAL_TESTS'); // 'INDIVIDUAL_TESTS' | 'HEALTH_PACKAGES'
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCatalog = async () => {
+      setLoading(true);
+      try {
+        const [tData, pData] = await Promise.all([
+          portalAPI.getTestCatalog(),
+          portalAPI.getPackageCatalog(),
+        ]);
+        setTests(Array.isArray(tData) ? tData : []);
+        setPackages(Array.isArray(pData) ? pData : []);
+      } catch (err) {
+        console.error('Failed to load catalog:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCatalog();
+  }, []);
 
   const categories = [
     { label: 'Hematology', value: 'HEMATOLOGY' },
@@ -31,14 +55,15 @@ export default function TestCatalogPage() {
   ];
 
   // Filter Tests
-  const filteredTests = CATALOG_TESTS.filter((t) => {
+  const filteredTests = tests.filter((t) => {
     const matchesSearch =
-      t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.sample_type.toLowerCase().includes(searchQuery.toLowerCase());
+      (t.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (t.category || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (t.sample_type || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = !selectedCategory || t.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
 
   const handleBookTest = (test) => {
     navigate('/portal/appointments/book', { state: { preselectedTest: test } });
@@ -144,15 +169,28 @@ export default function TestCatalogPage() {
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] text-slate-400 font-bold block uppercase">Test Price</span>
-                  <span className="text-lg font-black text-slate-900">₹{test.price}</span>
+              {/* 3 Price Catalogs Badge Row */}
+              <div className="pt-3 border-t border-slate-100 space-y-2">
+                <div className="grid grid-cols-3 gap-1.5 text-center">
+                  <div className="bg-slate-50 p-2 rounded-xl border border-slate-200/60">
+                    <span className="text-[9px] font-bold text-slate-500 uppercase block">Walk-In</span>
+                    <span className="text-xs font-black text-slate-900">₹{test.walk_in_price || 0}</span>
+                  </div>
+
+                  <div className="bg-blue-50 p-2 rounded-xl border border-blue-200/60">
+                    <span className="text-[9px] font-bold text-blue-700 uppercase block">Home (1.5x)</span>
+                    <span className="text-xs font-black text-blue-900">₹{test.home_collection_price || Math.round((test.walk_in_price || 0) * 1.5)}</span>
+                  </div>
+
+                  <div className="bg-purple-50 p-2 rounded-xl border border-purple-200/60">
+                    <span className="text-[9px] font-bold text-purple-700 uppercase block">Doc Ref (2.0x)</span>
+                    <span className="text-xs font-black text-purple-900">₹{test.doctor_referral_price || Math.round((test.walk_in_price || 0) * 2.0)}</span>
+                  </div>
                 </div>
 
                 <button
                   onClick={() => handleBookTest(test)}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl shadow-md shadow-blue-600/20 transition flex items-center gap-1.5"
+                  className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl shadow-md shadow-blue-600/20 transition flex items-center justify-center gap-1.5 cursor-pointer mt-2"
                 >
                   <CalendarPlus className="w-3.5 h-3.5" /> Book This Test
                 </button>

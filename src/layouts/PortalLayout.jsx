@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../providers/AuthProvider';
 import Sidebar from '../components/navigation/Sidebar';
 import InteractiveSearchBar from '../components/common/InteractiveSearchBar';
+import { AIChatbotModal } from '../components/common/AIChatbotModal';
 import {
   Search,
   Bell,
@@ -17,6 +18,7 @@ import {
   Shield,
   LogOut,
   Sparkles,
+  Bot,
 } from 'lucide-react';
 
 export const PortalLayout = () => {
@@ -29,6 +31,9 @@ export const PortalLayout = () => {
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+
+
 
   // Notifications list (starts empty for clean user session)
   const [notifications, setNotifications] = useState([]);
@@ -278,8 +283,28 @@ export const PortalLayout = () => {
           <Outlet />
         </main>
       </div>
+
+      {/* Floating AI Assistant Launcher Button */}
+      {!isChatbotOpen && (
+        <button
+          onClick={() => setIsChatbotOpen(true)}
+          className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white p-3.5 rounded-full shadow-2xl flex items-center gap-2.5 transition-all hover:scale-105 border-2 border-white/20 group cursor-pointer"
+          title="Open LifeLong AI Health Assistant"
+        >
+          <div className="relative">
+            <Bot className="w-6 h-6 text-white" />
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full animate-ping"></span>
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full"></span>
+          </div>
+          <span className="text-xs font-black pr-1 hidden sm:inline tracking-wide">Ask LifeLong AI</span>
+        </button>
+      )}
+
+      {/* AI Chatbot Modal */}
+      <AIChatbotModal isOpen={isChatbotOpen} onClose={() => setIsChatbotOpen(false)} />
     </div>
   );
 };
+
 
 export default PortalLayout;
