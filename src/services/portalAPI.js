@@ -54,6 +54,14 @@ const portalAPI = {
     return data;
   },
 
+  payInvoice: async (invoiceId, paymentMethod = 'UPI') => {
+    const { data } = await api.post(`/api/portal/invoices/${invoiceId}/pay/`, {
+      payment_method: paymentMethod,
+    });
+    return data;
+  },
+
+
   // ── Reports ──────────────────────────────────────────────────────────
   getReports: async () => {
     const { data } = await api.get('/api/portal/reports/');

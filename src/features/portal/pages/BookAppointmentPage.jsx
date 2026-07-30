@@ -521,9 +521,9 @@ export const BookAppointmentPage = () => {
                   <div
                     key={test.id}
                     onClick={() => toggleTestSelection(test)}
-                    className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 transition-all cursor-pointer ${
+                    className={`p-3.5 rounded-2xl border transition-all cursor-pointer ${
                       isSelected
-                        ? 'border-blue-500 bg-blue-50/70 ring-2 ring-blue-500 shadow-sm'
+                        ? 'border-2 border-blue-600 bg-blue-50/80 shadow-md'
                         : 'border-slate-200 bg-slate-50 hover:bg-slate-100/80 hover:border-slate-300'
                     }`}
                   >
@@ -544,7 +544,7 @@ export const BookAppointmentPage = () => {
                         type="button"
                         className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 shadow-sm cursor-pointer ${
                           isSelected
-                            ? 'bg-blue-600 text-white shadow-blue-600/25 font-black ring-2 ring-blue-500'
+                            ? 'bg-blue-600 text-white shadow-blue-600/25 font-black'
                             : 'bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white border border-blue-200/80 font-bold'
                         }`}
                       >

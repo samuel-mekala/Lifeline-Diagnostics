@@ -231,33 +231,8 @@ const DEFAULT_REPORTS = [
   },
 ];
 
-const DEFAULT_TICKETS = [
-  {
-    id: 'TCK-1092',
-    subject: 'Home collection time slot reschedule inquiry',
-    category: 'Home Collection',
-    priority: 'Medium',
-    status: 'OPEN',
-    created_at: '2026-07-28T11:00:00Z',
-    updated_at: '2026-07-28T14:20:00Z',
-    messages: [
-      {
-        id: 'msg-1',
-        sender: 'PATIENT',
-        sender_name: 'Rahul Sharma',
-        text: 'Hello, can I shift my home collection slot tomorrow from 08:30 AM to 09:30 AM if possible?',
-        timestamp: '2026-07-28T11:00:00Z',
-      },
-      {
-        id: 'msg-2',
-        sender: 'STAFF',
-        sender_name: 'Life Line Care Support (Priya)',
-        text: 'Greetings Mr. Rahul. We have notified our phlebotomist Anil Kumar. He will call you 30 minutes prior to arrival at 09:00 AM.',
-        timestamp: '2026-07-28T14:20:00Z',
-      },
-    ],
-  },
-];
+const DEFAULT_TICKETS = [];
+
 
 // Helper functions for LocalStorage management
 const loadStore = (key, defaultData) => {
@@ -328,7 +303,11 @@ export const PortalDataStore = {
   },
   saveReports: (data) => saveStore(STORAGE_KEYS.REPORTS, data),
 
-  getTickets: () => loadStore(STORAGE_KEYS.TICKETS, DEFAULT_TICKETS),
+  getTickets: () => {
+    const list = loadStore(STORAGE_KEYS.TICKETS, DEFAULT_TICKETS);
+    return list.filter((t) => t.id !== 'TCK-1092');
+  },
+
   saveTickets: (data) => saveStore(STORAGE_KEYS.TICKETS, data),
 
   // Method to create a complete new booking with linked invoice & appointment and sync to Operations Workstations

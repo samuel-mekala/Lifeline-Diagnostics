@@ -38,14 +38,21 @@ export const MyInvoicesPage = () => {
     if (user) refreshInvoices();
   }, [user]);
 
-  const handlePayInvoice = (e) => {
+  const handlePayInvoice = async (e) => {
     e.preventDefault();
-    // Payment for PAY_LATER invoices is collected by staff (receptionist/technician)
-    // This modal is view-only for patients — show info message
-    setPaymentSuccessMsg('To pay a pending invoice, please contact our reception desk or your assigned technician.');
-    setPayingInvoice(null);
-    setTimeout(() => setPaymentSuccessMsg(''), 6000);
+    if (!payingInvoice) return;
+    try {
+      const invId = payingInvoice.invoice_id || payingInvoice.invoice_number;
+      const res = await portalAPI.payInvoice(invId, paymentMethod);
+      setPaymentSuccessMsg(res.message || `Payment of ₹${payingInvoice.total_amount} confirmed successfully via ${paymentMethod}!`);
+      setPayingInvoice(null);
+      await refreshInvoices();
+      setTimeout(() => setPaymentSuccessMsg(''), 6000);
+    } catch (err) {
+      alert(err.response?.data?.error || err.message || 'Payment failed. Please try again.');
+    }
   };
+
 
   const filteredInvoices = invoices.filter((i) =>
     (i.invoice_id || '').toLowerCase().includes(searchQuery.toLowerCase()) ||

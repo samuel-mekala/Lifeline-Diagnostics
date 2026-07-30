@@ -504,3 +504,63 @@ class PortalPackageCatalogAPIView(APIView):
                 "tests": tests_in_pkg,
             })
         return Response(result)
+
+
+# ─────────────────────────────────────────────
+# INVOICE PAYMENT (Pay Online)
+# ─────────────────────────────────────────────
+
+class PortalPayInvoiceAPIView(APIView):
+    permission_classes = [PatientSelfPermission]
+
+    def post(self, request, invoice_id):
+        patient = get_patient_for_user(request.user)
+        if not patient:
+            return Response({"error": "Patient profile not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            invoice = Invoice.objects.get(invoice_id=invoice_id, visit__patient=patient)
+        except Invoice.DoesNotExist:
+            return Response({"error": f"Invoice '{invoice_id}' not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        payment_method = request.data.get("payment_method", "UPI").upper()
+
+        try:
+            with transaction.atomic():
+                from billing.models import Payment
+                # Mark Invoice as PAID
+                invoice.amount_paid = invoice.total_amount
+                invoice.balance_due = 0
+                invoice.status = Invoice.Status.PAID
+                invoice.save()
+
+                # Create Payment Record
+                pm_id = generate_business_id(Payment, "payment_id", "PAY")
+                Payment.objects.create(
+                    payment_id=pm_id,
+                    invoice=invoice,
+                    amount=invoice.total_amount,
+                    payment_method=payment_method if payment_method in ("UPI", "CARD", "CASH") else "UPI",
+                    status="SUCCESS",
+                )
+
+                # Update linked Appointment payment_status if exists
+                try:
+                    apt = invoice.visit.appointment
+                    if apt:
+                        apt.payment_status = "PAID"
+                        apt.save(update_fields=["payment_status"])
+                except Exception:
+                    pass
+
+            return Response({
+                "success": True,
+                "invoice_id": invoice.invoice_id,
+                "status": invoice.status,
+                "amount_paid": float(invoice.amount_paid),
+                "message": f"Payment of ₹{invoice.total_amount} confirmed successfully via {payment_method}!",
+            }, status=status.HTTP_200_OK)
+
+        except Exception as exc:
+            return Response({"error": str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+

@@ -12,8 +12,10 @@ urlpatterns = [
     path("appointments/", views.PortalAppointmentListAPIView.as_view(), name="portal-appointments"),
     path("book/", views.PortalBookAppointmentAPIView.as_view(), name="portal-book"),
 
-    # Invoices
+    # Invoices & Payments
     path("invoices/", views.PortalInvoiceListAPIView.as_view(), name="portal-invoices"),
+    path("invoices/<str:invoice_id>/pay/", views.PortalPayInvoiceAPIView.as_view(), name="portal-invoice-pay"),
+
 
     # Reports
     path("reports/", views.PortalReportListAPIView.as_view(), name="portal-reports"),

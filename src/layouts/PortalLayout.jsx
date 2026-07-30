@@ -30,33 +30,9 @@ export const PortalLayout = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
-  // Mock Notifications for LIMS workflow updates
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: 'Report Approved & Published',
-      message: 'Complete Blood Picture (CBC) report for Rahul Sharma is now published.',
-      time: '10 mins ago',
-      type: 'success',
-      unread: true,
-    },
-    {
-      id: 2,
-      title: 'New Sample Collected',
-      message: 'Sample SAM-88402 collected for Home Visit #204.',
-      time: '45 mins ago',
-      type: 'info',
-      unread: true,
-    },
-    {
-      id: 3,
-      title: 'Low Reagent Alert',
-      message: 'HbA1c Testing Reagent Kit stock is below reorder threshold.',
-      time: '2 hours ago',
-      type: 'warning',
-      unread: false,
-    },
-  ]);
+  // Notifications list (starts empty for clean user session)
+  const [notifications, setNotifications] = useState([]);
+
 
   const unreadCount = notifications.filter((n) => n.unread).length;
 
