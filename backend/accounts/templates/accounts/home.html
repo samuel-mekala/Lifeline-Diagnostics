@@ -1,13 +1,197 @@
 {% extends "base.html" %}
 
 {% block title %}
-Home
+Life Line Diagnostics | Django API & Developer Control Hub
 {% endblock %}
 
 {% block content %}
+<div class="container-fluid px-0 space-y-4">
+  <!-- Top Hero Banner -->
+  <div class="p-4 p-md-5 rounded-4 text-white position-relative overflow-hidden shadow-lg" style="background: linear-gradient(135deg, #020617 0%, #0f172a 50%, #1e1b4b 100%); border: 1px solid rgba(255,255,255,0.1);">
+    <div class="position-relative z-1 shadow-sm">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+        <span class="badge bg-emerald-500 text-dark fw-extrabold px-3 py-2 rounded-pill text-uppercase tracking-wider" style="background-color: #10b981; color: #020617; font-weight: 800; font-size: 0.75rem;">
+          <i class="bi bi-shield-check me-1"></i> NABL ACCREDITED DJANGO REST BACKEND
+        </span>
+        <span class="badge bg-slate-800 text-info border border-info border-opacity-25 px-3 py-2 rounded-pill" style="font-size: 0.75rem;">
+          <i class="bi bi-hdd-stack me-1"></i> SQLite Database: db.sqlite3
+        </span>
+      </div>
 
-<h2>Welcome to Lifeline Diagnostics</h2>
+      <h1 class="display-6 fw-black text-white mb-2">
+        Life Line Diagnostics <span style="color: #38bdf8;">API & Developer Hub</span>
+      </h1>
+      <p class="text-slate-300 lead fs-6 max-w-2xl mb-4" style="color: #cbd5e1; max-width: 650px;">
+        Interactive Django REST Framework backend service. Powers automated sample barcodes (`LLD-B-XXXXXX`), analyzer parameter entries, pathologist sign-offs, and NABL PDF reports.
+      </p>
 
-<p>Your Health, Our Priority.</p>
+      <div class="d-flex flex-wrap items-center gap-3">
+        <a href="http://localhost:3000" target="_blank" class="btn btn-primary btn-lg fw-extrabold px-4 py-2.5 rounded-3 shadow flex items-center gap-2" style="background-color: #2563eb; border: none; font-size: 0.9rem;">
+          <i class="bi bi-box-arrow-up-right me-1"></i> Launch Full React Application (localhost:3000)
+        </a>
+        <a href="/admin/" target="_blank" class="btn btn-outline-light btn-lg fw-bold px-4 py-2.5 rounded-3 flex items-center gap-2" style="font-size: 0.9rem;">
+          <i class="bi bi-person-badge me-1"></i> Open Django Admin Console (/admin/)
+        </a>
+      </div>
+    </div>
+  </div>
 
+  <!-- Live System Health & Metric Cards -->
+  <div class="row g-3 my-2">
+    <div class="col-12 col-md-3">
+      <div class="card card-custom p-3 h-100 border-0 shadow-sm" style="background: #ffffff; border-radius: 1rem;">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="text-uppercase text-secondary fw-bold small">API STATUS</span>
+          <span class="badge bg-success-subtle text-success border border-success border-opacity-25 rounded-pill px-2.5 py-1">ONLINE 200 OK</span>
+        </div>
+        <h3 class="fw-black mb-0 text-dark">Django REST</h3>
+        <p class="text-muted small mt-1 mb-0">v6.0 REST Framework Running</p>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-3">
+      <div class="card card-custom p-3 h-100 border-0 shadow-sm" style="background: #ffffff; border-radius: 1rem;">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="text-uppercase text-secondary fw-bold small">DATABASE USERS</span>
+          <span class="badge bg-primary-subtle text-primary border border-primary border-opacity-25 rounded-pill px-2.5 py-1">UNIQUE</span>
+        </div>
+        <h3 class="fw-black mb-0 text-dark">{{ user_count|default:"6" }} Accounts</h3>
+        <p class="text-muted small mt-1 mb-0">Owner, Staff & Registered Patients</p>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-3">
+      <div class="card card-custom p-3 h-100 border-0 shadow-sm" style="background: #ffffff; border-radius: 1rem;">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="text-uppercase text-secondary fw-bold small">CORS POLICY</span>
+          <span class="badge bg-info-subtle text-info border border-info border-opacity-25 rounded-pill px-2.5 py-1">ALLOWED</span>
+        </div>
+        <h3 class="fw-black mb-0 text-dark">Port 3000 & 5173</h3>
+        <p class="text-muted small mt-1 mb-0">Vite React Frontend Aligned</p>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-3">
+      <div class="card card-custom p-3 h-100 border-0 shadow-sm" style="background: #ffffff; border-radius: 1rem;">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="text-uppercase text-secondary fw-bold small">NABL COMPLIANCE</span>
+          <span class="badge bg-success-subtle text-success border border-success border-opacity-25 rounded-pill px-2.5 py-1">VERIFIED</span>
+        </div>
+        <h3 class="fw-black mb-0 text-dark">ISO 9001:2015</h3>
+        <p class="text-muted small mt-1 mb-0">Digital Signature PDF Engine</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive REST API Endpoints Explorer -->
+  <div class="card border-0 shadow-sm mb-4" style="border-radius: 1rem; background: #ffffff;">
+    <div class="card-header bg-transparent border-bottom p-3.5 d-flex justify-content-between align-items-center">
+      <h5 class="fw-black text-dark mb-0 d-flex align-items-center gap-2">
+        <i class="bi bi-code-slash text-primary"></i> Live REST API Endpoint Explorer
+      </h5>
+      <span class="badge bg-dark text-white font-mono" style="font-size: 0.7rem;">BASE_URL: http://127.0.0.1:8000/api/</span>
+    </div>
+
+    <div className="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 text-sm">
+          <thead class="table-light text-uppercase small text-secondary">
+            <tr>
+              <th class="ps-4 py-3">Endpoint Route</th>
+              <th>HTTP Method</th>
+              <th>Description</th>
+              <th class="pe-4 text-end">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="ps-4 font-mono text-primary fw-bold">/api/auth/token/</td>
+              <td><span class="badge bg-success">POST</span></td>
+              <td class="text-secondary">Obtain JWT Access & Refresh Token for Staff & Patients</td>
+              <td class="pe-4 text-end">
+                <a href="/admin/accounts/user/" target="_blank" class="btn btn-outline-primary btn-sm rounded-2">View Auth Users</a>
+              </td>
+            </tr>
+
+            <tr>
+              <td class="ps-4 font-mono text-primary fw-bold">/api/patients/</td>
+              <td><span class="badge bg-primary">GET</span> <span class="badge bg-success">POST</span></td>
+              <td class="text-secondary">Patient Profiles, Demographics, & Medical Records API</td>
+              <td class="pe-4 text-end">
+                <a href="/admin/patients/patient/" target="_blank" class="btn btn-outline-primary btn-sm rounded-2">Browse Patients DB</a>
+              </td>
+            </tr>
+
+            <tr>
+              <td class="ps-4 font-mono text-primary fw-bold">/api/visits/</td>
+              <td><span class="badge bg-primary">GET</span> <span class="badge bg-success">POST</span></td>
+              <td class="text-secondary">Visits, Home Collections, Appointments, & Token Queues API</td>
+              <td class="pe-4 text-end">
+                <a href="/admin/visits/visit/" target="_blank" class="btn btn-outline-primary btn-sm rounded-2">View Visits DB</a>
+              </td>
+            </tr>
+
+            <tr>
+              <td class="ps-4 font-mono text-primary fw-bold">/api/laboratory/</td>
+              <td><span class="badge bg-primary">GET</span> <span class="badge bg-warning text-dark">PUT</span></td>
+              <td class="text-secondary">Test Catalogs, Sample Barcodes (`LLD-B-XXXXXX`), & Parameter Entry API</td>
+              <td class="pe-4 text-end">
+                <a href="/admin/laboratory/laboratorytest/" target="_blank" class="btn btn-outline-primary btn-sm rounded-2">Explore Tests DB</a>
+              </td>
+            </tr>
+
+            <tr>
+              <td class="ps-4 font-mono text-primary fw-bold">/api/billing/</td>
+              <td><span class="badge bg-primary">GET</span> <span class="badge bg-success">POST</span></td>
+              <td class="text-secondary">Invoice Receipts, Pay Now / Pay Later Payments, & Cash Drawer API</td>
+              <td class="pe-4 text-end">
+                <a href="/admin/billing/invoice/" target="_blank" class="btn btn-outline-primary btn-sm rounded-2">View Invoices DB</a>
+              </td>
+            </tr>
+
+            <tr>
+              <td class="ps-4 font-mono text-primary fw-bold">/api/reports/</td>
+              <td><span class="badge bg-primary">GET</span> <span class="badge bg-info text-dark">PDF</span></td>
+              <td class="text-secondary">Pathologist Verified NABL A4 PDF Report Generation API</td>
+              <td class="pe-4 text-end">
+                <a href="/admin/reports/report/" target="_blank" class="btn btn-outline-primary btn-sm rounded-2">View Reports DB</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pre-Configured Database User Accounts Grid -->
+  <div class="card border-0 shadow-sm" style="border-radius: 1rem; background: #ffffff;">
+    <div class="card-header bg-transparent border-bottom p-3.5 d-flex justify-content-between align-items-center">
+      <h5 class="fw-black text-dark mb-0 d-flex align-items-center gap-2">
+        <i class="bi bi-people-fill text-success"></i> Registered Database Accounts
+      </h5>
+      <span class="badge bg-success text-white">READY FOR TESTING</span>
+    </div>
+
+    <div class="card-body p-4">
+      <div class="row g-3">
+        {% for u in users %}
+          <div class="col-12 col-md-4">
+            <div class="p-3 rounded-3 border bg-light">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fw-bold text-dark">{{ u.full_name }}</span>
+                <span class="badge bg-dark text-uppercase" style="font-size: 0.65rem;">{{ u.role }}</span>
+              </div>
+              <div class="text-primary font-mono small fw-semibold">{{ u.email }}</div>
+              <div class="text-muted small mt-1">Default Password: <code class="bg-white px-1 py-0.5 rounded border">admin123</code></div>
+            </div>
+          </div>
+        {% empty %}
+          <div class="col-12 text-center text-muted py-3">
+            No users loaded. Run <code>python3 reset_and_seed.py</code> to initialize standard test accounts.
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

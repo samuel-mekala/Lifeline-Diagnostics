@@ -30,7 +30,12 @@ from accounts.throttles import OTPRequestEmailThrottle, OTPRequestIPThrottle
 # Create your views here.
 
 def home(request):
-    return render(request, "accounts/home.html")
+    user_count = User.objects.count()
+    users = User.objects.all().order_by('id')
+    return render(request, "accounts/home.html", {
+        "user_count": user_count,
+        "users": users,
+    })
 
 
 class LifelineTokenObtainPairView(TokenObtainPairView):
