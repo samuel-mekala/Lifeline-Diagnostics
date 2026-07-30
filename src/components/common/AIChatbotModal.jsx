@@ -159,7 +159,7 @@ export const AIChatbotModal = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 max-w-md w-full bg-slate-900 text-white rounded-3xl shadow-2xl border border-slate-700/80 flex flex-col overflow-hidden h-[540px]">
+    <div className="fixed bottom-3 right-3 left-3 sm:left-auto sm:right-6 sm:max-w-md sm:w-full z-50 bg-slate-900 text-white rounded-3xl shadow-2xl border border-slate-700/80 flex flex-col overflow-hidden h-[80vh] max-h-[560px] sm:h-[540px]">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-900 via-slate-900 to-slate-900 p-4 border-b border-slate-800 flex items-center justify-between">
         <div className="flex items-center gap-3">

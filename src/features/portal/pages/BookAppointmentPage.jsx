@@ -905,7 +905,7 @@ export const BookAppointmentPage = () => {
                   <p className="text-[11px] font-bold uppercase tracking-wider text-slate-700">
                     Select Online Payment Gateway Option
                   </p>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                     {[
                       { id: 'UPI', label: 'UPI (GPay/PhonePe)', icon: '⚡' },
                       { id: 'CARD', label: 'Debit/Credit Card', icon: '💳' },
