@@ -24,6 +24,15 @@ import {
   UserCheck,
 } from 'lucide-react';
 
+const capitalizeName = (str) => {
+  if (!str) return 'Patient';
+  return str
+    .split(' ')
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ');
+};
+
 export const PatientDashboardPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -86,7 +95,7 @@ export const PatientDashboardPage = () => {
               <span className="text-xs text-blue-200">Ref: {user?.patient_id || 'PAT-009842'}</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              Good day, {user?.full_name || 'Rahul Sharma'}
+              Good day, {capitalizeName(user?.full_name)}
             </h1>
             <p className="text-sm text-blue-100 mt-1.5 max-w-xl leading-relaxed">
               Welcome to Life Line Diagnostics. Easily track your laboratory test results, manage home collection visits, and book diagnostic health checkups.

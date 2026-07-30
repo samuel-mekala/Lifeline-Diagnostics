@@ -281,7 +281,11 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
                   {user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'U'}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-bold text-white truncate leading-tight">{user?.full_name || 'Active User'}</p>
+                  <p className="text-xs font-bold text-white truncate leading-tight">
+                    {user?.full_name
+                      ? user.full_name.split(' ').map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ')
+                      : 'Active User'}
+                  </p>
                   <p className="text-[10px] text-slate-400 truncate leading-tight mt-0.5">{user?.email}</p>
                   <div className="mt-1">
                     <span className={`inline-block text-[9px] px-2 py-0.5 rounded border font-extrabold tracking-wider uppercase ${getRoleBadgeStyle(role)}`}>

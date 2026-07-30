@@ -34,6 +34,15 @@ export const PortalLayout = () => {
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   const [showTooltip, setShowTooltip] = useState(true);
 
+  // Auto-dismiss the floating speech bubble after 6 seconds for cleaner UX
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowTooltip(false);
+    }, 6000);
+    return () => clearTimeout(timer);
+  }, []);
+
+
 
 
 
@@ -216,7 +225,11 @@ export const PortalLayout = () => {
                   {user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'U'}
                 </div>
                 <div className="text-left hidden sm:block">
-                  <p className="text-xs font-bold text-slate-900 truncate max-w-[120px]">{user?.full_name || 'User'}</p>
+                  <p className="text-xs font-bold text-slate-900 truncate max-w-[120px]">
+                    {user?.full_name
+                      ? user.full_name.split(' ').map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ')
+                      : 'User'}
+                  </p>
                   <p className="text-[10px] text-slate-500 font-semibold uppercase">{user?.role || 'Patient'}</p>
                 </div>
               </button>
@@ -225,7 +238,11 @@ export const PortalLayout = () => {
               {showUserMenu && (
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-200 z-50 p-2">
                   <div className="px-3 py-2 border-b border-slate-100 mb-1">
-                    <p className="text-xs font-bold text-slate-900">{user?.full_name}</p>
+                    <p className="text-xs font-bold text-slate-900">
+                      {user?.full_name
+                        ? user.full_name.split(' ').map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ')
+                        : 'User'}
+                    </p>
                     <p className="text-[11px] text-slate-500 truncate">{user?.email}</p>
                     <span className="inline-block mt-1 text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
                       Role: {user?.role}
