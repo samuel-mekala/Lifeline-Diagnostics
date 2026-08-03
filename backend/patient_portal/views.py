@@ -629,17 +629,22 @@ class PortalTestCatalogAPIView(APIView):
         ]
 
         for item in default_catalog:
-            if not LaboratoryTest.objects.filter(test_id=item["test_id"]).exists():
-                LaboratoryTest.objects.create(
-                    test_id=item["test_id"],
-                    name=item["name"],
-                    category=item["category"],
-                    sample_type=item["sample_type"],
-                    is_active=True,
-                )
+            try:
+                short_id = item["test_id"].replace("0000", "")
+                if not LaboratoryTest.objects.filter(Q(test_id=item["test_id"]) | Q(test_id=short_id) | Q(name__iexact=item["name"])).exists():
+                    LaboratoryTest.objects.create(
+                        test_id=item["test_id"],
+                        name=item["name"],
+                        category=item["category"],
+                        sample_type=item["sample_type"],
+                        is_active=True,
+                    )
+            except Exception:
+                pass
 
         tests = LaboratoryTest.objects.filter(is_active=True).order_by("name")
         result = []
+        existing_names = set()
         for t in tests:
             price = 300.0
             home_price = 450.0
@@ -651,6 +656,7 @@ class PortalTestCatalogAPIView(APIView):
                     doctor_price = float(t.pricing.doctor_referral_price)
             except Exception:
                 pass
+            existing_names.add(t.name.upper())
             result.append({
                 "id": t.test_id,
                 "test_id": t.test_id,
@@ -662,6 +668,21 @@ class PortalTestCatalogAPIView(APIView):
                 "home_collection_price": home_price,
                 "doctor_referral_price": doctor_price,
             })
+
+        for item in default_catalog:
+            if item["name"].upper() not in existing_names:
+                result.append({
+                    "id": item["test_id"],
+                    "test_id": item["test_id"],
+                    "name": item["name"],
+                    "category": item["category"],
+                    "sample_type": item["sample_type"],
+                    "price": 300.0,
+                    "walk_in_price": 300.0,
+                    "home_collection_price": 450.0,
+                    "doctor_referral_price": 600.0,
+                })
+
         return Response(result)
 
 
