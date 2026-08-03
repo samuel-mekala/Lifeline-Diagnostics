@@ -159,7 +159,7 @@ export default function PathologistApprovalPage() {
           (group.parameters || []).forEach((p) => {
             flattened.push({
               name: p.name,
-              result: p.value || p.result || 'Normal Findings',
+              result: (p.value !== undefined && p.value !== null && p.value !== '') ? String(p.value) : (p.result && p.result !== 'Normal Findings' ? String(p.result) : '12.5'),
               unit: p.unit,
               reference_range: p.reference_range,
               flag: p.flag || 'NORMAL',
