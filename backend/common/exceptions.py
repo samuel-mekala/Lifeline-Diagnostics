@@ -69,7 +69,7 @@ def custom_exception_handler(exception, context):
                 "success": False,
                 "error": {
                     "type": "server_error",
-                    "message": "An unexpected server error occurred.",
+                    "message": f"Server Error: {type(exception).__name__}: {str(exception)}",
                 },
             },
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
