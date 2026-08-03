@@ -100,7 +100,9 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       const errData = err.response?.data;
       let detail = 'Invalid email or password. Please try again.';
-      if (typeof errData?.detail === 'string') {
+      if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+        detail = 'Server is waking up (Render Free Tier cold start). Please wait 10 seconds and click Sign In again!';
+      } else if (typeof errData?.detail === 'string') {
         detail = errData.detail;
       } else if (typeof errData?.error === 'string') {
         detail = errData.error;
