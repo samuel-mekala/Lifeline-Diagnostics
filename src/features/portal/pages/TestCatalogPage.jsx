@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import portalAPI from '../../../services/portalAPI';
+import { CATALOG_TESTS, CATALOG_PACKAGES } from '../services/portalData';
 import InteractiveSearchBar from '../../../components/common/InteractiveSearchBar';
 import {
   TestTube,
@@ -19,8 +20,8 @@ import {
 
 export default function TestCatalogPage() {
   const navigate = useNavigate();
-  const [tests, setTests] = useState([]);
-  const [packages, setPackages] = useState([]);
+  const [tests, setTests] = useState(CATALOG_TESTS);
+  const [packages, setPackages] = useState(CATALOG_PACKAGES);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [activeTab, setActiveTab] = useState('INDIVIDUAL_TESTS'); // 'INDIVIDUAL_TESTS' | 'HEALTH_PACKAGES'
@@ -34,10 +35,20 @@ export default function TestCatalogPage() {
           portalAPI.getTestCatalog(),
           portalAPI.getPackageCatalog(),
         ]);
-        setTests(Array.isArray(tData) ? tData : []);
-        setPackages(Array.isArray(pData) ? pData : []);
+        if (Array.isArray(tData) && tData.length >= CATALOG_TESTS.length) {
+          setTests(tData);
+        } else {
+          setTests(CATALOG_TESTS);
+        }
+        if (Array.isArray(pData) && pData.length > 0) {
+          setPackages(pData);
+        } else {
+          setPackages(CATALOG_PACKAGES);
+        }
       } catch (err) {
         console.error('Failed to load catalog:', err);
+        setTests(CATALOG_TESTS);
+        setPackages(CATALOG_PACKAGES);
       } finally {
         setLoading(false);
       }

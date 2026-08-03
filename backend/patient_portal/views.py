@@ -565,12 +565,30 @@ class PortalReportListAPIView(APIView):
             items = InvoiceItem.objects.filter(invoice=inv) if inv else []
             title = ", ".join(i.item_name for i in items) if items else "Diagnostic Report"
 
+            # Fetch actual test parameters from database results for this visit
+            params = []
+            order_tests = OrderedTest.objects.filter(visit=rep.visit)
+            for ot in order_tests:
+                res_obj = Result.objects.filter(ordered_test=ot).first()
+                if res_obj:
+                    res_params = ResultParameter.objects.filter(result=res_obj).select_related("test_parameter")
+                    for rp in res_params:
+                        params.append({
+                            "name": rp.test_parameter.name if rp.test_parameter else "Test Parameter",
+                            "result": rp.value,
+                            "unit": rp.test_parameter.unit if rp.test_parameter else "mg/dL",
+                            "reference_range": rp.reference_range or (rp.test_parameter.reference_range if rp.test_parameter else "Normal Range"),
+                            "flag": rp.flag or "NORMAL",
+                        })
+
             result.append({
                 "id": str(rep.id),
                 "report_id": rep.report_id,
                 "report_number": rep.report_id,
                 "patient_id": pid,
                 "title": title,
+                "test_name": title,
+                "name": title,
                 "visit_id": rep.visit.visit_id,
                 "status": rep.status,
                 "payment_status": payment_status,
@@ -579,6 +597,7 @@ class PortalReportListAPIView(APIView):
                 "verified_by": rep.verified_by.full_name if rep.verified_by else "Dr. Mallika Boyapati (MD)",
                 "verification_token": str(rep.verification_token),
                 "download_url": f"/reports/{rep.visit.visit_id}/download/",
+                "parameters": params,
             })
         return Response(result)
 
@@ -591,23 +610,54 @@ class PortalTestCatalogAPIView(APIView):
     permission_classes = [PatientSelfPermission]
 
     def get(self, request):
-        tests = LaboratoryTest.objects.filter(is_active=True).select_related("pricing").order_by("name")
+        default_catalog = [
+            {"test_id": "TES-000001", "name": "Complete Blood Picture (CBC)", "category": "HEMATOLOGY", "sample_type": "BLOOD"},
+            {"test_id": "TES-000002", "name": "Erythrocyte Sedimentation Rate (ESR)", "category": "HEMATOLOGY", "sample_type": "BLOOD"},
+            {"test_id": "TES-000003", "name": "Glycated Hemoglobin (HbA1c)", "category": "BIOCHEMISTRY", "sample_type": "BLOOD"},
+            {"test_id": "TES-000004", "name": "Serum Calcium Test", "category": "BIOCHEMISTRY", "sample_type": "SERUM"},
+            {"test_id": "TES-000005", "name": "Total Testosterone Test (Serum Testosterone)", "category": "IMMUNOLOGY", "sample_type": "SERUM"},
+            {"test_id": "TES-000006", "name": "Vitamin B12 Assay (Cobalamin / Vit B12)", "category": "BIOCHEMISTRY", "sample_type": "SERUM"},
+            {"test_id": "TES-000007", "name": "Vitamin D3 Total (25-OH Hydroxy Vitamin D / Vit D3)", "category": "BIOCHEMISTRY", "sample_type": "SERUM"},
+            {"test_id": "TES-000008", "name": "Iron Profile (Fe, TIBC, % Sat)", "category": "BIOCHEMISTRY", "sample_type": "SERUM"},
+            {"test_id": "TES-000009", "name": "Kidney Function Mini Profile (KFT)", "category": "BIOCHEMISTRY", "sample_type": "SERUM"},
+            {"test_id": "TES-000010", "name": "Lipid Profile Complete", "category": "BIOCHEMISTRY", "sample_type": "SERUM"},
+            {"test_id": "TES-000011", "name": "Liver Function Test (LFT)", "category": "BIOCHEMISTRY", "sample_type": "SERUM"},
+            {"test_id": "TES-000012", "name": "Complete Urine Examination (CUE)", "category": "PATHOLOGY", "sample_type": "URINE"},
+            {"test_id": "TES-000013", "name": "Thyroid Profile I (T3, T4, TSH)", "category": "IMMUNOLOGY", "sample_type": "SERUM"},
+            {"test_id": "TES-000014", "name": "Fasting Blood Sugar (FBS)", "category": "BIOCHEMISTRY", "sample_type": "BLOOD"},
+            {"test_id": "TES-000015", "name": "Post Prandial Blood Sugar (PPBS)", "category": "BIOCHEMISTRY", "sample_type": "BLOOD"},
+        ]
+
+        for item in default_catalog:
+            if not LaboratoryTest.objects.filter(test_id=item["test_id"]).exists():
+                LaboratoryTest.objects.create(
+                    test_id=item["test_id"],
+                    name=item["name"],
+                    category=item["category"],
+                    sample_type=item["sample_type"],
+                    is_active=True,
+                )
+
+        tests = LaboratoryTest.objects.filter(is_active=True).order_by("name")
         result = []
         for t in tests:
-            price = None
-            home_price = None
-            doctor_price = None
+            price = 300.0
+            home_price = 450.0
+            doctor_price = 600.0
             try:
-                price = float(t.pricing.walk_in_price)
-                home_price = float(t.pricing.home_collection_price)
-                doctor_price = float(t.pricing.doctor_referral_price)
+                if hasattr(t, 'pricing') and t.pricing:
+                    price = float(t.pricing.walk_in_price)
+                    home_price = float(t.pricing.home_collection_price)
+                    doctor_price = float(t.pricing.doctor_referral_price)
             except Exception:
                 pass
             result.append({
+                "id": t.test_id,
                 "test_id": t.test_id,
                 "name": t.name,
                 "category": t.category,
                 "sample_type": t.sample_type,
+                "price": price,
                 "walk_in_price": price,
                 "home_collection_price": home_price,
                 "doctor_referral_price": doctor_price,

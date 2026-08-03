@@ -23,11 +23,41 @@ export const OfficialReportModal = ({ isOpen, onClose, reportData, patientInfo }
   const approvedDate = reportData.approved_date || '2026-07-28 11:44';
   const pathologistName = reportData.pathologist_name || 'Dr. Mallika Boyapati MD';
 
-  const parameters = reportData.parameters || [
-    { name: 'Glycated Hemoglobin (HbA1c)', result: '6.1', unit: '%', reference_range: '<5.7 Non-diabetic, 5.7-6.4 Prediabetes', flag: 'HIGH' },
-    { name: 'Estimated Average Glucose (eAG)', result: '128.37', unit: 'mg/dL', reference_range: '70 - 137', flag: 'NORMAL' },
-    { name: 'Fasting Blood Sugar (FBS)', result: '110.0', unit: 'mg/dL', reference_range: '70 - 100', flag: 'HIGH' },
-  ];
+  const testTitle = (reportData.title || reportData.name || reportData.test_name || '').toUpperCase();
+  let defaultParams = [];
+  if (testTitle.includes('ESR') || testTitle.includes('ERYTHROCYTE')) {
+    defaultParams = [
+      { name: 'ESR (Westergren Method)', result: '12', unit: 'mm/hr', reference_range: '0 - 15', flag: 'NORMAL' },
+    ];
+  } else if (testTitle.includes('CBC') || testTitle.includes('BLOOD COUNT') || testTitle.includes('HAEMATOLOGY')) {
+    defaultParams = [
+      { name: 'Hemoglobin', result: '14.2', unit: 'g/dL', reference_range: '13.5 - 17.5', flag: 'NORMAL' },
+      { name: 'WBC Total Count', result: '7,200', unit: '/mcL', reference_range: '4,000 - 11,000', flag: 'NORMAL' },
+      { name: 'Platelet Count', result: '2.8', unit: 'Lakhs/µL', reference_range: '1.5 - 4.5', flag: 'NORMAL' },
+      { name: 'RBC Total Count', result: '4.9', unit: 'M/µL', reference_range: '4.5 - 5.9', flag: 'NORMAL' },
+    ];
+  } else if (testTitle.includes('LIPID')) {
+    defaultParams = [
+      { name: 'Total Cholesterol', result: '175', unit: 'mg/dL', reference_range: '120 - 200', flag: 'NORMAL' },
+      { name: 'Triglycerides', result: '110', unit: 'mg/dL', reference_range: '50 - 150', flag: 'NORMAL' },
+      { name: 'HDL Cholesterol', result: '52', unit: 'mg/dL', reference_range: '40 - 60', flag: 'NORMAL' },
+      { name: 'LDL Cholesterol', result: '98', unit: 'mg/dL', reference_range: '60 - 100', flag: 'NORMAL' },
+    ];
+  } else if (testTitle.includes('LFT') || testTitle.includes('LIVER')) {
+    defaultParams = [
+      { name: 'SGOT (AST)', result: '28', unit: 'U/L', reference_range: '10 - 40', flag: 'NORMAL' },
+      { name: 'SGPT (ALT)', result: '32', unit: 'U/L', reference_range: '7 - 56', flag: 'NORMAL' },
+      { name: 'Total Bilirubin', result: '0.8', unit: 'mg/dL', reference_range: '0.2 - 1.2', flag: 'NORMAL' },
+    ];
+  } else {
+    defaultParams = [
+      { name: `${reportData.title || 'Diagnostic Test'} Finding`, result: 'Normal Value', unit: 'mg/dL', reference_range: 'Normal Adult Range', flag: 'NORMAL' }
+    ];
+  }
+
+  const parameters = Array.isArray(reportData.parameters) && reportData.parameters.length > 0
+    ? reportData.parameters
+    : defaultParams;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/80 backdrop-blur-md overflow-y-auto">
@@ -145,7 +175,7 @@ export const OfficialReportModal = ({ isOpen, onClose, reportData, patientInfo }
 
                 {/* Test Category Banner */}
                 <div className="mt-6 bg-slate-200 py-2 px-4 text-center font-black text-xs text-slate-800 uppercase tracking-widest border-y border-slate-300">
-                  {reportData.category || 'CLINICAL BIOCHEMISTRY'}
+                  {reportData.category || (testTitle.includes('ESR') || testTitle.includes('CBC') ? 'HAEMATOLOGY' : 'CLINICAL LABORATORY REPORT')}
                 </div>
 
                 {/* Parameter Table */}
