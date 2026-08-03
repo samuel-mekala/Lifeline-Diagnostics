@@ -60,6 +60,7 @@ def get_patient_for_user(user):
                 linked_user=user,
                 full_name=user_name,
                 email=user.email,
+                date_of_birth="1995-01-01",
                 gender="M",
                 phone="+91 96033 48519",
                 address="Vijayawada, Andhra Pradesh",
