@@ -202,16 +202,27 @@ export const BookAppointmentPage = () => {
       const res = await portalAPI.bookAppointment(payload);
       setBookingSuccess({
         appointment: {
-          appointment_number: res.visit_id || res.appointment_id,
+          appointment_number: String(res.visit_id || res.appointment_id || 'VIS-0001'),
         },
         invoice: {
-          invoice_number: res.invoice_id,
+          invoice_number: String(res.invoice_id || 'INV-0001'),
         },
-        total_amount: res.total_amount,
-        payment_status: res.payment_status,
+        total_amount: res.total_amount || totalAmount,
+        payment_status: res.payment_status || 'PENDING',
       });
     } catch (err) {
-      setError(err.response?.data?.error || err.message || 'Failed to complete appointment booking. Please try again.');
+      let errMsg = 'Failed to complete appointment booking. Please try again.';
+      const errData = err.response?.data;
+      if (typeof errData?.error === 'string') {
+        errMsg = errData.error;
+      } else if (typeof errData?.error?.message === 'string') {
+        errMsg = errData.error.message;
+      } else if (typeof errData?.detail === 'string') {
+        errMsg = errData.detail;
+      } else if (typeof err?.message === 'string') {
+        errMsg = err.message;
+      }
+      setError(String(errMsg));
     } finally {
       setLoading(false);
     }
@@ -338,7 +349,9 @@ export const BookAppointmentPage = () => {
       {error && (
         <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl flex items-start gap-3">
           <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-          <div className="text-xs font-medium text-red-700">{error}</div>
+          <div className="text-xs font-medium text-red-700">
+            {typeof error === 'object' ? (error.message || JSON.stringify(error)) : String(error)}
+          </div>
         </div>
       )}
 
