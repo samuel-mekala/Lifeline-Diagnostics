@@ -226,6 +226,7 @@ class PortalBookAppointmentAPIView(APIView):
                 linked_user=request.user,
                 full_name=user_name,
                 email=request.user.email,
+                date_of_birth="1995-01-01",
                 gender="M",
                 phone="+91 96033 48519",
                 address="Vijayawada, Andhra Pradesh",

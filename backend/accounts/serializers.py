@@ -56,6 +56,7 @@ class LifelineTokenObtainPairSerializer(TokenObtainPairSerializer):
                         linked_user=user,
                         full_name=user.full_name or user.email.split('@')[0].capitalize(),
                         email=user.email,
+                        date_of_birth="1995-01-01",
                         gender="M",
                         phone="+91 96033 48519",
                         address="Vijayawada, Andhra Pradesh",
