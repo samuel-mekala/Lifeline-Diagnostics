@@ -32,6 +32,7 @@ from laboratory.models import LaboratoryTest, Package, TestPrice, PackagePrice, 
 from common.services.id_generator import generate_business_id
 from notifications.services import get_notification_service
 
+from decimal import Decimal
 import datetime
 import uuid as uuid_module
 
@@ -349,17 +350,17 @@ class PortalBookAppointmentAPIView(APIView):
                 appointment.save(update_fields=["visit"])
 
                 # 5. Calculate totals and create Invoice
-                subtotal = 0
+                subtotal = Decimal('0.00')
                 invoice_items = []
 
                 for t in tests:
                     try:
                         if collection_type == "HOME":
-                            price = float(t.pricing.home_collection_price)
+                            price = Decimal(str(t.pricing.home_collection_price))
                         else:
-                            price = float(t.pricing.walk_in_price)
+                            price = Decimal(str(t.pricing.walk_in_price))
                     except Exception:
-                        price = 0
+                        price = Decimal('0.00')
                     subtotal += price
                     invoice_items.append({
                         "item_type": "TEST",
@@ -372,11 +373,11 @@ class PortalBookAppointmentAPIView(APIView):
                 for p in packages:
                     try:
                         if collection_type == "HOME":
-                            price = float(p.pricing.home_collection_price)
+                            price = Decimal(str(p.pricing.home_collection_price))
                         else:
-                            price = float(p.pricing.walk_in_price)
+                            price = Decimal(str(p.pricing.walk_in_price))
                     except Exception:
-                        price = 0
+                        price = Decimal('0.00')
                     subtotal += price
                     invoice_items.append({
                         "item_type": "PACKAGE",
@@ -393,10 +394,10 @@ class PortalBookAppointmentAPIView(APIView):
                     visit=visit,
                     payment_preference=payment_preference,
                     subtotal=subtotal,
-                    discount=0,
+                    discount=Decimal('0.00'),
                     total_amount=subtotal,
-                    amount_paid=subtotal if is_paid_now else 0,
-                    balance_due=0 if is_paid_now else subtotal,
+                    amount_paid=subtotal if is_paid_now else Decimal('0.00'),
+                    balance_due=Decimal('0.00') if is_paid_now else subtotal,
                     status=Invoice.Status.PAID if is_paid_now else Invoice.Status.UNPAID,
                 )
 
@@ -408,7 +409,7 @@ class PortalBookAppointmentAPIView(APIView):
                         item_name=item["item_name"],
                         quantity=1,
                         unit_price=item["unit_price"],
-                        discount=0,
+                        discount=Decimal('0.00'),
                         line_total=item["line_total"],
                     )
 
