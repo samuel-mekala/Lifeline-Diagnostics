@@ -299,6 +299,9 @@ class PortalBookAppointmentAPIView(APIView):
                         Q(test_id=tid) | Q(test_id=padded_tid), is_active=True
                     ).first()
 
+                    if not t and ("002" in tid or "ESR" in str(tid).upper()):
+                        t = LaboratoryTest.objects.filter(name__icontains="ESR", is_active=True).first()
+
                     if not t:
                         catalog_map = {
                             "TES-001": ("Erythrocyte Sedimentation Rate (ESR)", "HEMATOLOGY", "BLOOD") if "002" in tid or "002" in padded_tid else ("Complete Blood Picture (CBC)", "HEMATOLOGY", "BLOOD"),
@@ -1027,11 +1030,23 @@ class PortalStaffCollectSampleAPIView(APIView):
                 items = InvoiceItem.objects.filter(invoice=invoice)
                 tests = []
                 for item in items:
-                    # Try to find by test_id or by name
-                    test = LaboratoryTest.objects.filter(test_id=item.item_id, is_active=True).first()
+                    padded_id = item.item_id
+                    if item.item_id.startswith("TES-") and len(item.item_id) < 10:
+                        try:
+                            num = int(item.item_id.replace("TES-", ""))
+                            padded_id = f"TES-{num:06d}"
+                        except ValueError:
+                            pass
+
+                    # Try to find by exact test_id, padded test_id, or name
+                    test = LaboratoryTest.objects.filter(
+                        Q(test_id=item.item_id) | Q(test_id=padded_id) | Q(name__iexact=item.item_name), is_active=True
+                    ).first()
+                    if not test and "ESR" in item.item_name.upper():
+                        test = LaboratoryTest.objects.filter(name__icontains="ESR", is_active=True).first()
                     if not test:
                         test = LaboratoryTest.objects.filter(name__icontains=item.item_name.split("(")[0].strip(), is_active=True).first()
-                    if test:
+                    if test and test not in tests:
                         tests.append(test)
 
                     # If it's a package, expand to individual tests
