@@ -435,7 +435,7 @@ class PortalBookAppointmentAPIView(APIView):
                 "invoice_id": invoice.invoice_id,
                 "total_amount": float(invoice.total_amount),
                 "payment_status": invoice.status,
-                "scheduled_for": appointment.scheduled_for,
+                "scheduled_for": appointment.scheduled_for.isoformat(),
                 "status": appointment.status,
                 "message": "Appointment booked successfully!",
             }, status=status.HTTP_201_CREATED)
