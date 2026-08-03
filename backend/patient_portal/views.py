@@ -1053,8 +1053,54 @@ class PortalStaffWalkInRegisterAPIView(APIView):
                 remarks=f"Walk-in visit {vis_id_str} registered by reception."
             )
 
+            # 5. Auto-create Sample & OrderedTest records for the visit
+            from laboratory.models import Sample, OrderedTest, LaboratoryTest
+            primary_stype = tests_list[0].get("sample_type", "BLOOD") if tests_list else "BLOOD"
+            sample_id_str = generate_business_id(Sample, "sample_id", "SMP-")
+            sample_obj = Sample.objects.create(
+                sample_id=sample_id_str,
+                visit=visit,
+                sample_type=primary_stype,
+                status="COLLECTED",
+                collected_by=request.user if hasattr(request, 'user') and request.user.is_authenticated else None,
+                collected_at=timezone.now(),
+            )
+
+            for t in tests_list:
+                tid = t.get("test_id", "TES-000001")
+                padded_tid = tid
+                if tid.startswith("TES-") and len(tid) < 10:
+                    try:
+                        num = int(tid.replace("TES-", ""))
+                        padded_tid = f"TES-{num:06d}"
+                    except ValueError:
+                        pass
+
+                test_obj = LaboratoryTest.objects.filter(
+                    Q(test_id=tid) | Q(test_id=padded_tid) | Q(name__iexact=t.get("name", "")), is_active=True
+                ).first()
+
+                if not test_obj:
+                    test_obj = LaboratoryTest.objects.create(
+                        test_id=padded_tid,
+                        name=t.get("name", "Diagnostic Test"),
+                        category=t.get("category", "HEMATOLOGY").upper(),
+                        sample_type=primary_stype,
+                        is_active=True,
+                    )
+
+                order_id_str = generate_business_id(OrderedTest, "order_id", "ORD-")
+                OrderedTest.objects.create(
+                    order_id=order_id_str,
+                    visit=visit,
+                    laboratory_test=test_obj,
+                    sample=sample_obj,
+                    status="SAMPLE_COLLECTED",
+                )
+
             return Response({
                 "success": True,
+                "appointment_id": str(appointment.id),
                 "patient_id": patient.patient_id,
                 "patient_name": patient.full_name,
                 "visit_id": visit.visit_id,
