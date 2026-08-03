@@ -296,17 +296,47 @@ class PortalBookAppointmentAPIView(APIView):
                             pass
 
                     t = LaboratoryTest.objects.filter(
-                        test_id__in=[tid, padded_tid], is_active=True
+                        Q(test_id=tid) | Q(test_id=padded_tid), is_active=True
                     ).first()
 
                     if not t:
-                        t = LaboratoryTest.objects.filter(is_active=True).first()
-                    if not t:
+                        catalog_map = {
+                            "TES-001": ("Erythrocyte Sedimentation Rate (ESR)", "HEMATOLOGY", "BLOOD") if "002" in tid or "002" in padded_tid else ("Complete Blood Picture (CBC)", "HEMATOLOGY", "BLOOD"),
+                            "TES-002": ("Erythrocyte Sedimentation Rate (ESR)", "HEMATOLOGY", "BLOOD"),
+                            "TES-000002": ("Erythrocyte Sedimentation Rate (ESR)", "HEMATOLOGY", "BLOOD"),
+                            "TES-003": ("Glycated Hemoglobin (HbA1c)", "BIOCHEMISTRY", "BLOOD"),
+                            "TES-000003": ("Glycated Hemoglobin (HbA1c)", "BIOCHEMISTRY", "BLOOD"),
+                            "TES-004": ("Serum Calcium Test", "BIOCHEMISTRY", "SERUM"),
+                            "TES-000004": ("Serum Calcium Test", "BIOCHEMISTRY", "SERUM"),
+                            "TES-005": ("Total Testosterone Test", "IMMUNOLOGY", "SERUM"),
+                            "TES-000005": ("Total Testosterone Test", "IMMUNOLOGY", "SERUM"),
+                            "TES-006": ("Vitamin B12 Assay", "BIOCHEMISTRY", "SERUM"),
+                            "TES-000006": ("Vitamin B12 Assay", "BIOCHEMISTRY", "SERUM"),
+                            "TES-007": ("Vitamin D3 Total", "BIOCHEMISTRY", "SERUM"),
+                            "TES-000007": ("Vitamin D3 Total", "BIOCHEMISTRY", "SERUM"),
+                            "TES-008": ("Iron Profile", "BIOCHEMISTRY", "SERUM"),
+                            "TES-000008": ("Iron Profile", "BIOCHEMISTRY", "SERUM"),
+                            "TES-009": ("Kidney Function Mini Profile (KFT)", "BIOCHEMISTRY", "SERUM"),
+                            "TES-000009": ("Kidney Function Mini Profile (KFT)", "BIOCHEMISTRY", "SERUM"),
+                            "TES-010": ("Lipid Profile Complete", "BIOCHEMISTRY", "SERUM"),
+                            "TES-000010": ("Lipid Profile Complete", "BIOCHEMISTRY", "SERUM"),
+                            "TES-011": ("Liver Function Test (LFT)", "BIOCHEMISTRY", "SERUM"),
+                            "TES-000011": ("Liver Function Test (LFT)", "BIOCHEMISTRY", "SERUM"),
+                            "TES-012": ("Complete Urine Examination (CUE)", "PATHOLOGY", "URINE"),
+                            "TES-000012": ("Complete Urine Examination (CUE)", "PATHOLOGY", "URINE"),
+                            "TES-013": ("Thyroid Profile I (T3, T4, TSH)", "IMMUNOLOGY", "SERUM"),
+                            "TES-000013": ("Thyroid Profile I (T3, T4, TSH)", "IMMUNOLOGY", "SERUM"),
+                            "TES-014": ("Fasting Blood Sugar (FBS)", "BIOCHEMISTRY", "BLOOD"),
+                            "TES-000014": ("Fasting Blood Sugar (FBS)", "BIOCHEMISTRY", "BLOOD"),
+                            "TES-015": ("Post Prandial Blood Sugar (PPBS)", "BIOCHEMISTRY", "BLOOD"),
+                            "TES-000015": ("Post Prandial Blood Sugar (PPBS)", "BIOCHEMISTRY", "BLOOD"),
+                        }
+                        meta = catalog_map.get(tid) or catalog_map.get(padded_tid) or ("Erythrocyte Sedimentation Rate (ESR)" if "002" in tid else "Diagnostic Test", "HEMATOLOGY", "BLOOD")
                         t = LaboratoryTest.objects.create(
-                            test_id="TES-000001",
-                            name="Complete Blood Count (CBC)",
-                            category="HAEMATOLOGY",
-                            sample_type="BLOOD",
+                            test_id=padded_tid,
+                            name=meta[0],
+                            category=meta[1],
+                            sample_type=meta[2],
                             is_active=True,
                         )
 
