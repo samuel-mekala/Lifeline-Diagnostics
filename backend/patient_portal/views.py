@@ -1149,7 +1149,64 @@ class PortalStaffGetTestParametersAPIView(APIView):
         result = []
         for ot in ordered_tests:
             test = ot.laboratory_test
-            params = TestParameter.objects.filter(laboratory_test=test, is_active=True).order_by("display_order")
+            params = list(TestParameter.objects.filter(laboratory_test=test, is_active=True).order_by("display_order"))
+
+            if not params:
+                # Auto-seed standard NABL clinical parameters for this test
+                name_upper = test.name.upper()
+                seed_list = []
+                if "ESR" in name_upper or "ERYTHROCYTE" in name_upper:
+                    seed_list = [{"name": "ESR (Westergren Method)", "unit": "mm/hr", "reference_range": "0 - 15"}]
+                elif "CBC" in name_upper or "BLOOD COUNT" in name_upper or "HAEMATOLOGY" in name_upper:
+                    seed_list = [
+                        {"name": "Hemoglobin", "unit": "g/dL", "reference_range": "13.5 - 17.5"},
+                        {"name": "WBC Total Count", "unit": "/mcL", "reference_range": "4000 - 11000"},
+                        {"name": "Platelet Count", "unit": "Lakhs/µL", "reference_range": "1.5 - 4.5"},
+                        {"name": "RBC Total Count", "unit": "M/µL", "reference_range": "4.5 - 5.9"},
+                    ]
+                elif "LIPID" in name_upper or "CHOLESTEROL" in name_upper:
+                    seed_list = [
+                        {"name": "Total Cholesterol", "unit": "mg/dL", "reference_range": "120 - 200"},
+                        {"name": "Triglycerides", "unit": "mg/dL", "reference_range": "50 - 150"},
+                        {"name": "HDL Cholesterol", "unit": "mg/dL", "reference_range": "40 - 60"},
+                        {"name": "LDL Cholesterol", "unit": "mg/dL", "reference_range": "60 - 100"},
+                    ]
+                elif "LIVER" in name_upper or "LFT" in name_upper:
+                    seed_list = [
+                        {"name": "SGOT (AST)", "unit": "U/L", "reference_range": "10 - 40"},
+                        {"name": "SGPT (ALT)", "unit": "U/L", "reference_range": "7 - 56"},
+                        {"name": "Total Bilirubin", "unit": "mg/dL", "reference_range": "0.2 - 1.2"},
+                        {"name": "Alkaline Phosphatase", "unit": "U/L", "reference_range": "44 - 147"},
+                    ]
+                elif "THYROID" in name_upper or "TSH" in name_upper:
+                    seed_list = [
+                        {"name": "TSH (Serum)", "unit": "µIU/mL", "reference_range": "0.4 - 4.2"},
+                        {"name": "Total T3", "unit": "ng/dL", "reference_range": "80 - 200"},
+                        {"name": "Total T4", "unit": "µg/dL", "reference_range": "5.1 - 14.1"},
+                    ]
+                elif "KIDNEY" in name_upper or "KFT" in name_upper or "RENAL" in name_upper:
+                    seed_list = [
+                        {"name": "Serum Creatinine", "unit": "mg/dL", "reference_range": "0.7 - 1.3"},
+                        {"name": "Blood Urea", "unit": "mg/dL", "reference_range": "7 - 20"},
+                        {"name": "Uric Acid", "unit": "mg/dL", "reference_range": "3.5 - 7.2"},
+                    ]
+                else:
+                    seed_list = [
+                        {"name": f"{test.name} Result Value", "unit": "mg/dL", "reference_range": "Normal Adult Range"},
+                    ]
+
+                for order_idx, s in enumerate(seed_list, start=1):
+                    param_obj = TestParameter.objects.create(
+                        parameter_id=generate_business_id(TestParameter, "parameter_id", "PRM-"),
+                        laboratory_test=test,
+                        name=s["name"],
+                        unit=s["unit"],
+                        reference_range=s["reference_range"],
+                        display_order=order_idx,
+                        is_active=True,
+                    )
+                    params.append(param_obj)
+
             result.append({
                 "ordered_test_id": ot.order_id,
                 "ordered_test_uuid": str(ot.id),
