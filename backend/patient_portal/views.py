@@ -293,13 +293,13 @@ class PortalBookAppointmentAPIView(APIView):
                         except ValueError:
                             pass
 
-                    t = LaboratoryTest.objects.select_related("pricing").filter(
+                    t = LaboratoryTest.objects.filter(
                         test_id__in=[tid, padded_tid], is_active=True
                     ).first()
 
                     if not t:
                         # Fallback: search by first active test
-                        t = LaboratoryTest.objects.select_related("pricing").filter(is_active=True).first()
+                        t = LaboratoryTest.objects.filter(is_active=True).first()
 
                     if t:
                         tests.append(t)
@@ -308,7 +308,6 @@ class PortalBookAppointmentAPIView(APIView):
 
                 packages = []
                 for pid in package_ids:
-                    # Normalize PKG-001 -> PKG-000001
                     padded_pid = pid
                     if pid.startswith("PKG-") and len(pid) < 10:
                         try:
@@ -319,12 +318,9 @@ class PortalBookAppointmentAPIView(APIView):
 
                     p = Package.objects.filter(package_id__in=[pid, padded_pid], is_active=True).first()
                     if not p:
-                        # Fallback: search by name or first package
                         p = Package.objects.filter(is_active=True).first()
                     if p:
                         packages.append(p)
-                    else:
-                        return Response({"error": f"Package '{pid}' not found."}, status=status.HTTP_400_BAD_REQUEST)
 
                 # 3. Create Appointment
                 appointment = Appointment.objects.create(
@@ -354,13 +350,15 @@ class PortalBookAppointmentAPIView(APIView):
                 invoice_items = []
 
                 for t in tests:
+                    price = Decimal('100.00')
                     try:
-                        if collection_type == "HOME":
-                            price = Decimal(str(t.pricing.home_collection_price))
-                        else:
-                            price = Decimal(str(t.pricing.walk_in_price))
+                        if hasattr(t, 'pricing') and t.pricing:
+                            if collection_type == "HOME":
+                                price = Decimal(str(t.pricing.home_collection_price))
+                            else:
+                                price = Decimal(str(t.pricing.walk_in_price))
                     except Exception:
-                        price = Decimal('0.00')
+                        pass
                     subtotal += price
                     invoice_items.append({
                         "item_type": "TEST",
@@ -371,13 +369,15 @@ class PortalBookAppointmentAPIView(APIView):
                     })
 
                 for p in packages:
+                    price = Decimal('499.00')
                     try:
-                        if collection_type == "HOME":
-                            price = Decimal(str(p.pricing.home_collection_price))
-                        else:
-                            price = Decimal(str(p.pricing.walk_in_price))
+                        if hasattr(p, 'pricing') and p.pricing:
+                            if collection_type == "HOME":
+                                price = Decimal(str(p.pricing.home_collection_price))
+                            else:
+                                price = Decimal(str(p.pricing.walk_in_price))
                     except Exception:
-                        price = Decimal('0.00')
+                        pass
                     subtotal += price
                     invoice_items.append({
                         "item_type": "PACKAGE",
