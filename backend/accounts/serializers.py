@@ -46,7 +46,26 @@ class LifelineTokenObtainPairSerializer(TokenObtainPairSerializer):
             self.user = user
             refresh = self.get_token(user)
             from patients.models import Patient
+            from common.services.id_generator import generate_business_id
             patient = Patient.objects.filter(Q(linked_user=user) | Q(email__iexact=user.email)).first()
+            if not patient and user.role == 'PATIENT':
+                try:
+                    pat_id_str = generate_business_id(Patient, "patient_id", "PAT-")
+                    patient = Patient.objects.create(
+                        patient_id=pat_id_str,
+                        linked_user=user,
+                        full_name=user.full_name or user.email.split('@')[0].capitalize(),
+                        email=user.email,
+                        gender="M",
+                        phone="+91 96033 48519",
+                        address="Vijayawada, Andhra Pradesh",
+                    )
+                except Exception:
+                    pass
+            elif patient and not patient.linked_user:
+                patient.linked_user = user
+                patient.save(update_fields=['linked_user'])
+
             patient_id = patient.patient_id if patient else ""
 
             return {
