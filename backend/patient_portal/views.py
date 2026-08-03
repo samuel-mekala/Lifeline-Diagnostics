@@ -1370,27 +1370,27 @@ class PortalStaffGetTestParametersAPIView(APIView):
                     )
                     params.append(param_obj)
 
-                param_list = []
-                res_obj = Result.objects.filter(ordered_test=ot).first()
-                for p in params:
-                    entered_val = ""
-                    flag_val = "NORMAL"
-                    if res_obj:
-                        rp = ResultParameter.objects.filter(result=res_obj, test_parameter=p).first()
-                        if rp:
-                            entered_val = rp.value
-                            flag_val = rp.flag or "NORMAL"
-                    param_list.append({
-                        "id": str(p.id),
-                        "parameter_id": p.parameter_id,
-                        "name": p.name,
-                        "unit": p.unit,
-                        "reference_range": p.reference_range,
-                        "display_order": p.display_order,
-                        "value": entered_val,
-                        "result": entered_val,
-                        "flag": flag_val,
-                    })
+            param_list = []
+            res_obj = Result.objects.filter(ordered_test=ot).first()
+            for p in params:
+                entered_val = ""
+                flag_val = "NORMAL"
+                if res_obj:
+                    rp = ResultParameter.objects.filter(result=res_obj, test_parameter=p).first()
+                    if rp:
+                        entered_val = rp.value
+                        flag_val = rp.flag or "NORMAL"
+                param_list.append({
+                    "id": str(p.id),
+                    "parameter_id": p.parameter_id,
+                    "name": p.name,
+                    "unit": p.unit,
+                    "reference_range": p.reference_range,
+                    "display_order": p.display_order,
+                    "value": entered_val,
+                    "result": entered_val,
+                    "flag": flag_val,
+                })
 
             result.append({
                 "ordered_test_id": ot.order_id,
