@@ -37,13 +37,34 @@ import uuid as uuid_module
 
 
 def get_patient_for_user(user):
-    """Get the primary Patient record linked to the logged-in user."""
+    """Get the primary Patient record linked to the logged-in user or auto-create one if missing."""
     p = Patient.objects.filter(linked_user=user).first()
     if not p and user.email:
         p = Patient.objects.filter(email__iexact=user.email).first()
+        if p and not p.linked_user:
+            p.linked_user = user
+            p.save(update_fields=['linked_user'])
     if not p and user.email:
         name_part = user.email.split("@")[0]
         p = Patient.objects.filter(full_name__icontains=name_part).first()
+        if p and not p.linked_user:
+            p.linked_user = user
+            p.save(update_fields=['linked_user'])
+    if not p:
+        try:
+            patient_id_str = generate_business_id(Patient, "patient_id", "PAT-")
+            user_name = getattr(user, 'full_name', '') or user.email.split('@')[0].capitalize()
+            p = Patient.objects.create(
+                patient_id=patient_id_str,
+                linked_user=user,
+                full_name=user_name,
+                email=user.email,
+                gender="M",
+                phone="+91 96033 48519",
+                address="Vijayawada, Andhra Pradesh",
+            )
+        except Exception:
+            p = None
     return p
 
 
